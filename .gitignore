@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ImGUI debug result
+imgui.ini
+
+# Include all assets
+!assets/**
