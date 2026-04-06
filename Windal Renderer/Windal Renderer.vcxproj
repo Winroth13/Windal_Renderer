@@ -23,6 +23,7 @@
     <ClInclude Include="include\core\engine.h" />
     <ClInclude Include="include\core\entity.h" />
     <ClInclude Include="include\core\imguiwindow.h" />
+    <ClInclude Include="include\core\ref.h" />
     <ClInclude Include="include\core\renderer.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\transform.h" />

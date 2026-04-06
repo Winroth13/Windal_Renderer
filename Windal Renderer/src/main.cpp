@@ -30,27 +30,32 @@ public:
 		{
 			if (ImGui::BeginMenu("View"))
 			{
-				bool temp = false;
-				ImGui::Checkbox("Scene Hierarchy", &temp);
+				ImGui::Checkbox("Scene Hierarchy", &mShowHierarchy);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
 		}
 
-		ImGui::Begin("Scene Hierarchy");
-
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_DefaultOpen;
-		if (ImGui::TreeNodeEx("Scene", flags))
+		if (mShowHierarchy)
 		{
-			for (auto& entity : mScene->GetEntities())
-			{
-				entity->RenderImgui();
-			}
-			ImGui::TreePop();
-		}
+			ImGui::Begin("Scene Hierarchy");
 
-		ImGui::End();
+			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_DefaultOpen;
+			if (ImGui::TreeNodeEx("Scene", flags))
+			{
+				for (auto& entity : mScene->GetEntities())
+				{
+					entity->RenderImgui();
+				}
+				ImGui::TreePop();
+			}
+
+			ImGui::End();
+		}
 	};
+
+private:
+	bool mShowHierarchy = true;
 };
 
 App* CreateApp()
