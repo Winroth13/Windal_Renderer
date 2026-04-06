@@ -365,5 +365,8 @@ FodyWeavers.xsd
 # ImGUI debug result
 imgui.ini
 
+# Device specific compilation of shaders
+*.cso
+
 # Include all assets
 !assets/**
