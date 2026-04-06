@@ -25,9 +25,11 @@
     <ClInclude Include="include\core\imguiwindow.h" />
     <ClInclude Include="include\core\logger.h" />
     <ClInclude Include="include\core\renderer.h" />
+    <ClInclude Include="include\core\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\transform.h" />
     <ClInclude Include="include\core\window.h" />
+    <ClInclude Include="include\graphics\materials\material.h" />
     <ClInclude Include="include\graphics\shaders\pixelshader.h" />
     <ClInclude Include="include\graphics\shaders\shader.h" />
     <ClInclude Include="include\graphics\textures\imagetexture2d.h" />
@@ -51,9 +53,11 @@
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\logger.cpp" />
     <ClCompile Include="src\core\renderer.cpp" />
+    <ClCompile Include="src\core\renderserver.cpp" />
     <ClCompile Include="src\core\scene.cpp" />
     <ClCompile Include="src\core\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
+    <ClCompile Include="src\graphics\materials\material.cpp" />
     <ClCompile Include="src\graphics\shaders\pixelshader.cpp" />
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\shaders\vertexshader.cpp" />
@@ -69,7 +73,6 @@
     <ClCompile Include="vendor\stbImage\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="include\NewFolder" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

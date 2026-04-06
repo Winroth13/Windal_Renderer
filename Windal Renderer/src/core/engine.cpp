@@ -66,8 +66,8 @@ void Engine::Render()
 {
 	mRenderer.BeginRender();
 
-	mApp->Render();
-	mScene.Render();
+	mApp->Render(mRenderer.GetRenderServer());
+	mScene.Render(mRenderer.GetRenderServer());
 
 	mWindow.BeginImguiRender();
 	mApp->ImguiRender();

@@ -31,6 +31,12 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 
 	mWindow = window;
 
+	if (mRenderServer.Create(this) == false)
+	{
+		Logger::Error("Renderer failed to create RenderServer");
+		return false;
+	}
+
 	/* Create Interface */
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -145,13 +151,90 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 		mViewport.MaxDepth = 1;
 	}
 
+	/* Create Constant Buffers */
+	{
+		/* Per Frame */
+		{
+			PerFrameBuffer perFrameBuffer = {};
+			D3D11_BUFFER_DESC perFrameBufferDesc = {};
+			perFrameBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			perFrameBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			perFrameBufferDesc.CPUAccessFlags = 0;
+			perFrameBufferDesc.MiscFlags = 0;
+			perFrameBufferDesc.ByteWidth = sizeof(perFrameBuffer);
+			perFrameBufferDesc.StructureByteStride = 0;
+
+			D3D11_SUBRESOURCE_DATA csd = {};
+			csd.pSysMem = &perFrameBuffer;
+
+			HRESULT hr = mDevice->CreateBuffer(&perFrameBufferDesc, &csd, &mPerFrameBuffer);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create per frame buffer");
+				return false;
+			}
+		}
+
+		/* Per Object */
+		{
+			PerObject perObjectBuffer = {};
+			D3D11_BUFFER_DESC perObjectBufferDesc = {};
+			perObjectBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			perObjectBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			perObjectBufferDesc.CPUAccessFlags = 0;
+			perObjectBufferDesc.MiscFlags = 0;
+			perObjectBufferDesc.ByteWidth = sizeof(perObjectBuffer);
+			perObjectBufferDesc.StructureByteStride = 0;
+
+			D3D11_SUBRESOURCE_DATA csd = {};
+			csd.pSysMem = &perObjectBuffer;
+
+			HRESULT hr = mDevice->CreateBuffer(&perObjectBufferDesc, &csd, &mPerObjectBuffer);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create per object buffer");
+				return false;
+			}
+		}
+
+		/* Per View */
+		{
+			PerViewBuffer perViewBuffer = {};
+			D3D11_BUFFER_DESC perViewBufferDesc = {};
+			perViewBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			perViewBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			perViewBufferDesc.CPUAccessFlags = 0;
+			perViewBufferDesc.MiscFlags = 0;
+			perViewBufferDesc.ByteWidth = sizeof(perViewBuffer);
+			perViewBufferDesc.StructureByteStride = 0;
+
+			D3D11_SUBRESOURCE_DATA csd = {};
+			csd.pSysMem = &perViewBuffer;
+
+			HRESULT hr = mDevice->CreateBuffer(&perViewBufferDesc, &csd, &mPerViewBuffer);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create per view buffer");
+				return false;
+			}
+		}
+	}
+
 	return true;
 }
 
 void Renderer::Shutdown()
 {
+	mPerViewBuffer->Release();
+	mPerObjectBuffer->Release();
+	mPerFrameBuffer->Release();
+
 	mDepthStencilView->Release();
 	mDepthStencilTexture->Release();
+
 	mRenderTargetView->Release();
 	mSwapChain->Release();
 	mImmediateContext->Release();
@@ -174,9 +257,44 @@ void Renderer::BeginRender()
 
 	mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
 	mImmediateContext->RSSetViewports(1, &mViewport);
+
+	UpdatePerFrameBuffer();
+	mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+	mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+
+	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
+	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
 }
 
 void Renderer::EndRender()
 {
 	mSwapChain->Present(1, 0);
+}
+
+void Renderer::UpdatePerFrameBuffer()
+{
+	PerFrameBuffer perFrameBuffer = {};
+	perFrameBuffer.ambientColor = { 1.0f, 1.0f, 1.0f };
+	perFrameBuffer.sunDirection = { 0.0f, 1.0f, 0.0f };
+	perFrameBuffer.sunColor = { 1.0f, 1.0f, 1.0f };
+	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
+}
+
+void Renderer::UpdatePerViewBuffer(
+	const DirectX::XMVECTOR& cameraPos,
+	const DirectX::XMMATRIX& viewProj
+)
+{
+	PerViewBuffer perViewBuffer = {};
+	perViewBuffer.cameraPos = cameraPos;
+	perViewBuffer.viewProj = viewProj;
+	mImmediateContext->UpdateSubresource(mPerViewBuffer, 0, NULL, &perViewBuffer, 0, 0);
+}
+
+void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX& world)
+{
+	PerObject perObjectBuffer = {};
+	perObjectBuffer.world = DirectX::XMMatrixTranspose(world);
+	perObjectBuffer.worldInverseTranspose = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, world));
+	mImmediateContext->UpdateSubresource(mPerObjectBuffer, 0, NULL, &perObjectBuffer, 0, 0);
 }

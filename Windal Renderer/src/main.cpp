@@ -31,7 +31,7 @@ public:
 	{
 	};
 
-	void Render() override
+	void Render(RenderServer& renderServer) override
 	{
 	};
 

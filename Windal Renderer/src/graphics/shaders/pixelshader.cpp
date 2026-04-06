@@ -24,9 +24,9 @@ PixelShader::PixelShader(const std::string& path)
 	Logger::Info("Loaded pixel shader: " + path);
 }
 
-void PixelShader::Bind(ID3D11DeviceContext& context)
+void PixelShader::Bind(RenderServer* renderServer)
 {
-	context.PSSetShader(mPixelShader, nullptr, 0);
+	renderServer->GetContext()->PSSetShader(mPixelShader, nullptr, 0);
 }
 
 PixelShader::~PixelShader()

@@ -7,12 +7,11 @@
 VertexShader::VertexShader(const std::string& path)
 	:mVertexShader(nullptr)
 {
-	std::string shaderByteCode;
-	LoadShaderData(path, shaderByteCode);
+	LoadShaderData(path, mByteCode);
 
 	HRESULT hr = Renderer::GetDevice()->CreateVertexShader(
-		shaderByteCode.c_str(),
-		shaderByteCode.length(),
+		mByteCode.c_str(),
+		mByteCode.length(),
 		nullptr,
 		&mVertexShader
 	);
@@ -26,9 +25,9 @@ VertexShader::VertexShader(const std::string& path)
 	Logger::Info("Loaded vertex shader: " + path);
 }
 
-void VertexShader::Bind(ID3D11DeviceContext& context)
+void VertexShader::Bind(RenderServer* renderServer)
 {
-	context.VSSetShader(mVertexShader, nullptr, 0);
+	renderServer->GetContext()->VSSetShader(mVertexShader, nullptr, 0);
 }
 
 VertexShader::~VertexShader()

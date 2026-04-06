@@ -8,11 +8,11 @@ void Scene::Update(float delta)
 	}
 }
 
-void Scene::Render()
+void Scene::Render(RenderServer& renderServer)
 {
 	for (std::unique_ptr<Entity>& e : mEntities)
 	{
-		e->Render();
+		e->Render(renderServer);
 	}
 }
 

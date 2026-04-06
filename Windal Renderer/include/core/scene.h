@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
 #include <vector>
+
 #include "core/entity.h"
+#include "core/renderserver.h"
 
 class Scene
 {
@@ -10,7 +12,7 @@ public:
     ~Scene() {};
 
     void Update(float delta);
-    void Render();
+    void Render(RenderServer& renderServer);
     void Shutdown();
 
     template<typename T, typename... Args>

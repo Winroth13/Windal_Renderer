@@ -11,11 +11,11 @@ void Entity::Update(float delta)
 	UpdateSelf(delta);
 }
 
-void Entity::Render()
+void Entity::Render(RenderServer& renderServer)
 {
 	if (IsVisible())
 	{
-		RenderSelf();
+		RenderSelf(renderServer);
 	}
 }
 
