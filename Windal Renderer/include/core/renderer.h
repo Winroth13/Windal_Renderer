@@ -16,14 +16,15 @@ public:
 	void BeginRender();
 	void EndRender();
 
-	ID3D11Device* GetDevice() { return mDevice; }
+	static ID3D11Device* GetDevice() { return Renderer::mDevice; }
+
 	ID3D11DeviceContext* GetContext() { return mImmediateContext; }
 
 private:
 	std::array<float, 4> mClearColor;
 	Window* mWindow;
 
-	ID3D11Device* mDevice;
+	static ID3D11Device* mDevice;
 	ID3D11DeviceContext* mImmediateContext;
 
 	IDXGISwapChain* mSwapChain;

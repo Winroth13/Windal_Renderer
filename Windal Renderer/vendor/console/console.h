@@ -1,7 +1,7 @@
 /*
 *  Solution for creating, deleting and connecting standard io
 *  to a console while using /SUBSYSTEM:Windows.
-* 
+*
 *  Found on stack overflow:
 *  https://stackoverflow.com/questions/191842/how-do-i-get-console-output-in-c-with-a-windows-program
 */

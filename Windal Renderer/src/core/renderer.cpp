@@ -1,21 +1,22 @@
 #include "core/renderer.h"
 #include <iostream>
+#include "core/logger.h"
 
 Renderer::Renderer() :
-	mDevice(nullptr),
 	mImmediateContext(nullptr),
 	mSwapChain(nullptr),
 	mRenderTargetView(nullptr),
 	mDepthStencilTexture(nullptr),
 	mDepthStencilView(nullptr),
-    mWindow(nullptr),
-    mClearColor({0,0,0,255})
+	mWindow(nullptr),
+	mClearColor({ 0,0,0,255 })
 {
 }
 
+ID3D11Device* Renderer::mDevice = nullptr;
+
 Renderer::~Renderer()
 {
-
 }
 
 bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
@@ -24,7 +25,7 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 
 	if (window == nullptr)
 	{
-		std::cerr << "ERROR: Renderer was given an invalid window" << std::endl;
+		Logger::Error("Renderer was given an invalid window");
 		return false;
 	}
 
@@ -68,13 +69,16 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			D3D11_SDK_VERSION,
 			&swapChainDesc,
 			&mSwapChain,
-			&mDevice,
+			&Renderer::mDevice,
 			nullptr,
 			&mImmediateContext
 		);
 
 		if (FAILED(hr))
+		{
+			Logger::Error("Failed to create device and swapchain");
 			return false;
+		}
 	}
 
 	/* Create Render Target View */
@@ -83,6 +87,7 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 		if (
 			FAILED(mSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer))))
 		{
+			Logger::Error("Failed to create render target");
 			return false;
 		}
 
@@ -90,7 +95,10 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 		backBuffer->Release();
 
 		if (FAILED(hr))
+		{
+			Logger::Error("Failed to create render target view");
 			return false;
+		}
 	}
 
 	/* Create Depth Stencil	*/
@@ -110,6 +118,7 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 
 		if (FAILED(mDevice->CreateTexture2D(&textureDesc, nullptr, &mDepthStencilTexture)))
 		{
+			Logger::Error("Failed to create depth stencil");
 			return false;
 		}
 
@@ -120,7 +129,10 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 		);
 
 		if (FAILED(hr))
+		{
+			Logger::Error("Failed to create depth stencil view");
 			return false;
+		}
 	}
 
 	/* Set Viewport */
@@ -148,19 +160,19 @@ void Renderer::Shutdown()
 
 void Renderer::BeginRender()
 {
-    mImmediateContext->ClearRenderTargetView(
-		mRenderTargetView, 
+	mImmediateContext->ClearRenderTargetView(
+		mRenderTargetView,
 		mClearColor.data()
 	);
 
-    mImmediateContext->ClearDepthStencilView(
+	mImmediateContext->ClearDepthStencilView(
 		mDepthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1,
 		0
 	);
 
-    mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
+	mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
 	mImmediateContext->RSSetViewports(1, &mViewport);
 }
 

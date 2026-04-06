@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
+// Keeps the console open after closing the application
+#define KEEP_CONSOLE 0
+
 struct WindowProps
 {
 	std::string title;
@@ -44,6 +47,8 @@ int APIENTRY wWinMain(
 	delete engine;
 	delete app;
 
+	if (KEEP_CONSOLE)
+		PauseConsole();
 	ReleaseConsole();
 
 	return 0;

@@ -9,7 +9,7 @@ class App
 {
 public:
 	App() {};
-	~App() {};
+	virtual ~App() {};
 
 	virtual void Initialize() = 0;
 	virtual void Shutdown() = 0;

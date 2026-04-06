@@ -1,5 +1,6 @@
 #include "core/window.h"
 #include "core/engine.h"
+#include "core/logger.h"
 
 Window::Window()
 	:m_hInstance(GetModuleHandle(nullptr)), mWindow(nullptr)
@@ -20,7 +21,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	{
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
-		break;
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -65,6 +66,7 @@ bool Window::Create(const std::string title, const int width, const int height)
 
 	if (mWindow == nullptr)
 	{
+		Logger::Error("Failed to create window");
 		return false;
 	}
 
@@ -75,6 +77,12 @@ bool Window::Create(const std::string title, const int width, const int height)
 
 bool Window::CreateImguiWindow(Renderer* renderer)
 {
+	if (renderer == nullptr)
+	{
+		Logger::Error("Failed to create ImguiWindow because renderer was invalid");
+		return false;
+	}
+
 	bool result = mImguiWindow.Create(this, renderer);
 	sImguiWindow = &mImguiWindow;
 

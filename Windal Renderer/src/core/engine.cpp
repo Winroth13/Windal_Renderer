@@ -1,4 +1,5 @@
 #include "core/engine.h"
+#include "core/logger.h"
 
 void Engine::Run(App* app, const std::string& title, const int width, const int height)
 {
@@ -18,6 +19,7 @@ void Engine::Run(App* app, const std::string& title, const int width, const int 
 
 void Engine::Shutdown()
 {
+	mScene.Shutdown();
 	mApp->Shutdown();
 	mRenderer.Shutdown();
 	mWindow.Shutdown();
@@ -27,19 +29,19 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 {
 	if (mWindow.Create(title, width, height) == false)
 	{
-		std::cerr << "ERROR: Failed to create window" << std::endl;
+		Logger::Error("Failed to create window");
 		return false;
 	}
 
 	if (mRenderer.Create({ 0.082f, 0.769f, 0.996f, 0.0f }, &mWindow) == false)
 	{
-		std::cerr << "ERROR: Failed to create renderer" << std::endl;
+		Logger::Error("Failed to create renderer");
 		return false;
 	}
 
 	if (mWindow.CreateImguiWindow(&mRenderer) == false)
 	{
-		std::cerr << "ERROR: Failed to imgui window" << std::endl;
+		Logger::Error("Failed to imgui window");
 		return false;
 	}
 

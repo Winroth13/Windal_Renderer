@@ -1,6 +1,7 @@
 #include "core/imguiwindow.h"
 #include "core/window.h"
 #include "core/renderer.h"
+#include "core/logger.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
@@ -12,13 +13,13 @@ bool ImguiWindow::Create(Window* window, Renderer* renderer)
 {
 	if (window == nullptr)
 	{
-		std::cerr << "ERROR: ImguiWindow was given an invalid window" << std::endl;
+		Logger::Error("ImguiWindow was given an invalid window");
 		return false;
 	}
 
 	if (renderer == nullptr)
 	{
-		std::cerr << "ERROR: ImguiWindow was given an invalid window" << std::endl;
+		Logger::Error("ImguiWindow was given an invalid renderer");
 		return false;
 	}
 
