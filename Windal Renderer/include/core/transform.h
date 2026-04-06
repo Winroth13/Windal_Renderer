@@ -4,8 +4,8 @@
 class Transform
 {
 public:
-	Transform();
-	~Transform();
+	Transform() {};
+	~Transform() {};
 
 	// Get/Set tranmsform world position
 	DirectX::XMVECTOR GetPosition() const;

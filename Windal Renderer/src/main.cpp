@@ -1,5 +1,4 @@
 #include "main.h"
-
 #include "imgui/imgui.h"
 
 class TestApp : public App
@@ -7,13 +6,17 @@ class TestApp : public App
 public:
 	void Initialize() override
 	{
+		auto& entity1 = mScene->CreateEntity<Entity>("Hello World!");
+		auto& entity2 = mScene->CreateEntity<Entity>("Hello World 2!");
+
+		entity2.Attach(&entity1);
 	};
 
 	void Shutdown() override
 	{
 	};
 
-	void Update() override
+	void Update(float delta) override
 	{
 	};
 
@@ -34,7 +37,19 @@ public:
 			ImGui::EndMainMenuBar();
 		}
 
-		ImGui::ShowMetricsWindow();
+		ImGui::Begin("Scene Hierarchy");
+
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_DefaultOpen;
+		if (ImGui::TreeNodeEx("Scene", flags))
+		{
+			for (auto& entity : mScene->GetEntities())
+			{
+				entity->RenderImgui();
+			}
+			ImGui::TreePop();
+		}
+
+		ImGui::End();
 	};
 };
 

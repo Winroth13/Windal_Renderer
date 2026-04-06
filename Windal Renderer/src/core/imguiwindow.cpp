@@ -6,8 +6,22 @@
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx11.h"
 
+#include <iostream>
+
 bool ImguiWindow::Create(Window* window, Renderer* renderer)
 {
+	if (window == nullptr)
+	{
+		std::cerr << "ERROR: ImguiWindow was given an invalid window" << std::endl;
+		return false;
+	}
+
+	if (renderer == nullptr)
+	{
+		std::cerr << "ERROR: ImguiWindow was given an invalid window" << std::endl;
+		return false;
+	}
+
 	IMGUI_CHECKVERSION();
 
 	ImGui::CreateContext();

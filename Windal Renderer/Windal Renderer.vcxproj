@@ -41,8 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\engine.cpp" />
+    <ClCompile Include="src\core\entity.cpp" />
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\renderer.cpp" />
+    <ClCompile Include="src\core\scene.cpp" />
     <ClCompile Include="src\core\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\main.cpp" />

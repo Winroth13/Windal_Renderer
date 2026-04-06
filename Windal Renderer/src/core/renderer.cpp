@@ -1,4 +1,5 @@
 #include "core/renderer.h"
+#include <iostream>
 
 Renderer::Renderer() :
 	mDevice(nullptr),
@@ -20,6 +21,13 @@ Renderer::~Renderer()
 bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 {
 	mClearColor = clearColor;
+
+	if (window == nullptr)
+	{
+		std::cerr << "ERROR: Renderer was given an invalid window" << std::endl;
+		return false;
+	}
+
 	mWindow = window;
 
 	/* Create Interface */

@@ -3,12 +3,13 @@
 void Engine::Run(App* app, const std::string& title, const int width, const int height)
 {
 	mApp = app;
+	mApp->SetScene(&mScene);
 
 	if (Initialize(title, width, height))
 	{
 		while (mIsRunning)
 		{
-			Update();
+			Update(1);
 			Render();
 		}
 	}
@@ -48,14 +49,15 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 	return true;
 }
 
-void Engine::Update()
+void Engine::Update(float delta)
 {
 	if (!mWindow.PollEvents())
 	{
 		mIsRunning = false;
 	}
 
-	mApp->Update();
+	mScene.Update(delta);
+	mApp->Update(delta);
 }
 
 void Engine::Render()
@@ -63,6 +65,7 @@ void Engine::Render()
 	mRenderer.BeginRender();
 
 	mApp->Render();
+	mScene.Render();
 
 	mWindow.BeginImguiRender();
 	mApp->ImguiRender();

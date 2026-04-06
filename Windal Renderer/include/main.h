@@ -7,6 +7,11 @@
 #include "core/app.h"
 #include "core/engine.h"
 
+// Memory leak debugging
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 struct WindowProps
 {
 	std::string title;
@@ -24,6 +29,10 @@ int APIENTRY wWinMain(
 	_In_ int nCmdShow
 )
 {
+	// Memory leak debugging on program exit
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
 	CreateNewConsole(1024);
 
 	App* app = CreateApp();
