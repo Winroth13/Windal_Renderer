@@ -8,20 +8,21 @@
 
 struct PerFrameBuffer
 {
-	DirectX::XMVECTOR sunDirection;
-	DirectX::XMVECTOR sunColor;
-	DirectX::XMVECTOR ambientColor;
+	DirectX::XMFLOAT3 sunDirection;
+	DirectX::XMFLOAT3 sunColor;
+	DirectX::XMFLOAT3 ambientColor;
+	DirectX::XMFLOAT3 pad;
 };
 
 struct PerViewBuffer
 {
 	DirectX::XMMATRIX viewProj;
-	DirectX::XMVECTOR cameraPos;
+	DirectX::XMFLOAT3 cameraPos;
+	float pad;
 };
 
 struct PerObject
 {
-	DirectX::XMMATRIX worldViewProj;
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX worldInverseTranspose;
 };
@@ -38,14 +39,14 @@ public:
 	void BeginRender();
 	void EndRender();
 
-	static ID3D11Device* GetDevice() { return Renderer::mDevice; }
+	static ID3D11Device* GetDevice() { return Renderer::sDevice; }
 	ID3D11DeviceContext* GetContext() { return mImmediateContext; }
 	RenderServer& GetRenderServer() { return mRenderServer; }
 
 	void UpdatePerFrameBuffer();
 	void UpdatePerViewBuffer(
-		const DirectX::XMVECTOR& cameraPos,
-		const DirectX::XMMATRIX& viewProj
+		const DirectX::XMMATRIX& viewProj,
+		const DirectX::XMFLOAT3& cameraPos
 	);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX& world);
 
@@ -53,7 +54,7 @@ private:
 	std::array<float, 4> mClearColor;
 	Window* mWindow;
 
-	static ID3D11Device* mDevice;
+	static ID3D11Device* sDevice;
 	ID3D11DeviceContext* mImmediateContext;
 
 	IDXGISwapChain* mSwapChain;

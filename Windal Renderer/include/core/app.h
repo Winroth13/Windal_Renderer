@@ -1,4 +1,6 @@
 #pragma once
+#define NOMINMAX
+
 #include <Windows.h>
 #include <iostream>
 
@@ -22,5 +24,5 @@ public:
 	void SetScene(Scene* scene) { mScene = scene; }
 
 protected:
-	Scene* mScene;
+	Scene* mScene = nullptr;
 };

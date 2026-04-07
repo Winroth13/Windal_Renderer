@@ -1,5 +1,6 @@
-#include "core/entity.h"
+#include "core/entities/entity.h"
 #include "imgui/imgui.h"
+#include "core/imguiflags.h"
 
 Entity::Entity(const std::string& name)
 {
@@ -21,7 +22,7 @@ void Entity::Render(RenderServer& renderServer)
 
 void Entity::RenderImgui()
 {
-	if (ImGui::TreeNodeEx(mName.c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes))
+	if (ImGui::TreeNodeEx(mName.c_str(), TREE_NODE_FLAGS))
 	{
 		ImGui::Text("Transform");
 		DirectX::XMFLOAT3 position = transform.GetPosition3f();
@@ -51,7 +52,7 @@ void Entity::RenderImgui()
 		{
 			ImGui::Text("Attached to: None");
 		}
-		
+
 		RenderImguiSelf();
 
 		ImGui::TreePop();

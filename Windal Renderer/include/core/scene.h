@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 
-#include "core/entity.h"
+#include "core/entities/entity.h"
 #include "core/renderserver.h"
 
 class Scene

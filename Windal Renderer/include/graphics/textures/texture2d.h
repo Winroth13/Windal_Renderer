@@ -1,4 +1,6 @@
 #pragma once
+#include "core/renderserver.h"
+
 #include <string>
 #include <iostream>
 #include <d3d11.h>
@@ -10,15 +12,17 @@ public:
 	virtual ~Texture2D();
 
 	char* LoadImageData(
-		const std::string& path, 
-		int& width, 
-		int& height, 
-		int& channels, 
+		const std::string& path,
+		int& width,
+		int& height,
+		int& channels,
 		int desiredChannels = 4
 	);
 
-	inline ID3D11ShaderResourceView* GetSRV() { return mShaderResourceView; }
-	inline ID3D11SamplerState* GetSamplerState() { return mSamplerState; }
+	ID3D11ShaderResourceView* GetSRV() { return mShaderResourceView; }
+	ID3D11SamplerState* GetSamplerState() { return mSamplerState; }
+
+	void Bind(RenderServer& renderServer, uint32_t slot);
 
 	virtual void RenderImgui(const uint32_t width, const uint32_t height) = 0;
 

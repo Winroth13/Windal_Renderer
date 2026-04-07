@@ -6,17 +6,18 @@
 
 #include <DirectXMath.h>
 #include <d3d11.h>
+#include <array>
 
 class Material
 {
 private:
 	struct PerMaterial
 	{
+		DirectX::XMFLOAT3 ambientCoefficient;
+		DirectX::XMFLOAT3 diffuseCoefficient;
+		DirectX::XMFLOAT3 specularCoefficient;
 		float phongExponent;
-		float reflectivity;
-		DirectX::XMVECTOR ambientCoefficient;
-		DirectX::XMVECTOR diffuseCoefficient;
-		DirectX::XMVECTOR specularCoefficient;
+		DirectX::XMFLOAT2 pad;
 	};
 
 public:
@@ -27,8 +28,9 @@ public:
 	);
 	virtual ~Material();
 
-	void Bind(RenderServer* renderServer);
-	
+	void Bind(RenderServer& renderServer);
+	void Unbind(RenderServer& renderServer);
+
 	inline std::shared_ptr<VertexShader> GetVertexShader() { return mVertexShader; }
 	inline std::shared_ptr<PixelShader> GetPixelShader() { return mPixelShader; }
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
@@ -39,6 +41,10 @@ public:
 	void SetDiffuseCoefficient(const float r, const float g, const float b);
 	void SetSpecularCoefficient(const float r, const float g, const float b);
 	void SetPhongExponent(const float phongExponent);
+
+	void UpdateBuffer(RenderServer& renderServer);
+
+	void RenderImgui();
 
 	inline DirectX::XMVECTOR GetAmbientCoefficient() { return DirectX::XMLoadFloat3(&mAmbientCoefficient); }
 	inline DirectX::XMVECTOR GetDiffuseCoefficient() { return DirectX::XMLoadFloat3(&mDiffuseCoefficient); }
@@ -51,6 +57,7 @@ public:
 	inline float& GetPhongExponent() { return mPhongExponent; }
 
 private:
+	bool mIsDirty = true;
 	float mPhongExponent = 8;
 	DirectX::XMFLOAT3 mAmbientCoefficient = { 1, 1, 1 };
 	DirectX::XMFLOAT3 mDiffuseCoefficient = { 1, 1, 1 };
@@ -59,5 +66,7 @@ private:
 	std::shared_ptr<VertexShader> mVertexShader;
 	std::shared_ptr<PixelShader> mPixelShader;
 	std::shared_ptr<Texture2D> mTexture;
-	ID3D11InputLayout* mInputLayout;
+
+	ID3D11InputLayout* mInputLayout = nullptr;
+	ID3D11Buffer* mBuffer = nullptr;
 };

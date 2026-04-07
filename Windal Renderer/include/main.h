@@ -1,4 +1,7 @@
 #pragma once
+// Prevent Windows from defining min and max macros, required when using both Windows.h and DirectXMesh.h
+#define NOMINMAX
+
 #include <iostream>
 #include <Windows.h>
 #include <string>
@@ -13,7 +16,7 @@
 #include <crtdbg.h>
 
 // Keeps the console open after closing the application
-#define KEEP_CONSOLE 0
+#define KEEP_CONSOLE false
 
 struct WindowProps
 {

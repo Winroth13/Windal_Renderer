@@ -2,6 +2,8 @@
 #include <iostream>
 #include "core/logger.h"
 
+#include <DirectXMath.h>
+
 Renderer::Renderer() :
 	mImmediateContext(nullptr),
 	mSwapChain(nullptr),
@@ -9,11 +11,15 @@ Renderer::Renderer() :
 	mDepthStencilTexture(nullptr),
 	mDepthStencilView(nullptr),
 	mWindow(nullptr),
-	mClearColor({ 0,0,0,255 })
+	mClearColor({ 0,0,0,255 }),
+	mPerFrameBuffer(nullptr),
+	mPerObjectBuffer(nullptr),
+	mPerViewBuffer(nullptr),
+	mViewport({})
 {
 }
 
-ID3D11Device* Renderer::mDevice = nullptr;
+ID3D11Device* Renderer::sDevice = nullptr;
 
 Renderer::~Renderer()
 {
@@ -75,7 +81,7 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			D3D11_SDK_VERSION,
 			&swapChainDesc,
 			&mSwapChain,
-			&Renderer::mDevice,
+			&Renderer::sDevice,
 			nullptr,
 			&mImmediateContext
 		);
@@ -97,7 +103,7 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			return false;
 		}
 
-		HRESULT hr = mDevice->CreateRenderTargetView(backBuffer, nullptr, &mRenderTargetView);
+		HRESULT hr = sDevice->CreateRenderTargetView(backBuffer, nullptr, &mRenderTargetView);
 		backBuffer->Release();
 
 		if (FAILED(hr))
@@ -122,13 +128,13 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 		textureDesc.CPUAccessFlags = 0;
 		textureDesc.MiscFlags = 0;
 
-		if (FAILED(mDevice->CreateTexture2D(&textureDesc, nullptr, &mDepthStencilTexture)))
+		if (FAILED(sDevice->CreateTexture2D(&textureDesc, nullptr, &mDepthStencilTexture)))
 		{
 			Logger::Error("Failed to create depth stencil");
 			return false;
 		}
 
-		HRESULT hr = mDevice->CreateDepthStencilView(
+		HRESULT hr = sDevice->CreateDepthStencilView(
 			mDepthStencilTexture,
 			nullptr,
 			&mDepthStencilView
@@ -164,10 +170,10 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			perFrameBufferDesc.ByteWidth = sizeof(perFrameBuffer);
 			perFrameBufferDesc.StructureByteStride = 0;
 
-			D3D11_SUBRESOURCE_DATA csd = {};
-			csd.pSysMem = &perFrameBuffer;
+			D3D11_SUBRESOURCE_DATA data = {};
+			data.pSysMem = &perFrameBuffer;
 
-			HRESULT hr = mDevice->CreateBuffer(&perFrameBufferDesc, &csd, &mPerFrameBuffer);
+			HRESULT hr = sDevice->CreateBuffer(&perFrameBufferDesc, &data, &mPerFrameBuffer);
 
 			if (FAILED(hr))
 			{
@@ -187,10 +193,10 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			perObjectBufferDesc.ByteWidth = sizeof(perObjectBuffer);
 			perObjectBufferDesc.StructureByteStride = 0;
 
-			D3D11_SUBRESOURCE_DATA csd = {};
-			csd.pSysMem = &perObjectBuffer;
+			D3D11_SUBRESOURCE_DATA data = {};
+			data.pSysMem = &perObjectBuffer;
 
-			HRESULT hr = mDevice->CreateBuffer(&perObjectBufferDesc, &csd, &mPerObjectBuffer);
+			HRESULT hr = sDevice->CreateBuffer(&perObjectBufferDesc, &data, &mPerObjectBuffer);
 
 			if (FAILED(hr))
 			{
@@ -210,10 +216,10 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 			perViewBufferDesc.ByteWidth = sizeof(perViewBuffer);
 			perViewBufferDesc.StructureByteStride = 0;
 
-			D3D11_SUBRESOURCE_DATA csd = {};
-			csd.pSysMem = &perViewBuffer;
+			D3D11_SUBRESOURCE_DATA data = {};
+			data.pSysMem = &perViewBuffer;
 
-			HRESULT hr = mDevice->CreateBuffer(&perViewBufferDesc, &csd, &mPerViewBuffer);
+			HRESULT hr = sDevice->CreateBuffer(&perViewBufferDesc, &data, &mPerViewBuffer);
 
 			if (FAILED(hr))
 			{
@@ -228,17 +234,32 @@ bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
 
 void Renderer::Shutdown()
 {
-	mPerViewBuffer->Release();
-	mPerObjectBuffer->Release();
-	mPerFrameBuffer->Release();
+	if (mPerViewBuffer != nullptr)
+		mPerViewBuffer->Release();
 
-	mDepthStencilView->Release();
-	mDepthStencilTexture->Release();
+	if (mPerObjectBuffer != nullptr)
+		mPerObjectBuffer->Release();
 
-	mRenderTargetView->Release();
-	mSwapChain->Release();
-	mImmediateContext->Release();
-	mDevice->Release();
+	if (mPerFrameBuffer != nullptr)
+		mPerFrameBuffer->Release();
+
+	if (mDepthStencilView != nullptr)
+		mDepthStencilView->Release();
+
+	if (mDepthStencilTexture != nullptr)
+		mDepthStencilTexture->Release();
+
+	if (mRenderTargetView != nullptr)
+		mRenderTargetView->Release();
+
+	if (mSwapChain != nullptr)
+		mSwapChain->Release();
+
+	if (mImmediateContext != nullptr)
+		mImmediateContext->Release();
+
+	if (sDevice != nullptr)
+		sDevice->Release();
 }
 
 void Renderer::BeginRender()
@@ -262,6 +283,7 @@ void Renderer::BeginRender()
 	mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 	mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 
+	UpdatePerViewBuffer(DirectX::XMMatrixIdentity(), { 0,0,0 });
 	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
 }
@@ -281,8 +303,8 @@ void Renderer::UpdatePerFrameBuffer()
 }
 
 void Renderer::UpdatePerViewBuffer(
-	const DirectX::XMVECTOR& cameraPos,
-	const DirectX::XMMATRIX& viewProj
+	const DirectX::XMMATRIX& viewProj,
+	const DirectX::XMFLOAT3& cameraPos
 )
 {
 	PerViewBuffer perViewBuffer = {};

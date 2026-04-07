@@ -21,7 +21,9 @@
   <ItemGroup>
     <ClInclude Include="include\core\app.h" />
     <ClInclude Include="include\core\engine.h" />
-    <ClInclude Include="include\core\entity.h" />
+    <ClInclude Include="include\core\entities\entity.h" />
+    <ClInclude Include="include\core\entities\modelentity.h" />
+    <ClInclude Include="include\core\imguiflags.h" />
     <ClInclude Include="include\core\imguiwindow.h" />
     <ClInclude Include="include\core\logger.h" />
     <ClInclude Include="include\core\renderer.h" />
@@ -30,6 +32,10 @@
     <ClInclude Include="include\core\transform.h" />
     <ClInclude Include="include\core\window.h" />
     <ClInclude Include="include\graphics\materials\material.h" />
+    <ClInclude Include="include\graphics\meshes\mesh.h" />
+    <ClInclude Include="include\graphics\meshes\quadmesh.h" />
+    <ClInclude Include="include\graphics\models\model.h" />
+    <ClInclude Include="include\graphics\models\objmodel.h" />
     <ClInclude Include="include\graphics\shaders\pixelshader.h" />
     <ClInclude Include="include\graphics\shaders\shader.h" />
     <ClInclude Include="include\graphics\textures\imagetexture2d.h" />
@@ -49,7 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\engine.cpp" />
-    <ClCompile Include="src\core\entity.cpp" />
+    <ClCompile Include="src\core\entities\entity.cpp" />
+    <ClCompile Include="src\core\entities\modelentity.cpp" />
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\logger.cpp" />
     <ClCompile Include="src\core\renderer.cpp" />
@@ -58,6 +65,10 @@
     <ClCompile Include="src\core\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\graphics\materials\material.cpp" />
+    <ClCompile Include="src\graphics\meshes\mesh.cpp" />
+    <ClCompile Include="src\graphics\meshes\quadmesh.cpp" />
+    <ClCompile Include="src\graphics\models\model.cpp" />
+    <ClCompile Include="src\graphics\models\objmodel.cpp" />
     <ClCompile Include="src\graphics\shaders\pixelshader.cpp" />
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\shaders\vertexshader.cpp" />
@@ -77,6 +88,14 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="resources\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="resources\VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -172,7 +191,9 @@
     </Link>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)resources</AdditionalIncludeDirectories>
-      <VariableName>$(ProjectDir)resources</VariableName>
+      <VariableName>$(ProjectDir)</VariableName>
+      <ShaderModel>5.0</ShaderModel>
+      <ObjectFileOutput>$(ProjectDir)resources\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

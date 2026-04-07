@@ -3,7 +3,7 @@
 #include "core/logger.h"
 
 PixelShader::PixelShader(const std::string& path)
-	:mPixelShader(nullptr)
+	:mPixelShader(nullptr), Shader(path)
 {
 	std::string shaderByteCode;
 	LoadShaderData(path, shaderByteCode);
@@ -24,9 +24,14 @@ PixelShader::PixelShader(const std::string& path)
 	Logger::Info("Loaded pixel shader: " + path);
 }
 
-void PixelShader::Bind(RenderServer* renderServer)
+void PixelShader::Bind(RenderServer& renderServer)
 {
-	renderServer->GetContext()->PSSetShader(mPixelShader, nullptr, 0);
+	renderServer.GetContext()->PSSetShader(mPixelShader, nullptr, 0);
+}
+
+void PixelShader::Unbind(RenderServer& renderServer)
+{
+	renderServer.GetContext()->PSSetShader(nullptr, nullptr, 0);
 }
 
 PixelShader::~PixelShader()

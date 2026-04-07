@@ -19,3 +19,9 @@ ID3D11DeviceContext* RenderServer::GetContext()
 {
 	return mRenderer->GetContext();
 }
+
+void RenderServer::RenderIndexed(size_t numIndicies)
+{
+	GetContext()->DrawIndexed((UINT)numIndicies, 0, 0);
+	Logger::Info("Rendering entity");
+}

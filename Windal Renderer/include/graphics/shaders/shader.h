@@ -9,11 +9,16 @@
 class Shader
 {
 public:
-	Shader() = default;
+	Shader(const std::string& path);
 	virtual ~Shader() = default;
 
-	virtual void Bind(RenderServer* renderServer) {};
+	virtual void Bind(RenderServer& renderServer) = 0;
+	virtual void Unbind(RenderServer& renderServer) = 0;
+
+	const std::string& GetPath() { return mPath; }
 
 protected:
+	std::string mPath;
+
 	bool LoadShaderData(const std::string& path, std::string& data);
 };

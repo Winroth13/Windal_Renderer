@@ -22,5 +22,5 @@ private:
 	Renderer mRenderer;
 	Scene mScene;
 
-	App* mApp;
+	App* mApp = nullptr;
 };

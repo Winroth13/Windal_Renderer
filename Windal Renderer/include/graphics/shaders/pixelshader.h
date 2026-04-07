@@ -10,7 +10,8 @@ public:
 	PixelShader(const std::string& path);
 	~PixelShader() override;
 
-	void Bind(RenderServer* renderServer) override;
+	void Bind(RenderServer& renderServer) override;
+	void Unbind(RenderServer& renderServer) override;
 
 private:
 	ID3D11PixelShader* mPixelShader;

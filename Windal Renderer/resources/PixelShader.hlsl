@@ -7,49 +7,35 @@ struct PixelShaderInput
     float2 uv : UV;
 };
 
-// A directional light
-struct DirectionalLight
-{
-    float3 direction;
-    float pad0;
-    float3 colour;
-    float intensity;
-};
-
-// A point light
-struct PointLight
-{
-    float3 position;
-    float pad0;
-    float3 colour;
-    float intensity;
-};
-
-// Object light properties
-struct ObjectProperties
-{
-    float3 ambient;
-    float pad0;
-	float3 diffuse;
-    float pad1;
-    float3 specular;
-    int specularExp;
-};
-
 // Constant buffers
-cbuffer CameraBuffer : register(b0)
+cbuffer cbPerFrame : register(b0)
 {
-    float3 cameraPosition;
+    float3 sunDirection;
+    float3 sunColor;
+    float3 ambientColor;
+    float3 pad0;
 }
 
-cbuffer ObejctProperties : register(b1)
+cbuffer cbPerView : register(b1)
 {
-    ObjectProperties properties;
+    float4x4 viewProjMatrix;
+    float3 cameraPos;
+    float pad1;
 }
 
-cbuffer LightBuffer : register(b2)
+cbuffer cbPerObject : register(b2)
 {
-    PointLight lights[1];
+    float4x4 worldMatrix;
+    float4x4 worldInvTransposeMatrix;
+};
+
+cbuffer cbPerMaterial : register(b3)
+{
+    float3 ambientCoefficient;
+    float3 diffuseCoefficient;
+    float3 specularCoefficient;
+    float phongExponent;
+    float2 padding;
 }
 
 Texture2D textures : register(t0);
@@ -62,28 +48,29 @@ float4 main(PixelShaderInput input) : SV_TARGET
     // Normalized surface normal
     float3 normal = normalize(input.worldNormal);
     // Normalized light direction
-    float3 lightDir = normalize(input.worldPosition - lights[0].position);
+    float3 lightDir = normalize(-sunDirection);
     // Normalized view direction
-    float3 viewDir = normalize(input.worldPosition - cameraPosition);
+    float3 viewDir = normalize(input.worldPosition - cameraPos);
     
     // Sample textures
     float4 ambDifTexture = textures.Sample(samplerState, input.uv);
     
     // Coefficients and exponents
-    float3 cAmbient = properties.ambient * ambDifTexture.rgb;
-    float3 cDiffuse = properties.diffuse * ambDifTexture.rgb;
-    float3 cSpecular = properties.specular;
-    float specularExponent = properties.specularExp;
+    float3 cAmbient = ambientCoefficient * ambDifTexture.rgb;
+    float3 cDiffuse = diffuseCoefficient * ambDifTexture.rgb;
+    float3 cSpecular = specularCoefficient;
     
     // Light intensity
-    float3 lightIntensity = lights[0].colour * lights[0].intensity;
+    int intensity = 1;
+    float3 lightIntensity = sunColor * intensity;
     
     // Distance to light
-    float distance = length(input.worldPosition - lights[0].position);
-    float distance2 = distance * distance;
+    //float distance = length(input.worldPosition - lights[0].position);
+    //float distance2 = distance * distance;
+    float distance2 = 1;
     
     // Ambient light intensity
-    float3 iAmbient = { 0.1f, 0.1f, 0.1f };
+    float3 iAmbient = ambientColor;
     
     // Ambient light
     float3 ambientLight = cAmbient * iAmbient;
@@ -100,14 +87,14 @@ float4 main(PixelShaderInput input) : SV_TARGET
         // Blinn-Phong reflectance model
         float3 halfVect = normalize(-lightDir + -viewDir);
         float NdotH = dot(normal, halfVect);
-        specularIntensity = pow(saturate(NdotH), specularExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
+        specularIntensity = pow(saturate(NdotH), phongExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
     }
     else
     {
         // Blinn reflectance model
         float3 reflectVect = reflect(lightDir, normal);
         float RdotV = dot(reflectVect, -viewDir);
-        specularIntensity = pow(saturate(RdotV), specularExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
+        specularIntensity = pow(saturate(RdotV), phongExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
     }
     
     float3 specularLight = cSpecular * lightIntensity * specularIntensity / distance2;

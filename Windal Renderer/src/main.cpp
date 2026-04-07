@@ -1,30 +1,35 @@
 #include "main.h"
+#include "core/imguiflags.h"
 #include "imgui/imgui.h"
 
 #include "core/logger.h"
+
 #include "graphics/textures/imagetexture2d.h"
+#include "graphics/models/objmodel.h"
+
+#include "graphics/shaders/vertexshader.h"
+#include "graphics/shaders/pixelshader.h"
+#include "graphics/materials/material.h"
+
+#include "core/entities/modelentity.h"
 
 #include <memory>
 
 class TestApp : public App
 {
 public:
-	std::shared_ptr<ImageTexture2D> texture;
-
 	void Initialize() override
 	{
-		auto& entity1 = mScene->CreateEntity<Entity>("Hello World!");
-		auto& entity2 = mScene->CreateEntity<Entity>("Hello World 2!");
+		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
+		auto pShader = std::make_shared<PixelShader>("resources/PixelShader.cso");
+		auto model = std::make_shared<OBJModel>("assets/capsule/capsule.obj", vShader, pShader);
 
-		entity2.Attach(&entity1);
-
-		//texture = new ImageTexture2D("blabla.png");
-		texture = std::make_shared<ImageTexture2D>("blabla.png");
+		auto& entity = mScene->CreateEntity<ModelEntity>("Model 1", model);
+		entity.transform.SetPosition(0, 0, 10);
 	};
 
 	void Shutdown() override
 	{
-
 	};
 
 	void Update(float delta) override
@@ -51,8 +56,7 @@ public:
 		{
 			ImGui::Begin("Scene Hierarchy");
 
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_DefaultOpen;
-			if (ImGui::TreeNodeEx("Scene", flags))
+			if (ImGui::TreeNodeEx("Scene", TREE_NODE_FLAGS))
 			{
 				for (auto& entity : mScene->GetEntities())
 				{
@@ -63,10 +67,6 @@ public:
 
 			ImGui::End();
 		}
-
-		ImGui::Begin("Texture Preview");
-		texture->RenderImgui(256, 256);
-		ImGui::End();
 	};
 
 private:

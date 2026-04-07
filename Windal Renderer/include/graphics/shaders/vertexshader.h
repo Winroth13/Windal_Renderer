@@ -8,7 +8,8 @@ public:
 	VertexShader(const std::string& path);
 	~VertexShader() override;
 
-	void Bind(RenderServer* renderServer) override;
+	void Bind(RenderServer& renderServer) override;
+	void Unbind(RenderServer& renderServer) override;
 
 	const std::string& GetByteCode() { return mByteCode; }
 

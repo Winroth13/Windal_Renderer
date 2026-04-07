@@ -1,6 +1,8 @@
 #include "graphics/shaders/shader.h"
 #include "core/logger.h"
 
+Shader::Shader(const std::string& path) : mPath(path) {}
+
 bool Shader::LoadShaderData(const std::string& path, std::string& data)
 {
 	std::ifstream reader;
