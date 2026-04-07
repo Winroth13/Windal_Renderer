@@ -286,6 +286,9 @@ void Renderer::BeginRender()
 	UpdatePerViewBuffer(DirectX::XMMatrixIdentity(), { 0,0,0 });
 	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
+
+	mImmediateContext->VSSetConstantBuffers(2, 1, &mPerObjectBuffer);
+	mImmediateContext->PSSetConstantBuffers(2, 1, &mPerObjectBuffer);
 }
 
 void Renderer::EndRender()
