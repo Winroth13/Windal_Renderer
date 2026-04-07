@@ -286,9 +286,6 @@ void Renderer::BeginRender()
 	UpdatePerViewBuffer(DirectX::XMMatrixIdentity(), { 0,0,0 });
 	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
-
-	mImmediateContext->VSSetConstantBuffers(2, 1, &mPerObjectBuffer);
-	mImmediateContext->PSSetConstantBuffers(2, 1, &mPerObjectBuffer);
 }
 
 void Renderer::EndRender()
@@ -322,4 +319,7 @@ void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX& world)
 	perObjectBuffer.world = DirectX::XMMatrixTranspose(world);
 	perObjectBuffer.worldInverseTranspose = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, world));
 	mImmediateContext->UpdateSubresource(mPerObjectBuffer, 0, NULL, &perObjectBuffer, 0, 0);
+
+	mImmediateContext->VSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 }
