@@ -369,4 +369,4 @@ imgui.ini
 *.cso
 
 # Include all assets
-!assets/**
+!Windal Renderer/assets/**
