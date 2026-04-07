@@ -48,7 +48,7 @@ public:
 		const DirectX::XMMATRIX& viewProj,
 		const DirectX::XMFLOAT3& cameraPos
 	);
-	void UpdatePerObjectBuffer(const DirectX::XMMATRIX& world);
+	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
 
 private:
 	std::array<float, 4> mClearColor;

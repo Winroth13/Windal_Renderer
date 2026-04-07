@@ -313,7 +313,7 @@ void Renderer::UpdatePerViewBuffer(
 	mImmediateContext->UpdateSubresource(mPerViewBuffer, 0, NULL, &perViewBuffer, 0, 0);
 }
 
-void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX& world)
+void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
 {
 	PerObject perObjectBuffer = {};
 	perObjectBuffer.world = DirectX::XMMatrixTranspose(world);
