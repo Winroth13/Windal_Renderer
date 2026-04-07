@@ -20,6 +20,8 @@ public:
 	inline ID3D11ShaderResourceView* GetSRV() { return mShaderResourceView; }
 	inline ID3D11SamplerState* GetSamplerState() { return mSamplerState; }
 
+	virtual void RenderImgui(const uint32_t width, const uint32_t height) = 0;
+
 	virtual uint32_t GetWidth() = 0;
 	virtual uint32_t GetHeight() = 0;
 

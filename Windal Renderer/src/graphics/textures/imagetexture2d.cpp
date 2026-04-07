@@ -1,8 +1,9 @@
-#include "graphics/textures/imagetexture2d.h"
 #include "core/logger.h"
 #include "core/renderer.h"
+#include "graphics/textures/imagetexture2d.h"
 
 #include "stbImage/stb_image.h"
+#include "imgui/imgui.h"
 
 ImageTexture2D::ImageTexture2D(const std::string& path)
 {
@@ -19,8 +20,8 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	{
 		/* If texture couldn't be loaded, use error texture instead */
 		imageData = LoadImageData("resources/fallback.png", width, height, channels);
-
-		Logger::Warn("Using fallback, failed to load texture from path: " + path);
+		Logger::Warn("Failed to load texture from path: " + path + " (using fallback)");
+		mPath += " <ERROR>";
 	}
 
 	mWidth = width;
@@ -88,4 +89,13 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 ImageTexture2D::~ImageTexture2D()
 {
 	
+}
+
+void ImageTexture2D::RenderImgui(const uint32_t width, const uint32_t height)
+{
+	ImGui::Text("%s (%dx%d)", mPath.c_str(), mWidth, mHeight);
+	ImGui::Image(
+		(ImTextureID)(intptr_t)mShaderResourceView,
+		ImVec2(static_cast<float>(width), static_cast<float>(height))
+	);
 }

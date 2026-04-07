@@ -65,11 +65,7 @@ public:
 		}
 
 		ImGui::Begin("Texture Preview");
-		ImGui::Text(texture->GetPath().c_str());
-		ImGui::Image(
-			(ImTextureID)(intptr_t)texture->GetSRV(),
-			ImVec2(256, 256)
-		);
+		texture->RenderImgui(256, 256);
 		ImGui::End();
 	};
 

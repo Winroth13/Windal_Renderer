@@ -8,6 +8,8 @@ public:
 	ImageTexture2D(const std::string& path);
 	~ImageTexture2D() override;
 
+	void RenderImgui(const uint32_t width, const uint32_t height) override;
+
 	uint32_t GetWidth() override { return mWidth; }
 	uint32_t GetHeight() override { return mHeight; }
 	inline const std::string& GetPath() const { return mPath; }
