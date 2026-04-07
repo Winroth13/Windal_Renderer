@@ -1,6 +1,10 @@
 #pragma once
+#include <memory>
 
 class Renderer;
+class Model;
+class Transform;
+
 struct ID3D11DeviceContext;
 
 enum ConstantBufferType
@@ -19,7 +23,8 @@ public:
 
 	bool Create(Renderer* renderer);
 	ID3D11DeviceContext* GetContext();
-	void RenderIndexed(size_t numIndicies);
+
+	void RenderModel(std::shared_ptr<Model> model, Transform& transform);
 
 private:
 	Renderer* mRenderer = nullptr;

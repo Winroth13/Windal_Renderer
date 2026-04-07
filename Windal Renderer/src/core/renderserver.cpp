@@ -4,6 +4,9 @@
 #include <iostream>
 #include <d3d11.h>
 
+#include "graphics/models/model.h"
+#include "core/transform.h"
+
 bool RenderServer::Create(Renderer* renderer)
 {
 	mRenderer = renderer;
@@ -20,8 +23,9 @@ ID3D11DeviceContext* RenderServer::GetContext()
 	return mRenderer->GetContext();
 }
 
-void RenderServer::RenderIndexed(size_t numIndicies)
+void RenderServer::RenderModel(std::shared_ptr<Model> model, Transform& transform)
 {
-	GetContext()->DrawIndexed((UINT)numIndicies, 0, 0);
-	Logger::Info("Rendering entity");
+	model->Bind(*this);
+	mRenderer->UpdatePerObjectBuffer(transform.GetMatrix());
+	GetContext()->DrawIndexed((UINT)model->GetNumIndicies(), 0, 0);
 }

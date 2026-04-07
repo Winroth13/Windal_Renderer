@@ -167,7 +167,7 @@ void Transform::LookAt(const Transform& target)
 }
 
 // Get matrix
-DirectX::XMMATRIX Transform::GetMatrix()
+const DirectX::XMMATRIX& Transform::GetMatrix()
 {
 	if (mIsDirty)
 	{
@@ -181,7 +181,7 @@ DirectX::XMMATRIX Transform::GetMatrix()
 	return XMLoadFloat4x4(&mMatrix);
 }
 
-DirectX::XMFLOAT4X4 Transform::GetMatrixf()
+const DirectX::XMFLOAT4X4& Transform::GetMatrixf()
 {
 	if (mIsDirty)
 	{

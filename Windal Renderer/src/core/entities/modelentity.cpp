@@ -18,9 +18,7 @@ void ModelEntity::UpdateSelf(float delta)
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
-	Logger::Info("Rendering Model Entity");
-	mModel->Bind(renderServer);
-	renderServer.RenderIndexed(mModel->GetNumIndicies());
+	renderServer.RenderModel(mModel, transform);
 }
 
 void ModelEntity::RenderImguiSelf()
