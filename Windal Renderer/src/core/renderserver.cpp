@@ -29,3 +29,8 @@ void RenderServer::RenderModel(std::shared_ptr<Model> model, Transform& transfor
 	mRenderer->UpdatePerObjectBuffer(transform.GetMatrix());
 	GetContext()->DrawIndexed((UINT)model->GetNumIndicies(), 0, 0);
 }
+
+void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
+{
+	mRenderer->UpdatePerViewBuffer(viewProj, cameraPos);
+}

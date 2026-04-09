@@ -50,7 +50,7 @@ VertexShaderOutput main(VertexShaderInput input)
 { 
     VertexShaderOutput output;
     
-    float4 worldPos = mul(worldMatrix, float4(input.position, 1.0f));
+    float4 worldPos = mul(float4(input.position.xyz, 1.0f), worldMatrix);
     float4 clipPos = mul(viewProjMatrix, worldPos);
 
     output.clipPosition = clipPos;

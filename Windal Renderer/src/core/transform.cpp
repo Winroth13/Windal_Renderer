@@ -8,7 +8,7 @@ XMVECTOR Transform::GetPosition() const
 	return XMLoadFloat3(&mPosition);
 }
 
-XMFLOAT3 Transform::GetPosition3f() const
+XMFLOAT3 Transform::GetPosition3f()
 {
 	return mPosition;
 }
@@ -80,7 +80,7 @@ XMVECTOR Transform::GetRightDir() const
 	return right;
 }
 
-XMFLOAT3 Transform::GetRightDir3f() const
+XMFLOAT3 Transform::GetRightDir3f()
 {
 	XMFLOAT3 right;
 	XMStoreFloat3(&right, GetRightDir());
@@ -95,7 +95,7 @@ XMVECTOR Transform::GetUpDir() const
 	return up;
 }
 
-XMFLOAT3 Transform::GetUpDir3f() const
+XMFLOAT3 Transform::GetUpDir3f()
 {
 	XMFLOAT3 up;
 	XMStoreFloat3(&up, GetUpDir());
@@ -110,7 +110,7 @@ XMVECTOR Transform::GetForwardDir() const
 	return forward;
 }
 
-XMFLOAT3 Transform::GetForwardDir3f() const
+XMFLOAT3 Transform::GetForwardDir3f()
 {
 	XMFLOAT3 forward;
 	XMStoreFloat3(&forward, GetForwardDir());
@@ -172,10 +172,11 @@ const DirectX::XMMATRIX& Transform::GetMatrix()
 	if (mIsDirty)
 	{
 		XMMATRIX newMatrix = DirectX::XMMatrixIdentity();
-		newMatrix *= DirectX::XMMatrixScaling(mScale.x, mScale.y, mScale.z);
 		newMatrix *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
+		newMatrix *= DirectX::XMMatrixScaling(mScale.x, mScale.y, mScale.z);
 		newMatrix *= DirectX::XMMatrixTranslation(mPosition.x, mPosition.y, mPosition.z);
 		XMStoreFloat4x4(&mMatrix, newMatrix);
+		mIsDirty = false;
 	}
 
 	return XMLoadFloat4x4(&mMatrix);
@@ -186,10 +187,11 @@ const DirectX::XMFLOAT4X4& Transform::GetMatrixf()
 	if (mIsDirty)
 	{
 		XMMATRIX newMatrix = DirectX::XMMatrixIdentity();
-		newMatrix *= DirectX::XMMatrixScaling(mScale.x, mScale.y, mScale.z);
 		newMatrix *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
+		newMatrix *= DirectX::XMMatrixScaling(mScale.x, mScale.y, mScale.z);
 		newMatrix *= DirectX::XMMatrixTranslation(mPosition.x, mPosition.y, mPosition.z);
 		XMStoreFloat4x4(&mMatrix, newMatrix);
+		mIsDirty = false;
 	}
 
 	return mMatrix;

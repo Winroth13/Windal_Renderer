@@ -8,7 +8,7 @@ void Engine::Run(App* app, const std::string& title, const int width, const int 
 
 	if (Initialize(title, width, height))
 	{
-		while (mIsRunning)
+		while (mApp->IsRunning())
 		{
 			Update(1);
 			Render();
@@ -45,7 +45,6 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 		return false;
 	}
 
-	mIsRunning = true;
 	mApp->Initialize();
 
 	return true;
@@ -55,7 +54,7 @@ void Engine::Update(float delta)
 {
 	if (!mWindow.PollEvents())
 	{
-		mIsRunning = false;
+		mApp->Quit();
 	}
 
 	mScene.Update(delta);

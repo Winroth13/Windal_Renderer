@@ -14,6 +14,7 @@ ModelEntity::~ModelEntity() {}
 
 void ModelEntity::UpdateSelf(float delta)
 {
+	
 }
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)

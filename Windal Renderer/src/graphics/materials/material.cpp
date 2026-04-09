@@ -157,20 +157,20 @@ void Material::RenderImgui()
 
 	if (ImGui::TreeNodeEx("Light Parameters", TREE_NODE_FLAGS))
 	{
-		if (ImGui::DragFloat3("Ambient", &mAmbientCoefficient.x, 0.01f))
+		if (ImGui::DragFloat3("Ambient", &mAmbientCoefficient.x, 0.01f, 0.0))
 		{
 			mIsDirty = true;
 		}
-		if (ImGui::DragFloat3("Diffuse", &mDiffuseCoefficient.x, 0.01f))
+		if (ImGui::DragFloat3("Diffuse", &mDiffuseCoefficient.x, 0.01f, 0.0))
 		{
 			mIsDirty = true;
 		}
-		if (ImGui::DragFloat3("Specular", &mSpecularCoefficient.x, 0.01f))
+		if (ImGui::DragFloat3("Specular", &mSpecularCoefficient.x, 0.01f, 0.0))
 		{
 			mIsDirty = true;
 		}
 
-		if (ImGui::DragFloat("Phong Exponent", &mPhongExponent))
+		if (ImGui::DragFloat("Phong Exponent", &mPhongExponent, 1, 0.0))
 		{
 			mIsDirty = true;
 		}

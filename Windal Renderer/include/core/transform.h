@@ -9,7 +9,7 @@ public:
 
 	// Get/Set tranmsform world position
 	DirectX::XMVECTOR GetPosition() const;
-	DirectX::XMFLOAT3 GetPosition3f() const;
+	DirectX::XMFLOAT3 GetPosition3f();
 	void SetPosition(float x, float y, float z);
 	void SetPosition(const DirectX::XMFLOAT3& position);
 
@@ -27,11 +27,11 @@ public:
 
 	// Get transform basis vectors
 	DirectX::XMVECTOR GetRightDir() const;
-	DirectX::XMFLOAT3 GetRightDir3f() const;
+	DirectX::XMFLOAT3 GetRightDir3f();
 	DirectX::XMVECTOR GetUpDir() const;
-	DirectX::XMFLOAT3 GetUpDir3f() const;
+	DirectX::XMFLOAT3 GetUpDir3f();
 	DirectX::XMVECTOR GetForwardDir() const;
-	DirectX::XMFLOAT3 GetForwardDir3f() const;
+	DirectX::XMFLOAT3 GetForwardDir3f();
 
 	// Define transform space via LookAt parameters
 	void LookAt(

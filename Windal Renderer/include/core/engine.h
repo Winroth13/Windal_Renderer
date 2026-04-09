@@ -16,8 +16,6 @@ private:
 	void Render();
 
 private:
-	bool mIsRunning = false;
-
 	Window mWindow;
 	Renderer mRenderer;
 	Scene mScene;

@@ -12,12 +12,16 @@
 #include "graphics/materials/material.h"
 
 #include "core/entities/modelentity.h"
+#include "core/entities/cameraentity.h"
 
 #include <memory>
 
 class TestApp : public App
 {
 public:
+	std::unique_ptr<Entity>* inspectorEntity = nullptr;
+	Entity* cameraEntity;
+
 	void Initialize() override
 	{
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
@@ -25,7 +29,9 @@ public:
 		auto model = std::make_shared<OBJModel>("assets/capsule/capsule.obj", vShader, pShader);
 
 		auto& entity = mScene->CreateEntity<ModelEntity>("Model 1", model);
-		entity.transform.SetPosition(0, 0, 10);
+		entity.transform.SetPosition(0, 0, 3);
+
+		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
 	};
 
 	void Shutdown() override
@@ -34,6 +40,30 @@ public:
 
 	void Update(float delta) override
 	{
+		/* Camera Movement	*/
+
+		const float SPEED = 0.01f;
+		const float TURN_SPEED = 0.01f;
+
+		/* Movement */
+		if (GetAsyncKeyState('W') & 0x8000)
+			cameraEntity->transform.MoveForward(SPEED * delta);
+		if (GetAsyncKeyState('S') & 0x8000)
+			cameraEntity->transform.MoveForward(-SPEED * delta);
+		if (GetAsyncKeyState('A') & 0x8000)
+			cameraEntity->transform.MoveRight(-SPEED * delta);
+		if (GetAsyncKeyState('D') & 0x8000)
+			cameraEntity->transform.MoveRight(SPEED * delta);
+
+		/* Rotation */
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+			cameraEntity->transform.RotateY(-TURN_SPEED * delta);
+		if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+			cameraEntity->transform.RotateY(TURN_SPEED * delta);
+		if (GetAsyncKeyState(VK_UP) & 0x8000)
+			cameraEntity->transform.RotatePitch(-TURN_SPEED * delta);
+		if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+			cameraEntity->transform.RotatePitch(TURN_SPEED * delta);
 	};
 
 	void Render(RenderServer& renderServer) override
@@ -44,9 +74,19 @@ public:
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Exit"))
+				{
+					Quit();
+				}
+				ImGui::EndMenu();
+			}
+
 			if (ImGui::BeginMenu("View"))
 			{
 				ImGui::Checkbox("Scene Hierarchy", &mShowHierarchy);
+				ImGui::Checkbox("Inspector", &mShowInspector);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
@@ -56,21 +96,45 @@ public:
 		{
 			ImGui::Begin("Scene Hierarchy");
 
-			if (ImGui::TreeNodeEx("Scene", TREE_NODE_FLAGS))
+			if (ImGui::TreeNodeEx("Scene", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				for (auto& entity : mScene->GetEntities())
 				{
-					entity->RenderImgui();
+					ImGuiTreeNodeFlags flags = 
+						ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+					if (inspectorEntity != nullptr && entity == *inspectorEntity)
+					{
+						flags |= ImGuiTreeNodeFlags_Selected;
+					}
+
+					ImGui::TreeNodeEx(entity->GetName().c_str(), flags);
+
+					if (ImGui::IsItemClicked())
+					{
+						inspectorEntity = &entity;
+					}
 				}
 				ImGui::TreePop();
 			}
 
 			ImGui::End();
 		}
+
+		if (mShowInspector)
+		{
+			ImGui::Begin("Inspector");
+			if (inspectorEntity != nullptr)
+			{
+				inspectorEntity->get()->RenderImgui();
+			}
+			ImGui::End();
+		}
 	};
 
 private:
 	bool mShowHierarchy = true;
+	bool mShowInspector = true;
 };
 
 App* CreateApp()
@@ -82,8 +146,8 @@ WindowProps CreateWindowProperties()
 {
 	WindowProps props;
 	props.title = "Vindal Renderer";
-	props.width = 1280;
-	props.height = 640;
+	props.width = 1920;
+	props.height = 1080;
 
 	return props;
 }

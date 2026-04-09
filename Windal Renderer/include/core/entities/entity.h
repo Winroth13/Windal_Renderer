@@ -6,8 +6,12 @@
 #include "core/transform.h"
 #include "core/renderserver.h"
 
+class Scene;
+
 class Entity
 {
+friend class Scene;
+
 public:
 	Entity() : mName("Entity") {};
 	Entity(const std::string& name);
@@ -31,6 +35,8 @@ public:
 	Transform transform;
 
 protected:
+	Scene& GetScene() { return *mScene; }
+
 	virtual void UpdateSelf(float delta) {};
 	virtual void RenderSelf(RenderServer& renderServer) {};
 	virtual void RenderImguiSelf() {};
@@ -39,4 +45,7 @@ protected:
 	bool mVisible = true;
 
 	Entity* mAttach = nullptr;
+
+private:
+	Scene* mScene;
 };

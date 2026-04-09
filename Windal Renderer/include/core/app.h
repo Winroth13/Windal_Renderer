@@ -23,6 +23,12 @@ public:
 
 	void SetScene(Scene* scene) { mScene = scene; }
 
+	inline bool IsRunning() const { return mIsRunning; }
+	void Quit() { mIsRunning = false; }
+
 protected:
 	Scene* mScene = nullptr;
+
+private:
+	bool mIsRunning = true;
 };

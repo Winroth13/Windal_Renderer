@@ -22,9 +22,8 @@ void Entity::Render(RenderServer& renderServer)
 
 void Entity::RenderImgui()
 {
-	if (ImGui::TreeNodeEx(mName.c_str(), TREE_NODE_FLAGS))
+	if (ImGui::TreeNodeEx("Transform", TREE_NODE_FLAGS))
 	{
-		ImGui::Text("Transform");
 		DirectX::XMFLOAT3 position = transform.GetPosition3f();
 		DirectX::XMFLOAT3 angles = transform.GetAngles3f();
 		DirectX::XMFLOAT3 scale = transform.GetScale3f();
@@ -52,11 +51,10 @@ void Entity::RenderImgui()
 		{
 			ImGui::Text("Attached to: None");
 		}
-
-		RenderImguiSelf();
-
 		ImGui::TreePop();
 	}
+
+	RenderImguiSelf();
 }
 
 bool Entity::IsVisible()

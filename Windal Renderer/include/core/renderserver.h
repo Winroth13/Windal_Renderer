@@ -1,12 +1,12 @@
 #pragma once
 #include <memory>
+#include <DirectXMath.h>
 
 class Renderer;
 class Model;
 class Transform;
 
 struct ID3D11DeviceContext;
-
 enum ConstantBufferType
 {
 	BUFFER_PER_FRAME = 0,
@@ -25,6 +25,7 @@ public:
 	ID3D11DeviceContext* GetContext();
 
 	void RenderModel(std::shared_ptr<Model> model, Transform& transform);
+	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
 
 private:
 	Renderer* mRenderer = nullptr;

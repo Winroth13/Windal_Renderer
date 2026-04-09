@@ -10,6 +10,12 @@ void Scene::Update(float delta)
 
 void Scene::Render(RenderServer& renderServer)
 {
+	mCamera.UpdateViewMatrix(); // TEMP
+	renderServer.UpdateCamera(
+		mCamera.GetViewProj(), 
+		mCamera.transform.GetPosition3f()
+	);
+
 	for (std::unique_ptr<Entity>& e : mEntities)
 	{
 		e->Render(renderServer);

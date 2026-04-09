@@ -101,5 +101,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     
     float3 totalLight = ambientLight + diffuseLight + specularLight;
     
-    return float4(totalLight, 1.0f);
+    //return float4(totalLight, 1.0f);
+    
+    return float4(ambDifTexture.rgb, 1.0f);
 }

@@ -4,6 +4,8 @@
 
 #include <DirectXMath.h>
 
+#include "graphics/camera.h"
+
 Renderer::Renderer() :
 	mImmediateContext(nullptr),
 	mSwapChain(nullptr),
@@ -283,7 +285,6 @@ void Renderer::BeginRender()
 	mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 	mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 
-	UpdatePerViewBuffer(DirectX::XMMatrixIdentity(), { 0,0,0 });
 	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
 }
