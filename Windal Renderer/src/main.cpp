@@ -13,6 +13,7 @@
 
 #include "core/entities/modelentity.h"
 #include "core/entities/cameraentity.h"
+#include "core/entities/enviromententity.h"
 
 #include <memory>
 
@@ -33,6 +34,8 @@ public:
 		entity.transform.SetPosition(0, 0, 3);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
+
+		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
 	};
 
 	void Shutdown() override

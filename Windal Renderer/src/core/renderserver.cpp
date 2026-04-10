@@ -5,6 +5,8 @@
 #include <d3d11.h>
 
 #include "graphics/models/model.h"
+#include "graphics/enviroment.h"
+
 #include "core/transform.h"
 
 bool RenderServer::Create(Renderer* renderer)
@@ -36,4 +38,13 @@ void RenderServer::PushMaterial(std::shared_ptr<Material> material)
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
 {
 	mRenderer->UpdatePerViewBuffer(viewProj, cameraPos);
+}
+
+void RenderServer::UpdateEnviroment(Enviroment& enviroment)
+{
+	mRenderer->UpdatePerFrameBuffer(
+		enviroment.GetAmbientColor(), 
+		enviroment.GetSunColor(), 
+		enviroment.GetSunDirection()
+	);
 }
