@@ -108,6 +108,7 @@ public:
 			{
 				ImGui::Checkbox("Scene Hierarchy", &mShowHierarchy);
 				ImGui::Checkbox("Inspector", &mShowInspector);
+				ImGui::Checkbox("Diagnostics", &mShowDiagnostics);
 				ImGui::EndMenu();
 			}
 			ImGui::EndMainMenuBar();
@@ -151,11 +152,20 @@ public:
 			}
 			ImGui::End();
 		}
+
+		if (mShowDiagnostics)
+		{
+			ImGui::Begin("Diagnostics");
+			ImGui::Text("%.2f FPS (%.1f ms)", ImGui::GetIO().Framerate, ImGui::GetIO().DeltaTime * 1000);
+			ImGui::Text("Resolution: %.0fx%.0f", ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+			ImGui::End();
+		}
 	};
 
 private:
 	bool mShowHierarchy = true;
 	bool mShowInspector = true;
+	bool mShowDiagnostics = true;
 };
 
 App* CreateApp()
