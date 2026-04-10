@@ -27,7 +27,7 @@ Renderer::~Renderer()
 {
 }
 
-bool Renderer::Create(std::array<float, 4> clearColor, Window* window)
+bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 {
 	mClearColor = clearColor;
 
@@ -384,8 +384,8 @@ void Renderer::BindMesh(std::shared_ptr<Mesh> mesh)
 void Renderer::BindVertexShader(std::shared_ptr<VertexShader> vertexShader)
 {
 	mImmediateContext->VSSetShader(
-		vertexShader->GetShader(), 
-		nullptr, 
+		vertexShader->GetShader(),
+		nullptr,
 		0
 	);
 }

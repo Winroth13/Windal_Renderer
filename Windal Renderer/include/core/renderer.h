@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include <d3d11.h>
 
 #include "core/window.h"
@@ -53,7 +52,7 @@ public:
 	Renderer();
 	~Renderer();
 
-	bool Create(std::array<float, 4> clearColor, Window* window);
+	bool Create(DirectX::XMFLOAT4 clearColor, Window* window);
 	void Shutdown();
 
 	void BeginRender();
@@ -94,7 +93,7 @@ private:
 	std::vector<GeometryData> mFrameGeometryData;
 	std::vector<MaterialData> mFrameMaterialData;
 
-	std::array<float, 4> mClearColor;
+	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;
 
 	static ID3D11Device* sDevice;

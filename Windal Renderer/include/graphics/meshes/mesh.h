@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include <vector>
 
 #include "core/renderserver.h"
