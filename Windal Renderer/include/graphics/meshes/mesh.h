@@ -9,14 +9,14 @@ struct D3D11_INPUT_ELEMENT_DESC;
 
 struct Vertex
 {
-	std::array<float, 3> mPosition;
-	std::array<float, 3> mNormal;
-	std::array<float, 2> mUV;
+	DirectX::XMFLOAT3 mPosition;
+	DirectX::XMFLOAT3 mNormal;
+	DirectX::XMFLOAT2 mUV;
 
 	Vertex(
-		const std::array<float, 3> position,
-		const std::array<float, 3> normal,
-		const std::array<float, 2> uv
+		const DirectX::XMFLOAT3 position,
+		const DirectX::XMFLOAT3 normal,
+		const DirectX::XMFLOAT2 uv
 	) : mPosition(position), mNormal(normal), mUV(uv)
 	{
 	}
