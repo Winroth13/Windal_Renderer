@@ -7,6 +7,7 @@ class Model;
 class Transform;
 class Mesh;
 class Material;
+class Enviroment;
 
 struct ID3D11DeviceContext;
 
@@ -30,6 +31,8 @@ public:
 	void PushMaterial(std::shared_ptr<Material> material);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
+
+	void UpdateEnviroment(Enviroment& enviroment);
 
 private:
 	Renderer* mRenderer = nullptr;

@@ -4,6 +4,8 @@
 
 #include "core/entities/entity.h"
 #include "core/renderserver.h"
+
+#include "graphics/enviroment.h"
 #include "graphics/camera.h"
 
 class Scene
@@ -33,8 +35,11 @@ public:
     std::vector<std::unique_ptr<Entity>>& GetEntities();
 
     Camera& GetCamera() { return mCamera; }
+    Enviroment& GetEnviroment() { return mEnviroment; }
 
 private:
     Camera mCamera;
+    Enviroment mEnviroment;
+
     std::vector<std::unique_ptr<Entity>> mEntities;
 };

@@ -23,6 +23,7 @@
     <ClInclude Include="include\core\engine.h" />
     <ClInclude Include="include\core\entities\cameraentity.h" />
     <ClInclude Include="include\core\entities\entity.h" />
+    <ClInclude Include="include\core\entities\enviromententity.h" />
     <ClInclude Include="include\core\entities\modelentity.h" />
     <ClInclude Include="include\core\imguiflags.h" />
     <ClInclude Include="include\core\imguiwindow.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="include\core\transform.h" />
     <ClInclude Include="include\core\window.h" />
     <ClInclude Include="include\graphics\camera.h" />
+    <ClInclude Include="include\graphics\enviroment.h" />
     <ClInclude Include="include\graphics\materials\material.h" />
     <ClInclude Include="include\graphics\meshes\mesh.h" />
     <ClInclude Include="include\graphics\meshes\quadmesh.h" />
@@ -59,6 +61,7 @@
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
     <ClCompile Include="src\core\entities\entity.cpp" />
+    <ClCompile Include="src\core\entities\enviromententity.cpp" />
     <ClCompile Include="src\core\entities\modelentity.cpp" />
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\logger.cpp" />
@@ -68,6 +71,7 @@
     <ClCompile Include="src\core\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\graphics\camera.cpp" />
+    <ClCompile Include="src\graphics\enviroment.cpp" />
     <ClCompile Include="src\graphics\materials\material.cpp" />
     <ClCompile Include="src\graphics\meshes\mesh.cpp" />
     <ClCompile Include="src\graphics\meshes\quadmesh.cpp" />

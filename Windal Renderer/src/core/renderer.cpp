@@ -281,7 +281,6 @@ void Renderer::BeginRender()
 	mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
 	mImmediateContext->RSSetViewports(1, &mViewport);
 
-	UpdatePerFrameBuffer();
 	mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 	mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
 
@@ -312,12 +311,15 @@ void Renderer::EndRender()
 	mSwapChain->Present(1, 0);
 }
 
-void Renderer::UpdatePerFrameBuffer()
+void Renderer::UpdatePerFrameBuffer(
+	const DirectX::XMFLOAT3 ambientColor,
+	const DirectX::XMFLOAT3 sunColor,
+	const DirectX::XMFLOAT3 sunDirection)
 {
 	PerFrameBuffer perFrameBuffer = {};
-	perFrameBuffer.ambientColor = { 0.1f, 0.1f, 0.1f };
-	perFrameBuffer.sunDirection = { 1.0f, 1.0f, 0.0f };
-	perFrameBuffer.sunColor = { 1.0f, 1.0f, 1.0f };
+	perFrameBuffer.ambientColor = ambientColor;
+	perFrameBuffer.sunDirection = sunDirection;
+	perFrameBuffer.sunColor = sunColor;
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }
 

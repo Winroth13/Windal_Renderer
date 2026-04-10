@@ -64,7 +64,12 @@ public:
 	ID3D11DeviceContext* GetContext() { return mImmediateContext; }
 	RenderServer& GetRenderServer() { return mRenderServer; }
 
-	void UpdatePerFrameBuffer();
+	void UpdatePerFrameBuffer(
+		const DirectX::XMFLOAT3 ambientColor,
+		const DirectX::XMFLOAT3 sunColor,
+		const DirectX::XMFLOAT3 sunDirection
+	);
+
 	void UpdatePerViewBuffer(
 		const DirectX::XMMATRIX& viewProj,
 		const DirectX::XMFLOAT3& cameraPos
