@@ -67,31 +67,14 @@ Material::~Material()
 	Logger::Info("Material destructor!");
 }
 
-void Material::Bind(RenderServer& renderServer)
+ID3D11Buffer* Material::GetBuffer(ID3D11DeviceContext* context)
 {
 	if (mIsDirty)
 	{
-		UpdateBuffer(renderServer);
+		UpdateBuffer(context);
 		mIsDirty = false;
 	}
-
-	renderServer.GetContext()->IASetInputLayout(mInputLayout);
-	renderServer.GetContext()->PSSetConstantBuffers(
-		BUFFER_PER_MATERIAL,
-		1,
-		&mBuffer
-	);
-
-	mVertexShader->Bind(renderServer);
-	mPixelShader->Bind(renderServer);
-	mTexture->Bind(renderServer, 0); // Albedo Texture
-}
-
-void Material::Unbind(RenderServer& renderServer)
-{
-	mVertexShader->Unbind(renderServer);
-	mPixelShader->Unbind(renderServer);
-	// TODO: Unbind textures?
+	return mBuffer;
 }
 
 void Material::SetAmbientCoefficient(const float r, const float g, const float b)
@@ -118,7 +101,7 @@ void Material::SetPhongExponent(const float phongExponent)
 	mIsDirty = true;
 }
 
-void Material::UpdateBuffer(RenderServer& renderServer)
+void Material::UpdateBuffer(ID3D11DeviceContext* context)
 {
 	PerMaterial buffer = {};
 	buffer.phongExponent = mPhongExponent;
@@ -141,7 +124,7 @@ void Material::UpdateBuffer(RenderServer& renderServer)
 		mSpecularCoefficient.z
 	};
 
-	renderServer.GetContext()->UpdateSubresource(
+	context->UpdateSubresource(
 		mBuffer, 0, NULL, &buffer, 0, 0
 	);
 }

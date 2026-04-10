@@ -38,12 +38,6 @@ size_t Model::GetNumIndicies()
 	return mMesh->GetNumIndicies();
 }
 
-void Model::Bind(RenderServer& renderServer)
-{
-	mMesh->Bind(renderServer);
-	mMaterial->Bind(renderServer);
-}
-
 void Model::RenderImgui()
 {
 	if (ImGui::TreeNodeEx("Model", TREE_NODE_FLAGS))

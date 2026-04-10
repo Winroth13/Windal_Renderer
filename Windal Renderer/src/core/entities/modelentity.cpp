@@ -21,7 +21,8 @@ void ModelEntity::UpdateSelf(double delta)
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.RenderModel(mModel, transform);
+	renderServer.PushMesh(mModel->GetMesh(), transform.GetMatrix());
+	renderServer.PushMaterial(mModel->GetMaterial());
 }
 
 void ModelEntity::RenderImguiSelf()

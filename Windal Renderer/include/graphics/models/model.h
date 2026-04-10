@@ -21,7 +21,6 @@ public:
 
 	size_t GetNumIndicies();
 
-	void Bind(RenderServer& renderServer);
 	void RenderImgui();
 
 private:

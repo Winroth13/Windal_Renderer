@@ -29,9 +29,3 @@ char* Texture2D::LoadImageData(
 		desiredChannels
 	);
 }
-
-void Texture2D::Bind(RenderServer& renderServer, uint32_t slot)
-{
-	renderServer.GetContext()->PSSetSamplers(slot, 1, &mSamplerState);
-	renderServer.GetContext()->PSSetShaderResources(slot, 1, &mShaderResourceView);
-}

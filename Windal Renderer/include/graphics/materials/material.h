@@ -1,8 +1,9 @@
 #pragma once
+#include "core/renderserver.h"
+
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/shaders/pixelshader.h"
 #include "graphics/textures/texture2d.h"
-#include "core/renderserver.h"
 
 #include <DirectXMath.h>
 #include <d3d11.h>
@@ -28,21 +29,19 @@ public:
 	);
 	virtual ~Material();
 
-	void Bind(RenderServer& renderServer);
-	void Unbind(RenderServer& renderServer);
-
 	inline std::shared_ptr<VertexShader> GetVertexShader() { return mVertexShader; }
 	inline std::shared_ptr<PixelShader> GetPixelShader() { return mPixelShader; }
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
-
 	inline std::shared_ptr<Texture2D> GetTexture() { return mTexture; }
+	
+	ID3D11Buffer* GetBuffer(ID3D11DeviceContext* context);
 
 	void SetAmbientCoefficient(const float r, const float g, const float b);
 	void SetDiffuseCoefficient(const float r, const float g, const float b);
 	void SetSpecularCoefficient(const float r, const float g, const float b);
 	void SetPhongExponent(const float phongExponent);
 
-	void UpdateBuffer(RenderServer& renderServer);
+	void UpdateBuffer(ID3D11DeviceContext* context);
 
 	void RenderImgui();
 

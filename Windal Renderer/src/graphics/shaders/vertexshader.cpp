@@ -25,17 +25,12 @@ VertexShader::VertexShader(const std::string& path)
 	Logger::Info("Loaded vertex shader: " + path);
 }
 
-void VertexShader::Bind(RenderServer& renderServer)
-{
-	renderServer.GetContext()->VSSetShader(mVertexShader, nullptr, 0);
-}
-
-void VertexShader::Unbind(RenderServer& renderServer)
-{
-	renderServer.GetContext()->VSSetShader(nullptr, nullptr, 0);
-}
-
 VertexShader::~VertexShader()
 {
 	mVertexShader->Release();
+}
+
+ID3D11VertexShader* VertexShader::GetShader()
+{
+	return mVertexShader;
 }

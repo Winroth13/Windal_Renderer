@@ -5,8 +5,11 @@
 class Renderer;
 class Model;
 class Transform;
+class Mesh;
+class Material;
 
 struct ID3D11DeviceContext;
+
 enum ConstantBufferType
 {
 	BUFFER_PER_FRAME = 0,
@@ -22,9 +25,10 @@ public:
 	~RenderServer() {}
 
 	bool Create(Renderer* renderer);
-	ID3D11DeviceContext* GetContext();
 
-	void RenderModel(std::shared_ptr<Model> model, Transform& transform);
+	void PushMesh(std::shared_ptr<Mesh> mesh, DirectX::XMMATRIX transform);
+	void PushMaterial(std::shared_ptr<Material> material);
+
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
 
 private:

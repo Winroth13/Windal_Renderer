@@ -12,9 +12,6 @@ public:
 	Shader(const std::string& path);
 	virtual ~Shader() = default;
 
-	virtual void Bind(RenderServer& renderServer) = 0;
-	virtual void Unbind(RenderServer& renderServer) = 0;
-
 	const std::string& GetPath() { return mPath; }
 
 protected:

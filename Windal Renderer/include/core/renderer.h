@@ -4,7 +4,14 @@
 
 #include "core/window.h"
 #include "core/renderserver.h"
+
+#include "graphics/materials/material.h"
+#include "graphics/meshes/mesh.h"
+#include "graphics/shaders/vertexshader.h"
+#include "graphics/shaders/pixelshader.h"
+
 #include <DirectXMath.h>
+#include <vector>
 
 struct PerFrameBuffer
 {
@@ -27,6 +34,17 @@ struct PerObject
 	DirectX::XMMATRIX worldInverseTranspose;
 };
 
+struct MaterialData
+{
+	std::shared_ptr<Material> material;
+};
+
+struct GeometryData
+{
+	std::shared_ptr<Mesh> mesh;
+	DirectX::XMMATRIX transform;
+};
+
 class Renderer
 {
 public:
@@ -37,6 +55,7 @@ public:
 	void Shutdown();
 
 	void BeginRender();
+	void Render();
 	void EndRender();
 
 	static ID3D11Device* GetDevice() { return Renderer::sDevice; }
@@ -50,7 +69,29 @@ public:
 	);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
 
+	void PushFrameGeometryData(const GeometryData& geometryData);
+	void PushFrameMaterialData(const MaterialData& materialData);
+
 private:
+	/* Bind Functions*/
+	void BindMaterial(std::shared_ptr<Material> material);
+	void BindMesh(std::shared_ptr<Mesh> mesh);
+	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
+	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
+	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
+
+	/* Unbind Functions */
+	void UnbindMaterial();
+	void UnbindMesh();
+	void UnbindVertexShader();
+	void UnbindPixelShader();
+	void UnbindTexture2D(UINT slot);
+
+	void ClearFrameData();
+
+	std::vector<GeometryData> mFrameGeometryData;
+	std::vector<MaterialData> mFrameMaterialData;
+
 	std::array<float, 4> mClearColor;
 	Window* mWindow;
 

@@ -289,8 +289,26 @@ void Renderer::BeginRender()
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
 }
 
+void Renderer::Render()
+{
+	/* Draw each set of Mesh and Material Data */
+	for (size_t i = 0; i < mFrameGeometryData.size(); ++i)
+	{
+		auto& mesh = mFrameGeometryData[i].mesh;
+		auto& mat = mFrameMaterialData[i].material;
+
+		BindMesh(mesh);
+		BindMaterial(mat);
+
+		UpdatePerObjectBuffer(mFrameGeometryData[i].transform);
+
+		mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+	}
+}
+
 void Renderer::EndRender()
 {
+	ClearFrameData();
 	mSwapChain->Present(1, 0);
 }
 
@@ -323,4 +341,103 @@ void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
 
 	mImmediateContext->VSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+}
+
+void Renderer::PushFrameGeometryData(const GeometryData& geometryData)
+{
+	mFrameGeometryData.push_back(geometryData);
+}
+
+void Renderer::PushFrameMaterialData(const MaterialData& materialData)
+{
+	mFrameMaterialData.push_back(materialData);
+}
+
+void Renderer::BindMaterial(std::shared_ptr<Material> material)
+{
+	constexpr UINT DIFFUSE_SLOT = 0;
+
+	BindVertexShader(material->GetVertexShader());
+	BindPixelShader(material->GetPixelShader());
+
+	BindTexture2D(material->GetTexture(), DIFFUSE_SLOT);
+
+	mImmediateContext->IASetInputLayout(material->GetInputLayout());
+
+	ID3D11Buffer* buffer = material->GetBuffer(mImmediateContext);
+	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_MATERIAL, 1, &buffer);
+}
+
+void Renderer::BindMesh(std::shared_ptr<Mesh> mesh)
+{
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	ID3D11Buffer* vertexBuffer = mesh->GetVertexBuffer();
+	ID3D11Buffer* indexBuffer = mesh->GetIndexBuffer();
+
+	mImmediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	mImmediateContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void Renderer::BindVertexShader(std::shared_ptr<VertexShader> vertexShader)
+{
+	mImmediateContext->VSSetShader(
+		vertexShader->GetShader(), 
+		nullptr, 
+		0
+	);
+}
+
+void Renderer::BindPixelShader(std::shared_ptr<PixelShader> pixelShader)
+{
+	mImmediateContext->PSSetShader(
+		pixelShader->GetShader(),
+		nullptr,
+		0
+	);
+}
+
+void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
+{
+	ID3D11SamplerState* sampler = texture2d->GetSamplerState();
+	ID3D11ShaderResourceView* srv = texture2d->GetSRV();
+
+	mImmediateContext->PSSetSamplers(slot, 1, &sampler);
+	mImmediateContext->PSSetShaderResources(slot, 1, &srv);
+}
+
+void Renderer::UnbindMaterial()
+{
+	UnbindVertexShader();
+	UnbindPixelShader();
+}
+
+void Renderer::UnbindMesh()
+{
+	mImmediateContext->IASetVertexBuffers(0, 1, nullptr, 0, nullptr);
+	mImmediateContext->IASetIndexBuffer(nullptr, DXGI_FORMAT_R32_UINT, 0);
+}
+
+void Renderer::UnbindVertexShader()
+{
+	mImmediateContext->VSSetShader(nullptr, nullptr, 0);
+}
+
+void Renderer::UnbindPixelShader()
+{
+	mImmediateContext->PSSetShader(nullptr, nullptr, 0);
+}
+
+void Renderer::UnbindTexture2D(UINT slot)
+{
+	mImmediateContext->PSSetSamplers(slot, 1, nullptr);
+	mImmediateContext->PSSetShaderResources(slot, 1, nullptr);
+}
+
+void Renderer::ClearFrameData()
+{
+	mFrameGeometryData.clear();
+	mFrameMaterialData.clear();
 }

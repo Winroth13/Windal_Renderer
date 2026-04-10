@@ -24,17 +24,12 @@ PixelShader::PixelShader(const std::string& path)
 	Logger::Info("Loaded pixel shader: " + path);
 }
 
-void PixelShader::Bind(RenderServer& renderServer)
-{
-	renderServer.GetContext()->PSSetShader(mPixelShader, nullptr, 0);
-}
-
-void PixelShader::Unbind(RenderServer& renderServer)
-{
-	renderServer.GetContext()->PSSetShader(nullptr, nullptr, 0);
-}
-
 PixelShader::~PixelShader()
 {
 	mPixelShader->Release();
+}
+
+ID3D11PixelShader* PixelShader::GetShader()
+{
+	return mPixelShader;
 }

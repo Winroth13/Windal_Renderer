@@ -83,17 +83,6 @@ bool Mesh::Create(
 	return true;
 }
 
-void Mesh::Bind(RenderServer& renderServer)
-{
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-
-	ID3D11DeviceContext* context = renderServer.GetContext();
-	context->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
-	context->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
 void Mesh::RenderImgui()
 {
 	ImGui::Text("Vertices: %d", mNumVertices);

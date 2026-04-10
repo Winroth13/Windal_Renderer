@@ -18,16 +18,19 @@ bool RenderServer::Create(Renderer* renderer)
 	return true;
 }
 
-ID3D11DeviceContext* RenderServer::GetContext()
+void RenderServer::PushMesh(std::shared_ptr<Mesh> mesh, DirectX::XMMATRIX transform)
 {
-	return mRenderer->GetContext();
+	GeometryData data;
+	data.mesh = mesh;
+	data.transform = transform;
+	mRenderer->PushFrameGeometryData(data);
 }
 
-void RenderServer::RenderModel(std::shared_ptr<Model> model, Transform& transform)
+void RenderServer::PushMaterial(std::shared_ptr<Material> material)
 {
-	model->Bind(*this);
-	mRenderer->UpdatePerObjectBuffer(transform.GetMatrix());
-	GetContext()->DrawIndexed((UINT)model->GetNumIndicies(), 0, 0);
+	MaterialData data;
+	data.material = material;
+	mRenderer->PushFrameMaterialData(data);
 }
 
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)

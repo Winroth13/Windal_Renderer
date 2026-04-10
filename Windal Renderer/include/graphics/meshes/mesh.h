@@ -33,11 +33,12 @@ public:
 		const std::vector<uint32_t>& indicies
 	);
 
-	void Bind(RenderServer& renderServer);
-
 	void RenderImgui();
 
 	size_t GetNumIndicies() { return mNumIndicies; }
+
+	ID3D11Buffer* GetVertexBuffer() { return mVertexBuffer; }
+	ID3D11Buffer* GetIndexBuffer() { return mIndexBuffer; }
 
 private:
 	size_t mNumVertices = 0;
