@@ -315,8 +315,8 @@ void Renderer::EndRender()
 void Renderer::UpdatePerFrameBuffer()
 {
 	PerFrameBuffer perFrameBuffer = {};
-	perFrameBuffer.ambientColor = { 1.0f, 1.0f, 1.0f };
-	perFrameBuffer.sunDirection = { 0.0f, 1.0f, 0.0f };
+	perFrameBuffer.ambientColor = { 0.1f, 0.1f, 0.1f };
+	perFrameBuffer.sunDirection = { 1.0f, 1.0f, 0.0f };
 	perFrameBuffer.sunColor = { 1.0f, 1.0f, 1.0f };
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }

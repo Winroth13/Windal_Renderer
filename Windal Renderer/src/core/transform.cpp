@@ -80,7 +80,7 @@ XMVECTOR Transform::GetRightDir() const
 
 	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
 
-	return {rotationMatrixf._11, rotationMatrixf._12, rotationMatrixf._13};
+	return { rotationMatrixf._11, rotationMatrixf._12, rotationMatrixf._13 };
 }
 
 XMFLOAT3 Transform::GetRightDir3f()
@@ -183,7 +183,7 @@ void Transform::LookAt(const Transform& target)
 }
 
 // Get matrix
-const DirectX::XMMATRIX& Transform::GetMatrix()
+const DirectX::XMMATRIX Transform::GetMatrix()
 {
 	if (mIsDirty)
 	{
@@ -198,7 +198,7 @@ const DirectX::XMMATRIX& Transform::GetMatrix()
 	return XMLoadFloat4x4(&mMatrix);
 }
 
-const DirectX::XMFLOAT4X4& Transform::GetMatrixf()
+const DirectX::XMFLOAT4X4 Transform::GetMatrixf()
 {
 	if (mIsDirty)
 	{
@@ -263,7 +263,7 @@ void Transform::MoveForward(float distance)
 	mIsDirty = true;
 }
 
-// Rotate in global space
+// Rotation
 void Transform::RotateX(float angle)
 {
 	mAngles.x += angle;
@@ -279,54 +279,6 @@ void Transform::RotateY(float angle)
 void Transform::RotateZ(float angle)
 {
 	mAngles.z += angle;
-	mIsDirty = true;
-}
-
-// Rotate in local space
-void Transform::RotatePitch(float angle)
-{
-	// Rotate up and look vector about the right vector
-	//XMMATRIX rotationMatrix = XMMatrixRotationAxis(GetRightDir(), angle);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(GetAngles());
-	XMFLOAT4X4 rotationMatrixf;
-	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
-	XMFLOAT3 angles = AnglesFromMatrix(rotationMatrixf);
-
-	Logger::Info(
-		"(" + std::to_string(angles.x) + 
-		", " + std::to_string(angles.y) + 
-		", " + std::to_string(angles.z) + ")"
-	);
-
-	mAngles.x += angles.x;
-	mAngles.y += angles.y;
-	mAngles.z += angles.z;
-	mIsDirty = true;
-}
-
-void Transform::RotateYaw(float angle)
-{
-	XMMATRIX rotationMatrix = XMMatrixRotationAxis(GetUpDir(), angle);
-	XMFLOAT4X4 rotationMatrixf;
-	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
-	XMFLOAT3 angles = AnglesFromMatrix(rotationMatrixf);
-	mAngles.x += angles.x;
-	mAngles.y += angles.y;
-	mAngles.z += angles.z;
-
-	mIsDirty = true;
-}
-
-void Transform::RotateRoll(float angle)
-{
-	XMMATRIX rotationMatrix = XMMatrixRotationAxis(GetForwardDir(), angle);
-	XMFLOAT4X4 rotationMatrixf;
-	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
-	XMFLOAT3 angles = AnglesFromMatrix(rotationMatrixf);
-	mAngles.x += angles.x;
-	mAngles.y += angles.y;
-	mAngles.z += angles.z;
-
 	mIsDirty = true;
 }
 

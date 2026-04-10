@@ -15,10 +15,11 @@ private:
 	struct PerMaterial
 	{
 		DirectX::XMFLOAT3 ambientCoefficient;
+		float pad0;
 		DirectX::XMFLOAT3 diffuseCoefficient;
+		float pad1;
 		DirectX::XMFLOAT3 specularCoefficient;
 		float phongExponent;
-		DirectX::XMFLOAT2 pad;
 	};
 
 public:

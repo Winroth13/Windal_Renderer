@@ -21,6 +21,7 @@ class TestApp : public App
 public:
 	std::unique_ptr<Entity>* inspectorEntity = nullptr;
 	Entity* cameraEntity;
+	POINT previousMousePos;
 
 	void Initialize() override
 	{
@@ -44,6 +45,10 @@ public:
 		constexpr float SPEED = 3.0f;
 		constexpr float TURN_SPEED = 2.5f;
 
+		POINT newMousePos;
+
+		GetCursorPos(&newMousePos);
+
 		/* Movement */
 		if (GetAsyncKeyState('W') & 0x8000)
 			cameraEntity->transform.MoveForward(SPEED * (float)delta);
@@ -55,7 +60,7 @@ public:
 			cameraEntity->transform.MoveRight(SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
 			cameraEntity->transform.MoveUp(SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
+		if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
 			cameraEntity->transform.MoveUp(-SPEED * (float)delta);
 
 		/* Rotation */
@@ -64,9 +69,19 @@ public:
 		if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
 			cameraEntity->transform.RotateY(TURN_SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_UP) & 0x8000)
-			cameraEntity->transform.RotatePitch(-TURN_SPEED * (float)delta);
+			cameraEntity->transform.RotateX(-TURN_SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-			cameraEntity->transform.RotatePitch(TURN_SPEED * (float)delta);
+			cameraEntity->transform.RotateX(TURN_SPEED * (float)delta);
+		if (GetAsyncKeyState(MK_RBUTTON) & 0x8000)
+		{
+			float dx = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
+			float dy = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
+
+			cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
+			cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
+		}
+
+		previousMousePos = newMousePos;
 	};
 
 	void Render(RenderServer& renderServer) override
@@ -103,7 +118,7 @@ public:
 			{
 				for (auto& entity : mScene->GetEntities())
 				{
-					ImGuiTreeNodeFlags flags = 
+					ImGuiTreeNodeFlags flags =
 						ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
 					if (inspectorEntity != nullptr && entity == *inspectorEntity)
@@ -148,9 +163,9 @@ App* CreateApp()
 WindowProps CreateWindowProperties()
 {
 	WindowProps props;
-	props.title = "Vindal Renderer";
-	props.width = 1920;
-	props.height = 1080;
+	props.title = "Windal Renderer";
+	props.width = 1280;
+	props.height = 640;
 
 	return props;
 }

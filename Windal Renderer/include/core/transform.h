@@ -51,8 +51,8 @@ public:
 	void LookAt(const Transform& target);
 
 	// Get matrix
-	const DirectX::XMMATRIX& GetMatrix();
-	const DirectX::XMFLOAT4X4& GetMatrixf();
+	const DirectX::XMMATRIX GetMatrix();
+	const DirectX::XMFLOAT4X4 GetMatrixf();
 
 	// Move in global space
 	void MoveX(float distance);
@@ -64,15 +64,10 @@ public:
 	void MoveUp(float distance);
 	void MoveForward(float distance);
 
-	// Rotate in global space
+	// Rotation
 	void RotateX(float angle);
 	void RotateY(float angle);
 	void RotateZ(float angle);
-
-	// Rotate in local space
-	void RotatePitch(float angle);
-	void RotateYaw(float angle);
-	void RotateRoll(float angle);
 
 private:
 	DirectX::XMFLOAT3 mPosition = { 0.0f, 0.0f, 0.0f };

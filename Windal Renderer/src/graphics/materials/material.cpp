@@ -120,7 +120,7 @@ void Material::UpdateBuffer(ID3D11DeviceContext* context)
 
 	buffer.specularCoefficient = {
 		mSpecularCoefficient.x,
-		mSpecularCoefficient.y ,
+		mSpecularCoefficient.y,
 		mSpecularCoefficient.z
 	};
 
