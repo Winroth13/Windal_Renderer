@@ -22,7 +22,7 @@ public:
 	DirectX::XMFLOAT3& GetSunDirectionRef();
 
 private:
-	DirectX::XMFLOAT3 mAmbientColor = { 1.0f, 1.0f, 1.0f };
+	DirectX::XMFLOAT3 mAmbientColor = { 0.1f, 0.1f, 0.1f };
 	DirectX::XMFLOAT3 mSunColor = { 1.0f, 1.0f, 1.0f };
 	DirectX::XMFLOAT3 mSunDirection = { 1.0f, 0.0f, 0.0f };
 };
