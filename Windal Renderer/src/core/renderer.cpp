@@ -268,7 +268,7 @@ void Renderer::BeginRender()
 {
 	mImmediateContext->ClearRenderTargetView(
 		mRenderTargetView,
-		mClearColor.data()
+		&mClearColor.x
 	);
 
 	mImmediateContext->ClearDepthStencilView(
