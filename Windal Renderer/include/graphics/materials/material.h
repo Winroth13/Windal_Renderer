@@ -7,7 +7,6 @@
 
 #include <DirectXMath.h>
 #include <d3d11.h>
-#include <array>
 
 class Material
 {
@@ -34,7 +33,7 @@ public:
 	inline std::shared_ptr<PixelShader> GetPixelShader() { return mPixelShader; }
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
 	inline std::shared_ptr<Texture2D> GetTexture() { return mTexture; }
-	
+
 	ID3D11Buffer* GetBuffer(ID3D11DeviceContext* context);
 
 	void SetAmbientCoefficient(const float r, const float g, const float b);
