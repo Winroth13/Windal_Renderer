@@ -263,7 +263,7 @@ void Transform::MoveForward(float distance)
 	mIsDirty = true;
 }
 
-// Rotate in global space
+// Rotation
 void Transform::RotateX(float angle)
 {
 	mAngles.x += angle;
