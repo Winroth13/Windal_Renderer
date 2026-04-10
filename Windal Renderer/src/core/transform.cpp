@@ -1,4 +1,5 @@
 #include "core/transform.h"
+#include "core/logger.h"
 
 using namespace DirectX;
 
@@ -74,47 +75,62 @@ void Transform::SetScale(const XMFLOAT3& scale)
 /* Get Directions */
 XMVECTOR Transform::GetRightDir() const
 {
-	XMVECTOR right = { 1, 0, 0 };
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
-	right = XMVector3Transform(right, rotationMatrix);
-	return right;
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return {rotationMatrixf._11, rotationMatrixf._12, rotationMatrixf._13};
 }
 
 XMFLOAT3 Transform::GetRightDir3f()
 {
-	XMFLOAT3 right;
-	XMStoreFloat3(&right, GetRightDir());
-	return right;
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return { rotationMatrixf._11, rotationMatrixf._12, rotationMatrixf._13 };
 }
 
 XMVECTOR Transform::GetUpDir() const
 {
-	XMVECTOR up = { 0, 1, 0 };
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
-	up = XMVector3Transform(up, rotationMatrix);
-	return up;
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return { rotationMatrixf._21, rotationMatrixf._22, rotationMatrixf._23 };
 }
 
 XMFLOAT3 Transform::GetUpDir3f()
 {
-	XMFLOAT3 up;
-	XMStoreFloat3(&up, GetUpDir());
-	return up;
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return { rotationMatrixf._21, rotationMatrixf._22, rotationMatrixf._23 };
 }
 
 XMVECTOR Transform::GetForwardDir() const
 {
-	XMVECTOR forward = { 0, 0, 1 };
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
-	forward = XMVector3Transform(forward, rotationMatrix);
-	return forward;
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return { rotationMatrixf._31, rotationMatrixf._32, rotationMatrixf._33 };
 }
 
 XMFLOAT3 Transform::GetForwardDir3f()
 {
-	XMFLOAT3 forward;
-	XMStoreFloat3(&forward, GetForwardDir());
-	return forward;
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mAngles));
+	XMFLOAT4X4 rotationMatrixf;
+
+	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
+
+	return { rotationMatrixf._31, rotationMatrixf._32, rotationMatrixf._33 };
 }
 
 /* Define transform space via LookAt parameters */
@@ -270,14 +286,21 @@ void Transform::RotateZ(float angle)
 void Transform::RotatePitch(float angle)
 {
 	// Rotate up and look vector about the right vector
-	XMMATRIX rotationMatrix = XMMatrixRotationAxis(GetRightDir(), angle);
+	//XMMATRIX rotationMatrix = XMMatrixRotationAxis(GetRightDir(), angle);
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYawFromVector(GetAngles());
 	XMFLOAT4X4 rotationMatrixf;
 	XMStoreFloat4x4(&rotationMatrixf, rotationMatrix);
 	XMFLOAT3 angles = AnglesFromMatrix(rotationMatrixf);
+
+	Logger::Info(
+		"(" + std::to_string(angles.x) + 
+		", " + std::to_string(angles.y) + 
+		", " + std::to_string(angles.z) + ")"
+	);
+
 	mAngles.x += angles.x;
 	mAngles.y += angles.y;
 	mAngles.z += angles.z;
-
 	mIsDirty = true;
 }
 

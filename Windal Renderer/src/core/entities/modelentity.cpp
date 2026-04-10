@@ -12,9 +12,11 @@ ModelEntity::ModelEntity(const std::string& name, std::shared_ptr<Model> model)
 
 ModelEntity::~ModelEntity() {}
 
-void ModelEntity::UpdateSelf(float delta)
+void ModelEntity::UpdateSelf(double delta)
 {
-	
+	transform.RotateY((3.14 / 8) * delta);
+	transform.RotateX((3.14 / 8) * delta);
+	transform.RotateZ((3.14 / 8) * delta);
 }
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)

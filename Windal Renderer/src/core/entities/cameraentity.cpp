@@ -11,7 +11,7 @@ CameraEntity::CameraEntity(const std::string& name)
 
 CameraEntity::~CameraEntity() {}
 
-void CameraEntity::UpdateSelf(float delta)
+void CameraEntity::UpdateSelf(double delta)
 {
 	GetScene().GetCamera().transform.SetPosition(transform.GetPosition3f());
 	GetScene().GetCamera().transform.SetAngles(transform.GetAngles3f());

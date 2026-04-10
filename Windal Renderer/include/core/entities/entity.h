@@ -18,7 +18,7 @@ public:
 
 	virtual ~Entity() = default;
 
-	void Update(float delta);
+	void Update(double delta);
 	void Render(RenderServer& renderServer);
 	void RenderImgui();
 
@@ -37,7 +37,7 @@ public:
 protected:
 	Scene& GetScene() { return *mScene; }
 
-	virtual void UpdateSelf(float delta) {};
+	virtual void UpdateSelf(double delta) {};
 	virtual void RenderSelf(RenderServer& renderServer) {};
 	virtual void RenderImguiSelf() {};
 

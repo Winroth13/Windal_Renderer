@@ -13,7 +13,7 @@ public:
 	~ModelEntity();
 
 protected:
-	virtual void UpdateSelf(float delta) override;
+	virtual void UpdateSelf(double delta) override;
 	virtual void RenderSelf(RenderServer& renderServer) override;
 	virtual void RenderImguiSelf() override;
 

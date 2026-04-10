@@ -4,6 +4,8 @@
 #include "core/renderer.h"
 #include "core/scene.h"
 
+#include <chrono>
+
 class Engine
 {
 public:
@@ -12,8 +14,10 @@ public:
 
 private:
 	bool Initialize(const std::string& title, const int width, const int height);
-	void Update(float delta);
+	void Update(double delta);
 	void Render();
+
+	const double GetDelta();
 
 private:
 	Window mWindow;
@@ -21,4 +25,7 @@ private:
 	Scene mScene;
 
 	App* mApp = nullptr;
+
+	std::chrono::steady_clock::time_point mLastTime = 
+		std::chrono::steady_clock::now();
 };

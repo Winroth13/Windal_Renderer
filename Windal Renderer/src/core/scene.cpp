@@ -1,6 +1,6 @@
 #include "core/scene.h"
 
-void Scene::Update(float delta)
+void Scene::Update(double delta)
 {
 	for (std::unique_ptr<Entity>& e : mEntities)
 	{

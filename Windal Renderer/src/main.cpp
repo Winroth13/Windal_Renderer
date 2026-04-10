@@ -38,32 +38,35 @@ public:
 	{
 	};
 
-	void Update(float delta) override
+	void Update(double delta) override
 	{
 		/* Camera Movement	*/
-
-		const float SPEED = 0.01f;
-		const float TURN_SPEED = 0.01f;
+		constexpr float SPEED = 3.0f;
+		constexpr float TURN_SPEED = 2.5f;
 
 		/* Movement */
 		if (GetAsyncKeyState('W') & 0x8000)
-			cameraEntity->transform.MoveForward(SPEED * delta);
+			cameraEntity->transform.MoveForward(SPEED * (float)delta);
 		if (GetAsyncKeyState('S') & 0x8000)
-			cameraEntity->transform.MoveForward(-SPEED * delta);
+			cameraEntity->transform.MoveForward(-SPEED * (float)delta);
 		if (GetAsyncKeyState('A') & 0x8000)
-			cameraEntity->transform.MoveRight(-SPEED * delta);
+			cameraEntity->transform.MoveRight(-SPEED * (float)delta);
 		if (GetAsyncKeyState('D') & 0x8000)
-			cameraEntity->transform.MoveRight(SPEED * delta);
+			cameraEntity->transform.MoveRight(SPEED * (float)delta);
+		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+			cameraEntity->transform.MoveUp(SPEED * (float)delta);
+		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
+			cameraEntity->transform.MoveUp(-SPEED * (float)delta);
 
 		/* Rotation */
 		if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-			cameraEntity->transform.RotateY(-TURN_SPEED * delta);
+			cameraEntity->transform.RotateY(-TURN_SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-			cameraEntity->transform.RotateY(TURN_SPEED * delta);
+			cameraEntity->transform.RotateY(TURN_SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_UP) & 0x8000)
-			cameraEntity->transform.RotatePitch(-TURN_SPEED * delta);
+			cameraEntity->transform.RotatePitch(-TURN_SPEED * (float)delta);
 		if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-			cameraEntity->transform.RotatePitch(TURN_SPEED * delta);
+			cameraEntity->transform.RotatePitch(TURN_SPEED * (float)delta);
 	};
 
 	void Render(RenderServer& renderServer) override

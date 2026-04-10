@@ -12,7 +12,7 @@ public:
     Scene() {};
     ~Scene() {};
 
-    void Update(float delta);
+    void Update(double delta);
     void Render(RenderServer& renderServer);
     void Shutdown();
 

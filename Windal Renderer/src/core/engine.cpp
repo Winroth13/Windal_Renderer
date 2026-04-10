@@ -10,7 +10,9 @@ void Engine::Run(App* app, const std::string& title, const int width, const int 
 	{
 		while (mApp->IsRunning())
 		{
-			Update(1);
+			double delta = GetDelta();
+			Update(delta);
+
 			Render();
 		}
 	}
@@ -50,7 +52,7 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 	return true;
 }
 
-void Engine::Update(float delta)
+void Engine::Update(double delta)
 {
 	if (!mWindow.PollEvents())
 	{
@@ -73,4 +75,14 @@ void Engine::Render()
 	mWindow.EndImguiRender();
 
 	mRenderer.EndRender();
+}
+
+const double Engine::GetDelta()
+{
+	auto currentTime = std::chrono::steady_clock::now();
+
+	double delta = std::chrono::duration<double>(currentTime - mLastTime).count();
+	mLastTime = currentTime;
+
+	return delta;
 }
