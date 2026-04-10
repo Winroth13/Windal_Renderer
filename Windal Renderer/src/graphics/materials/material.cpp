@@ -137,7 +137,7 @@ void Material::UpdateBuffer(RenderServer& renderServer)
 
 	buffer.specularCoefficient = {
 		mSpecularCoefficient.x,
-		mSpecularCoefficient.y ,
+		mSpecularCoefficient.y,
 		mSpecularCoefficient.z
 	};
 

@@ -51,8 +51,8 @@ public:
 	void LookAt(const Transform& target);
 
 	// Get matrix
-	const DirectX::XMMATRIX& GetMatrix();
-	const DirectX::XMFLOAT4X4& GetMatrixf();
+	const DirectX::XMMATRIX GetMatrix();
+	const DirectX::XMFLOAT4X4 GetMatrixf();
 
 	// Move in global space
 	void MoveX(float distance);

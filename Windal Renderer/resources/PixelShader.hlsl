@@ -11,16 +11,18 @@ struct PixelShaderInput
 cbuffer cbPerFrame : register(b0)
 {
     float3 sunDirection;
+	float pad0;
     float3 sunColor;
+    float pad1;
     float3 ambientColor;
-    float3 pad0;
+    float pad2;
 }
 
 cbuffer cbPerView : register(b1)
 {
     float4x4 viewProjMatrix;
     float3 cameraPos;
-    float pad1;
+    float pad3;
 }
 
 cbuffer cbPerObject : register(b2)
@@ -32,10 +34,11 @@ cbuffer cbPerObject : register(b2)
 cbuffer cbPerMaterial : register(b3)
 {
     float3 ambientCoefficient;
+    float pad4;
     float3 diffuseCoefficient;
+    float pad5;
     float3 specularCoefficient;
     float phongExponent;
-    float2 padding;
 }
 
 Texture2D textures : register(t0);
@@ -101,7 +104,5 @@ float4 main(PixelShaderInput input) : SV_TARGET
     
     float3 totalLight = ambientLight + diffuseLight + specularLight;
     
-    //return float4(totalLight, 1.0f);
-    
-    return float4(ambDifTexture.rgb, 1.0f);
+    return float4(totalLight.rgb, 1.0f);
 }

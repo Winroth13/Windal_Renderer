@@ -9,9 +9,11 @@
 struct PerFrameBuffer
 {
 	DirectX::XMFLOAT3 sunDirection;
+	float pad0;
 	DirectX::XMFLOAT3 sunColor;
+	float pad1;
 	DirectX::XMFLOAT3 ambientColor;
-	DirectX::XMFLOAT3 pad;
+	float pad2;
 };
 
 struct PerViewBuffer
