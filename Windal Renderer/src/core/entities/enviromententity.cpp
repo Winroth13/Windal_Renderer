@@ -15,7 +15,6 @@ EnviromentEntity::~EnviromentEntity()
 
 void EnviromentEntity::UpdateSelf(double delta)
 {
-
 }
 
 void EnviromentEntity::RenderSelf(RenderServer& renderServer)
@@ -30,7 +29,7 @@ void EnviromentEntity::RenderImguiSelf()
 		auto& enviroment = GetScene().GetEnviroment();
 		ImGui::ColorEdit3("Ambient Color", &enviroment.GetAmbientColorRef().x);
 		ImGui::ColorEdit3("Sun Color", &enviroment.GetSunColorRef().x);
-		ImGui::DragFloat3("Sun Direction", &enviroment.GetSunDirectionRef().x);
+		ImGui::DragFloat3("Sun Direction", &enviroment.GetSunDirectionRef().x, 0.02f);
 		ImGui::TreePop();
 	}
 }
