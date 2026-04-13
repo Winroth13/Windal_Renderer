@@ -7,6 +7,17 @@ struct PixelShaderInput
     float2 uv : UV;
 };
 
+struct PointLight
+{
+    float3 position;
+    float pad0;
+    float3 color;
+    float1 pad1;
+    float range;
+    float intensity;
+    float2 pad3;
+};
+
 // Constant buffers
 cbuffer cbPerFrame : register(b0)
 {
@@ -16,13 +27,17 @@ cbuffer cbPerFrame : register(b0)
     float pad1;
     float3 ambientColor;
     float pad2;
+    int numPointLights;
+    int numSpotLights;
+    int numDirectionalLights;
+    float pad3;
 }
 
 cbuffer cbPerView : register(b1)
 {
     float4x4 viewProjMatrix;
     float3 cameraPos;
-    float pad3;
+    float pad4;
 }
 
 cbuffer cbPerObject : register(b2)
@@ -34,57 +49,43 @@ cbuffer cbPerObject : register(b2)
 cbuffer cbPerMaterial : register(b3)
 {
     float3 ambientCoefficient;
-    float pad4;
-    float3 diffuseCoefficient;
     float pad5;
+    float3 diffuseCoefficient;
+    float pad6;
     float3 specularCoefficient;
     float phongExponent;
 }
+
+StructuredBuffer<PointLight> pointLights : register(t9);
 
 Texture2D textures : register(t0);
 SamplerState samplerState : register(s0);
 
 bool useBlingPhong = true;
 
-float4 main(PixelShaderInput input) : SV_TARGET
+float3 getPhongPointLightColor(PointLight pointLight, float3 worldPosition, float3 normal, float2 uv)
 {
-    // Normalized surface normal
-    float3 normal = normalize(input.worldNormal);
-    // Normalized light direction
-    float3 lightDir = normalize(-sunDirection);
-    // Normalized view direction
-    float3 viewDir = normalize(input.worldPosition - cameraPos);
+    float3 lightIntensity = pointLight.color * pointLight.intensity;
+    float distance = length(worldPosition - pointLight.position);
+    float distanceSquare = distance * distance;
+    float attenuation = pointLight.range * distanceSquare;
     
-    // Sample textures
-    float4 ambDifTexture = textures.Sample(samplerState, input.uv);
+    float3 viewDir = normalize(worldPosition - cameraPos);
+    float3 lightDir = normalize(worldPosition - pointLight.position);
     
-    // Coefficients and exponents
-    float3 cAmbient = ambientCoefficient * ambDifTexture.rgb;
-    float3 cDiffuse = diffuseCoefficient * ambDifTexture.rgb;
+    float4 texColor = textures.Sample(samplerState, uv);
+    
+    // coefficients and exponents
+    float3 cDiffuse = diffuseCoefficient;
     float3 cSpecular = specularCoefficient;
     
-    // Light intensity
-    int intensity = 1;
-    float3 lightIntensity = sunColor * intensity;
-    
-    // Distance to light
-    //float distance = length(input.worldPosition - lights[0].position);
-    //float distance2 = distance * distance;
-    float distance2 = 1;
-    
-    // Ambient light intensity
-    float3 iAmbient = ambientColor;
-    
-    // Ambient light
-    float3 ambientLight = cAmbient * iAmbient;
-    
-    // Diffuse light
+    // diffuse light
     float NdotL = dot(normal, -lightDir);
     float diffuseIntensity = saturate(NdotL);
-    float3 diffuseLight = cDiffuse * lightIntensity * diffuseIntensity / distance2;
+    float3 diffuseLight = cDiffuse * lightIntensity * diffuseIntensity / attenuation;
     
     float specularIntensity;
-    // Specular light
+    // specular light
     if (useBlingPhong)
     {
         // Blinn-Phong reflectance model
@@ -94,15 +95,39 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
     else
     {
-        // Blinn reflectance model
+        // blinn reflectance model
         float3 reflectVect = reflect(lightDir, normal);
         float RdotV = dot(reflectVect, -viewDir);
         specularIntensity = pow(saturate(RdotV), phongExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
     }
     
-    float3 specularLight = cSpecular * lightIntensity * specularIntensity / distance2;
+    float3 specularLight = cSpecular * lightIntensity * specularIntensity / attenuation;
+    float3 totalLight = diffuseLight + specularLight;
+    return totalLight;
+}
+
+float4 main(PixelShaderInput input) : SV_TARGET
+{
+    float3 totalLight;
     
-    float3 totalLight = ambientLight + diffuseLight + specularLight;
+    /* ambient */
+    float4 ambDifTexture = textures.Sample(samplerState, input.uv);
+    float3 iAmbient = ambientColor;
+    float3 cAmbient = ambientCoefficient * ambDifTexture.rgb;
+    float3 ambientLight = cAmbient * iAmbient;
+    
+    totalLight = ambientLight;
+    
+    /* point lights */
+    for (int i = 0; i < numPointLights; ++i)
+    {
+        totalLight += getPhongPointLightColor(
+            pointLights[i], 
+            input.worldPosition, 
+            normalize(input.worldNormal),
+            input.uv
+        );
+    }
     
     return float4(totalLight.rgb, 1.0f);
 }

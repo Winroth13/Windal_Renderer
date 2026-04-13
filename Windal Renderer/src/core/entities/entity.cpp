@@ -62,6 +62,8 @@ void Entity::RenderImgui()
 		ImGui::TreePop();
 	}
 
+	ImGui::Checkbox("Visible", &mVisible);
+
 	RenderImguiSelf();
 }
 

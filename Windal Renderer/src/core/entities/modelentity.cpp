@@ -14,9 +14,9 @@ ModelEntity::~ModelEntity() {}
 
 void ModelEntity::UpdateSelf(double delta)
 {
-	transform.RotateY((3.14f / 8) * static_cast<float>(delta));
-	transform.RotateX((3.14f / 8) * static_cast<float>(delta));
-	transform.RotateZ((3.14f / 8) * static_cast<float>(delta));
+	//transform.RotateY((3.14f / 8) * static_cast<float>(delta));
+	//transform.RotateX((3.14f / 8) * static_cast<float>(delta));
+	//transform.RotateZ((3.14f / 8) * static_cast<float>(delta));
 }
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)

@@ -22,17 +22,27 @@ bool RenderServer::Create(Renderer* renderer)
 
 void RenderServer::PushMesh(std::shared_ptr<Mesh> mesh, DirectX::XMMATRIX transform)
 {
-	GeometryData data;
+	GeometryData data = {};
 	data.mesh = mesh;
 	data.transform = transform;
-	mRenderer->PushFrameGeometryData(data);
+	mRenderer->PushGeometryData(data);
 }
 
 void RenderServer::PushMaterial(std::shared_ptr<Material> material)
 {
-	MaterialData data;
+	MaterialData data = {};
 	data.material = material;
-	mRenderer->PushFrameMaterialData(data);
+	mRenderer->PushMaterialData(data);
+}
+
+void RenderServer::PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float range, float intensity)
+{
+	PointLightData data = {};
+	data.position = position;
+	data.color = color;
+	data.range = range;
+	data.intensity = intensity;
+	mRenderer->PushPointLightData(data);
 }
 
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
@@ -42,9 +52,9 @@ void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX:
 
 void RenderServer::UpdateEnviroment(Enviroment& enviroment)
 {
-	mRenderer->UpdatePerFrameBuffer(
-		enviroment.GetAmbientColor(), 
-		enviroment.GetSunColor(), 
-		enviroment.GetSunDirection()
-	);
+	EnviromentData data = {};
+	data.ambientColor = enviroment.GetAmbientColor();
+	data.sunColor = enviroment.GetSunColor();
+	data.sunDirection = enviroment.GetSunDirection();
+	mRenderer->SetEnviromentData(data);
 }

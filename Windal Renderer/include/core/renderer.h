@@ -20,6 +20,10 @@ struct PerFrameBuffer
 	float pad1;
 	DirectX::XMFLOAT3 ambientColor;
 	float pad2;
+	uint32_t numPointLights;
+	uint32_t numSpotLights;
+	uint32_t numDirectionalLights;
+	float pad3;
 };
 
 struct PerViewBuffer
@@ -35,6 +39,17 @@ struct PerObject
 	DirectX::XMMATRIX worldInverseTranspose;
 };
 
+struct PointLightData
+{
+	DirectX::XMFLOAT3 position;
+	float pad0;
+	DirectX::XMFLOAT3 color;
+	float pad1;
+	float range;
+	float intensity;
+	DirectX::XMFLOAT2 pad3;
+};
+
 struct MaterialData
 {
 	std::shared_ptr<Material> material;
@@ -44,6 +59,13 @@ struct GeometryData
 {
 	std::shared_ptr<Mesh> mesh;
 	DirectX::XMMATRIX transform;
+};
+
+struct EnviromentData
+{
+	DirectX::XMFLOAT3 sunDirection;
+	DirectX::XMFLOAT3 sunColor;
+	DirectX::XMFLOAT3 ambientColor;
 };
 
 class Renderer
@@ -66,7 +88,8 @@ public:
 	void UpdatePerFrameBuffer(
 		const DirectX::XMFLOAT3 ambientColor,
 		const DirectX::XMFLOAT3 sunColor,
-		const DirectX::XMFLOAT3 sunDirection
+		const DirectX::XMFLOAT3 sunDirection,
+		const uint32_t numPointLights 
 	);
 
 	void UpdatePerViewBuffer(
@@ -75,8 +98,14 @@ public:
 	);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
 
-	void PushFrameGeometryData(const GeometryData& geometryData);
-	void PushFrameMaterialData(const MaterialData& materialData);
+	void PushGeometryData(const GeometryData& geometryData);
+	void PushMaterialData(const MaterialData& materialData);
+
+	void PushPointLightData(const PointLightData& mPointLightData);
+	void PushSpotLightData(const PointLightData& mPointLightData);
+	void PushDirectionalLightData(const PointLightData& mPointLightData);
+
+	void SetEnviromentData(const EnviromentData& enviromentData);
 
 private:
 	/* Bind Functions*/
@@ -95,8 +124,12 @@ private:
 
 	void ClearFrameData();
 
-	std::vector<GeometryData> mFrameGeometryData;
-	std::vector<MaterialData> mFrameMaterialData;
+	std::vector<GeometryData> mGeometryData;
+	std::vector<MaterialData> mMaterialData;
+	EnviromentData mEnviromentData;
+
+	/* Lights */
+	std::vector<PointLightData> mPointLightsData;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;
@@ -117,4 +150,7 @@ private:
 	ID3D11Buffer* mPerFrameBuffer;
 	ID3D11Buffer* mPerViewBuffer;
 	ID3D11Buffer* mPerObjectBuffer;
+
+	ID3D11Buffer* mPointLightsBuffer;
+	ID3D11ShaderResourceView* mPointLightsSRV;
 };

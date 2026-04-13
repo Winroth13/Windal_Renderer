@@ -14,6 +14,7 @@
 #include "core/entities/modelentity.h"
 #include "core/entities/cameraentity.h"
 #include "core/entities/enviromententity.h"
+#include "core/entities/pointlightentity.h"
 
 #include <memory>
 
@@ -36,6 +37,8 @@ public:
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
 
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
+
+		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>("Point Light 1");
 	};
 
 	void Shutdown() override
@@ -44,47 +47,57 @@ public:
 
 	void Update(double delta) override
 	{
-		/* Camera Movement	*/
-		constexpr float SPEED = 3.0f;
-		constexpr float TURN_SPEED = 2.5f;
-
-		POINT newMousePos;
-
-		GetCursorPos(&newMousePos);
-
-		/* Movement */
-		if (GetAsyncKeyState('W') & 0x8000)
-			cameraEntity->transform.MoveForward(SPEED * (float)delta);
-		if (GetAsyncKeyState('S') & 0x8000)
-			cameraEntity->transform.MoveForward(-SPEED * (float)delta);
-		if (GetAsyncKeyState('A') & 0x8000)
-			cameraEntity->transform.MoveRight(-SPEED * (float)delta);
-		if (GetAsyncKeyState('D') & 0x8000)
-			cameraEntity->transform.MoveRight(SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_SPACE) & 0x8000)
-			cameraEntity->transform.MoveUp(SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-			cameraEntity->transform.MoveUp(-SPEED * (float)delta);
-
-		/* Rotation */
-		if (GetAsyncKeyState(VK_LEFT) & 0x8000)
-			cameraEntity->transform.RotateY(-TURN_SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
-			cameraEntity->transform.RotateY(TURN_SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_UP) & 0x8000)
-			cameraEntity->transform.RotateX(-TURN_SPEED * (float)delta);
-		if (GetAsyncKeyState(VK_DOWN) & 0x8000)
-			cameraEntity->transform.RotateX(TURN_SPEED * (float)delta);
-		if (GetAsyncKeyState(MK_RBUTTON) & 0x8000)
+		/* Only handle input if window is focused */
+		if (GetFocus() != NULL)
 		{
-			float dx = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
-			float dy = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
+			/* Camera Movement	*/
+			constexpr float SPEED = 3.0f;
+			constexpr float TURN_SPEED = 2.6f;
 
-			cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
-			cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
+			POINT newMousePos;
+
+			GetCursorPos(&newMousePos);
+
+			float speed = SPEED;
+			if (GetAsyncKeyState(VK_LSHIFT))
+			{
+				speed *= 3.0f;
+			}
+
+			/* Movement */
+			if (GetAsyncKeyState('W') & 0x8000)
+				cameraEntity->transform.MoveForward(speed * (float)delta);
+			if (GetAsyncKeyState('S') & 0x8000)
+				cameraEntity->transform.MoveForward(-speed * (float)delta);
+			if (GetAsyncKeyState('A') & 0x8000)
+				cameraEntity->transform.MoveRight(-speed * (float)delta);
+			if (GetAsyncKeyState('D') & 0x8000)
+				cameraEntity->transform.MoveRight(speed * (float)delta);
+			if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+				cameraEntity->transform.MoveUp(speed * (float)delta);
+			if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+				cameraEntity->transform.MoveUp(-speed * (float)delta);
+
+			/* Rotation */
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000)
+				cameraEntity->transform.RotateY(-TURN_SPEED * (float)delta);
+			if (GetAsyncKeyState(VK_RIGHT) & 0x8000)
+				cameraEntity->transform.RotateY(TURN_SPEED * (float)delta);
+			if (GetAsyncKeyState(VK_UP) & 0x8000)
+				cameraEntity->transform.RotateX(-TURN_SPEED * (float)delta);
+			if (GetAsyncKeyState(VK_DOWN) & 0x8000)
+				cameraEntity->transform.RotateX(TURN_SPEED * (float)delta);
+			if (GetAsyncKeyState(MK_RBUTTON) & 0x8000)
+			{
+				float dx = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
+				float dy = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
+
+				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
+				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
+			}
+			
+			previousMousePos = newMousePos;
 		}
-
-		previousMousePos = newMousePos;
 	};
 
 	void Render(RenderServer& renderServer) override
@@ -111,6 +124,7 @@ public:
 				ImGui::Checkbox("Diagnostics", &mShowDiagnostics);
 				ImGui::EndMenu();
 			}
+
 			ImGui::EndMainMenuBar();
 		}
 

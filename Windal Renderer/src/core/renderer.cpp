@@ -231,11 +231,55 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
+	/* Create Point Light Buffers */
+	{
+		constexpr int POINT_LIGHT_COUNT = 8;
+
+		D3D11_BUFFER_DESC pointLightsBufferDesc = {};
+		pointLightsBufferDesc.ByteWidth = sizeof(PointLightData) * POINT_LIGHT_COUNT;
+		pointLightsBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		pointLightsBufferDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+		pointLightsBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		pointLightsBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		pointLightsBufferDesc.StructureByteStride = sizeof(PointLightData);
+
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = 0;
+		data.SysMemPitch = 0;
+		data.SysMemSlicePitch = 0;
+
+		if (FAILED(sDevice->CreateBuffer(&pointLightsBufferDesc, NULL, &mPointLightsBuffer)))
+		{
+			Logger::Error("Failed to create point lights buffer");
+			return false;
+		}
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.NumElements = POINT_LIGHT_COUNT;
+
+		if (FAILED(sDevice->CreateShaderResourceView(mPointLightsBuffer, &srvDesc, &mPointLightsSRV)))
+		{
+			Logger::Error("Failed to create point lights shader resource view");
+			return false;
+		}
+
+		mPointLightsData.reserve(POINT_LIGHT_COUNT);
+	}
+
 	return true;
 }
 
 void Renderer::Shutdown()
 {
+	if (mPointLightsBuffer != nullptr)
+		mPointLightsBuffer->Release();
+	
+	if (mPointLightsSRV != nullptr)
+		mPointLightsSRV->Release();
+
 	if (mPerViewBuffer != nullptr)
 		mPerViewBuffer->Release();
 
@@ -290,16 +334,40 @@ void Renderer::BeginRender()
 
 void Renderer::Render()
 {
-	/* Draw each set of Mesh and Material Data */
-	for (size_t i = 0; i < mFrameGeometryData.size(); ++i)
+	UpdatePerFrameBuffer(
+		mEnviromentData.ambientColor,
+		mEnviromentData.sunColor,
+		mEnviromentData.sunDirection,
+		(uint32_t)mPointLightsData.size()
+	);
+
+	/* Update Light Buffers */
 	{
-		auto& mesh = mFrameGeometryData[i].mesh;
-		auto& mat = mFrameMaterialData[i].material;
+		D3D11_MAPPED_SUBRESOURCE mappedResource;
+		HRESULT result = mImmediateContext->Map(mPointLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (FAILED(result))
+		{
+			Logger::Error("Failed to map point lights buffer");
+			throw std::runtime_error("");
+		}
+
+		size_t numBytes = mPointLightsData.size() * sizeof(PointLightData);
+		memcpy_s(mappedResource.pData, numBytes, mPointLightsData.data(), numBytes);
+		mImmediateContext->Unmap(mPointLightsBuffer, 0);
+
+		mImmediateContext->PSSetShaderResources(9, 1, &mPointLightsSRV);
+	}
+
+	/* Draw each set of Mesh and Material Data */
+	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	{
+		auto& mesh = mGeometryData[i].mesh;
+		auto& mat = mMaterialData[i].material;
 
 		BindMesh(mesh);
 		BindMaterial(mat);
 
-		UpdatePerObjectBuffer(mFrameGeometryData[i].transform);
+		UpdatePerObjectBuffer(mGeometryData[i].transform);
 
 		mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
 	}
@@ -314,12 +382,16 @@ void Renderer::EndRender()
 void Renderer::UpdatePerFrameBuffer(
 	const DirectX::XMFLOAT3 ambientColor,
 	const DirectX::XMFLOAT3 sunColor,
-	const DirectX::XMFLOAT3 sunDirection)
+	const DirectX::XMFLOAT3 sunDirection,
+	const uint32_t numPointLights)
 {
 	PerFrameBuffer perFrameBuffer = {};
 	perFrameBuffer.ambientColor = ambientColor;
 	perFrameBuffer.sunDirection = sunDirection;
 	perFrameBuffer.sunColor = sunColor;
+
+	perFrameBuffer.numPointLights = numPointLights;
+
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }
 
@@ -345,14 +417,43 @@ void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
 	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 }
 
-void Renderer::PushFrameGeometryData(const GeometryData& geometryData)
+void Renderer::PushGeometryData(const GeometryData& geometryData)
 {
-	mFrameGeometryData.push_back(geometryData);
+	mGeometryData.push_back(geometryData);
 }
 
-void Renderer::PushFrameMaterialData(const MaterialData& materialData)
+void Renderer::PushMaterialData(const MaterialData& materialData)
 {
-	mFrameMaterialData.push_back(materialData);
+	mMaterialData.push_back(materialData);
+}
+
+void Renderer::PushPointLightData(const PointLightData& pointLightData)
+{
+	if (mPointLightsData.size() < 8)
+	{
+		mPointLightsData.push_back(pointLightData);
+	}
+	else
+	{
+		Logger::Warn("Point lights cannot exceed 8");
+	}
+}
+
+void Renderer::PushSpotLightData(const PointLightData& pointLightData)
+{
+	mPointLightsData.push_back(pointLightData);
+	Logger::Warn("Spot lights haven't been implemented!");
+}
+
+void Renderer::PushDirectionalLightData(const PointLightData& pointLightData)
+{
+	mPointLightsData.push_back(pointLightData);
+	Logger::Warn("Directional lights haven't been implemented!");
+}
+
+void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
+{
+	mEnviromentData = enviromentData;
 }
 
 void Renderer::BindMaterial(std::shared_ptr<Material> material)
@@ -440,6 +541,11 @@ void Renderer::UnbindTexture2D(UINT slot)
 
 void Renderer::ClearFrameData()
 {
-	mFrameGeometryData.clear();
-	mFrameMaterialData.clear();
+	/* Lights */
+	{
+		mPointLightsData.clear();
+	}
+
+	mGeometryData.clear();
+	mMaterialData.clear();
 }

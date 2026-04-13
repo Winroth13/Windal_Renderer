@@ -25,6 +25,7 @@
     <ClInclude Include="include\core\entities\entity.h" />
     <ClInclude Include="include\core\entities\enviromententity.h" />
     <ClInclude Include="include\core\entities\modelentity.h" />
+    <ClInclude Include="include\core\entities\pointlightentity.h" />
     <ClInclude Include="include\core\imguiflags.h" />
     <ClInclude Include="include\core\imguiwindow.h" />
     <ClInclude Include="include\core\logger.h" />
@@ -63,6 +64,7 @@
     <ClCompile Include="src\core\entities\entity.cpp" />
     <ClCompile Include="src\core\entities\enviromententity.cpp" />
     <ClCompile Include="src\core\entities\modelentity.cpp" />
+    <ClCompile Include="src\core\entities\pointlightentity.cpp" />
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\logger.cpp" />
     <ClCompile Include="src\core\renderer.cpp" />
