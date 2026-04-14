@@ -15,6 +15,8 @@
 #include "core/entities/cameraentity.h"
 #include "core/entities/enviromententity.h"
 #include "core/entities/pointlightentity.h"
+#include "core/entities/directionallightentity.h"
+#include "core/entities/spotlightentity.h"
 
 #include <memory>
 
@@ -39,6 +41,13 @@ public:
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
 
 		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>("Point Light 1");
+		pointLightEntity1.SetColor({ 0, 1, 0 });
+
+		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>("Sun");
+
+		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>("Spot Light");
+		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
+		spotEntity.SetIntensity(16);
 	};
 
 	void Shutdown() override
@@ -95,7 +104,7 @@ public:
 				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
 				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
 			}
-			
+
 			previousMousePos = newMousePos;
 		}
 	};

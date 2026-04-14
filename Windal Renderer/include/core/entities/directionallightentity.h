@@ -1,18 +1,18 @@
 #pragma once
 #include "core/entities/entity.h"
 
-class PointLightEntity : public Entity
+class DirectionalLightEntity : public Entity
 {
 public:
-	PointLightEntity(const std::string& name);
-	~PointLightEntity();
+	DirectionalLightEntity(const std::string& name);
+	~DirectionalLightEntity();
 
 	void SetColor(const DirectX::XMFLOAT3 color) { mColor = color; };
-	void SetAttenuation(const float attenuation) { mAttenuation = attenuation; };
+	void SetDirection(const DirectX::XMFLOAT3 direction) { mDirection = direction; };
 	void SetIntensity(const float intensity) { mIntensity = intensity; };
 
 	DirectX::XMFLOAT3 GetColor() const { return mColor; };
-	float GetAttenuation() const { return mAttenuation; };
+	DirectX::XMFLOAT3 GetDirection() const { return mDirection; };
 	float GetIntensity() const { return mIntensity; };
 
 protected:
@@ -22,6 +22,6 @@ protected:
 
 private:
 	DirectX::XMFLOAT3 mColor = { 1.0, 1.0, 1.0 };
-	float mAttenuation = 1.0f;
+	DirectX::XMFLOAT3 mDirection = { 0.0f, -1.0f, 0.0f };
 	float mIntensity = 1.0f;
 };

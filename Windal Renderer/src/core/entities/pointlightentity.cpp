@@ -18,7 +18,7 @@ void PointLightEntity::UpdateSelf(double delta)
 
 void PointLightEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.PushPointLight(transform.GetPosition3f(), mColor, mRange, mIntensity);
+	renderServer.PushPointLight(transform.GetPosition3f(), mColor, mAttenuation, mIntensity);
 }
 
 void PointLightEntity::RenderImguiSelf()
@@ -26,7 +26,7 @@ void PointLightEntity::RenderImguiSelf()
 	if (ImGui::TreeNodeEx("Point Light Properties", TREE_NODE_FLAGS))
 	{
 		ImGui::ColorEdit3("Color", &mColor.x);
-		ImGui::DragFloat("Range", &mRange, 1.0f, 0.01f);
+		ImGui::DragFloat("Attenuation", &mAttenuation, 0.02f, 0.01f, 20.0f);
 		ImGui::DragFloat("Intensity", &mIntensity);
 		ImGui::TreePop();
 	}

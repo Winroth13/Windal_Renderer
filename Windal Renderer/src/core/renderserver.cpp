@@ -35,14 +35,35 @@ void RenderServer::PushMaterial(std::shared_ptr<Material> material)
 	mRenderer->PushMaterialData(data);
 }
 
-void RenderServer::PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float range, float intensity)
+void RenderServer::PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity)
+{
+	DirectionalLightData data = {};
+	data.direction = direction;
+	data.color = color;
+	data.intensity = intensity;
+	mRenderer->PushDirectionalLightData(data);
+}
+
+void RenderServer::PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity)
 {
 	PointLightData data = {};
 	data.position = position;
 	data.color = color;
-	data.range = range;
+	data.attenuation = attenuation;
 	data.intensity = intensity;
 	mRenderer->PushPointLightData(data);
+}
+
+void RenderServer::PushSpotLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation)
+{
+	SpotLightData data = {};
+	data.position = position;
+	data.direction = direction;
+	data.color = color;
+	data.angle = angle;
+	data.intensity = intensity;
+	data.attenuation = attenuation;
+	mRenderer->PushSpotLightData(data);
 }
 
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
@@ -54,7 +75,6 @@ void RenderServer::UpdateEnviroment(Enviroment& enviroment)
 {
 	EnviromentData data = {};
 	data.ambientColor = enviroment.GetAmbientColor();
-	data.sunColor = enviroment.GetSunColor();
-	data.sunDirection = enviroment.GetSunDirection();
+	data.useBlinnPhong = enviroment.IsUsingBlinnPhong();
 	mRenderer->SetEnviromentData(data);
 }

@@ -129,6 +129,12 @@
     <ClInclude Include="include\core\entities\pointlightentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\core\entities\directionallightentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\entities\spotlightentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -228,6 +234,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\entities\pointlightentity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\entities\directionallightentity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\entities\spotlightentity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

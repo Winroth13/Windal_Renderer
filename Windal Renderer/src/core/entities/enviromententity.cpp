@@ -28,8 +28,7 @@ void EnviromentEntity::RenderImguiSelf()
 	{
 		auto& enviroment = GetScene().GetEnviroment();
 		ImGui::ColorEdit3("Ambient Color", &enviroment.GetAmbientColorRef().x);
-		ImGui::ColorEdit3("Sun Color", &enviroment.GetSunColorRef().x);
-		ImGui::DragFloat3("Sun Direction", &enviroment.GetSunDirectionRef().x, 0.02f);
+		ImGui::Checkbox("Blinn Phong", &enviroment.GetUseBlinnPhong());
 		ImGui::TreePop();
 	}
 }

@@ -12,18 +12,23 @@
 #include <DirectXMath.h>
 #include <vector>
 
+#define MAX_DIRECTIONAL_LIGHTS 8
+#define MAX_POINT_LIGHTS 8
+#define MAX_SPOT_LIGHTS 8
+
+#define DIRECTIONAL_LIGHT_SLOT 0
+#define POINT_LIGHT_SLOT 1
+#define SPOT_LIGHT_SLOT 2
+#define DIFFUSE_TEXTURE_SLOT 3
+
 struct PerFrameBuffer
 {
-	DirectX::XMFLOAT3 sunDirection;
-	float pad0;
-	DirectX::XMFLOAT3 sunColor;
-	float pad1;
 	DirectX::XMFLOAT3 ambientColor;
-	float pad2;
+	uint32_t numDirectionalLights;
 	uint32_t numPointLights;
 	uint32_t numSpotLights;
-	uint32_t numDirectionalLights;
-	float pad3;
+	uint32_t useBlinnPhong;
+	float pad;
 };
 
 struct PerViewBuffer
@@ -39,15 +44,30 @@ struct PerObject
 	DirectX::XMMATRIX worldInverseTranspose;
 };
 
+struct DirectionalLightData
+{
+	DirectX::XMFLOAT3 direction;
+	float intensity;
+	DirectX::XMFLOAT3 color;
+	float pad0;
+};
+
 struct PointLightData
 {
 	DirectX::XMFLOAT3 position;
-	float pad0;
+	float attenuation;
 	DirectX::XMFLOAT3 color;
-	float pad1;
-	float range;
 	float intensity;
-	DirectX::XMFLOAT2 pad3;
+};
+
+struct SpotLightData
+{
+	DirectX::XMFLOAT3 position;
+	float attenuation;
+	DirectX::XMFLOAT3 color;
+	float intensity;
+	DirectX::XMFLOAT3 direction;
+	float angle;
 };
 
 struct MaterialData
@@ -63,9 +83,8 @@ struct GeometryData
 
 struct EnviromentData
 {
-	DirectX::XMFLOAT3 sunDirection;
-	DirectX::XMFLOAT3 sunColor;
 	DirectX::XMFLOAT3 ambientColor;
+	bool useBlinnPhong;
 };
 
 class Renderer
@@ -87,9 +106,10 @@ public:
 
 	void UpdatePerFrameBuffer(
 		const DirectX::XMFLOAT3 ambientColor,
-		const DirectX::XMFLOAT3 sunColor,
-		const DirectX::XMFLOAT3 sunDirection,
-		const uint32_t numPointLights 
+		const uint32_t numDirectionalLights,
+		const uint32_t numPointLights,
+		const uint32_t numSpotLights,
+		const bool useBlinnPhong
 	);
 
 	void UpdatePerViewBuffer(
@@ -101,9 +121,9 @@ public:
 	void PushGeometryData(const GeometryData& geometryData);
 	void PushMaterialData(const MaterialData& materialData);
 
-	void PushPointLightData(const PointLightData& mPointLightData);
-	void PushSpotLightData(const PointLightData& mPointLightData);
-	void PushDirectionalLightData(const PointLightData& mPointLightData);
+	void PushDirectionalLightData(const DirectionalLightData& directionalLightData);
+	void PushPointLightData(const PointLightData& pointLightData);
+	void PushSpotLightData(const SpotLightData& spotLightData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
 
@@ -114,6 +134,10 @@ private:
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
 	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
 	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
+
+	void BindDirectionalLights();
+	void BindPointLights();
+	void BindSpotLights();
 
 	/* Unbind Functions */
 	void UnbindMaterial();
@@ -130,6 +154,8 @@ private:
 
 	/* Lights */
 	std::vector<PointLightData> mPointLightsData;
+	std::vector<SpotLightData> mSpotLightsData;
+	std::vector<DirectionalLightData> mDirectionalLightsData;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;
@@ -151,6 +177,12 @@ private:
 	ID3D11Buffer* mPerViewBuffer;
 	ID3D11Buffer* mPerObjectBuffer;
 
+	ID3D11Buffer* mDirectionalLightsBuffer;
+	ID3D11ShaderResourceView* mDirectionalLightsSRV;
+
 	ID3D11Buffer* mPointLightsBuffer;
 	ID3D11ShaderResourceView* mPointLightsSRV;
+
+	ID3D11Buffer* mSpotLightsBuffer;
+	ID3D11ShaderResourceView* mSpotLightsSRV;
 };

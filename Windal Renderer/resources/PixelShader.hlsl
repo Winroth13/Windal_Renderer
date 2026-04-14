@@ -7,37 +7,48 @@ struct PixelShaderInput
     float2 uv : UV;
 };
 
+struct DirectionalLight
+{
+    float3 direction;
+    float intensity;
+    float3 color;
+    float pad0;
+};
+
 struct PointLight
 {
     float3 position;
-    float pad0;
+    float attenuation;
     float3 color;
-    float1 pad1;
-    float range;
     float intensity;
-    float2 pad3;
+};
+
+struct SpotLight
+{
+    float3 position;
+    float attenuation;
+    float3 color;
+    float intensity;
+    float3 direction;
+    float angle;
 };
 
 // Constant buffers
 cbuffer cbPerFrame : register(b0)
 {
-    float3 sunDirection;
-	float pad0;
-    float3 sunColor;
-    float pad1;
     float3 ambientColor;
-    float pad2;
+    int numDirectionalLights;
     int numPointLights;
     int numSpotLights;
-    int numDirectionalLights;
-    float pad3;
+    int usingBlinnPhong;
+    float pad4;
 }
 
 cbuffer cbPerView : register(b1)
 {
     float4x4 viewProjMatrix;
     float3 cameraPos;
-    float pad4;
+    float pad5;
 }
 
 cbuffer cbPerObject : register(b2)
@@ -49,61 +60,72 @@ cbuffer cbPerObject : register(b2)
 cbuffer cbPerMaterial : register(b3)
 {
     float3 ambientCoefficient;
-    float pad5;
-    float3 diffuseCoefficient;
     float pad6;
+    float3 diffuseCoefficient;
+    float pad7;
     float3 specularCoefficient;
     float phongExponent;
 }
 
-StructuredBuffer<PointLight> pointLights : register(t9);
+StructuredBuffer<DirectionalLight> directionalLights : register(t0);
+StructuredBuffer<PointLight> pointLights : register(t1);
+StructuredBuffer<SpotLight> spotLights : register(t2);
 
-Texture2D textures : register(t0);
-SamplerState samplerState : register(s0);
+Texture2D textures : register(t3);
+SamplerState samplerState : register(s3);
 
-bool useBlingPhong = true;
-
-float3 getPhongPointLightColor(PointLight pointLight, float3 worldPosition, float3 normal, float2 uv)
+float3 CalculateLightColor(
+    float3 color,
+    float intensity,
+    float attenuation,
+    float distance,
+    float3 lightDir,
+    float3 worldPosition,
+    float3 worldNormal, 
+    float3 diffuseColor)
 {
-    float3 lightIntensity = pointLight.color * pointLight.intensity;
-    float distance = length(worldPosition - pointLight.position);
-    float distanceSquare = distance * distance;
-    float attenuation = pointLight.range * distanceSquare;
-    
+    float3 lightIntensity = color * intensity;
+    attenuation = attenuation * pow(distance, 2);
+
     float3 viewDir = normalize(worldPosition - cameraPos);
-    float3 lightDir = normalize(worldPosition - pointLight.position);
-    
-    float4 texColor = textures.Sample(samplerState, uv);
-    
+    lightDir = normalize(lightDir);
+
+    worldNormal = normalize(worldNormal);
+
     // coefficients and exponents
-    float3 cDiffuse = diffuseCoefficient;
+    float3 cDiffuse = diffuseCoefficient * diffuseColor.rgb;
     float3 cSpecular = specularCoefficient;
-    
+
     // diffuse light
-    float NdotL = dot(normal, -lightDir);
+    float NdotL = dot(worldNormal, -lightDir);
     float diffuseIntensity = saturate(NdotL);
     float3 diffuseLight = cDiffuse * lightIntensity * diffuseIntensity / attenuation;
-    
+
     float specularIntensity;
     // specular light
-    if (useBlingPhong)
+    if (usingBlinnPhong)
     {
         // Blinn-Phong reflectance model
         float3 halfVect = normalize(-lightDir + -viewDir);
-        float NdotH = dot(normal, halfVect);
+        float NdotH = dot(worldNormal, halfVect);
         specularIntensity = pow(saturate(NdotH), phongExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
     }
     else
     {
-        // blinn reflectance model
-        float3 reflectVect = reflect(lightDir, normal);
+        // Blinn reflectance model
+        float3 reflectVect = reflect(lightDir, worldNormal);
         float RdotV = dot(reflectVect, -viewDir);
         specularIntensity = pow(saturate(RdotV), phongExponent); // pow(0, 0) is undefined behaviour, but is prevented in Mesh.cpp
     }
-    
+
     float3 specularLight = cSpecular * lightIntensity * specularIntensity / attenuation;
     float3 totalLight = diffuseLight + specularLight;
     return totalLight;
+}
+
+float easeInExpo(float number)
+{
+    return pow(2, 10 * number - 10);
 }
 
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -111,23 +133,73 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 totalLight;
     
     /* ambient */
-    float4 ambDifTexture = textures.Sample(samplerState, input.uv);
+    float4 texColor = textures.Sample(samplerState, input.uv);
     float3 iAmbient = ambientColor;
-    float3 cAmbient = ambientCoefficient * ambDifTexture.rgb;
+    float3 cAmbient = ambientCoefficient * texColor.rgb;
     float3 ambientLight = cAmbient * iAmbient;
     
     totalLight = ambientLight;
     
-    /* point lights */
-    for (int i = 0; i < numPointLights; ++i)
+    /* Directional lights */
+    for (int i = 0; i < numDirectionalLights; ++i)
     {
-        totalLight += getPhongPointLightColor(
-            pointLights[i], 
-            input.worldPosition, 
-            normalize(input.worldNormal),
-            input.uv
+        totalLight += CalculateLightColor(
+            directionalLights[i].color,
+            directionalLights[i].intensity,
+            1,
+            1,
+            directionalLights[i].direction,
+            input.worldPosition,
+            input.worldNormal,
+            texColor.rgb
         );
     }
     
+    /* Point lights */
+    for (i = 0; i < numPointLights; ++i)
+    {
+        totalLight += CalculateLightColor(
+            pointLights[i].color,
+            pointLights[i].intensity,
+            pointLights[i].attenuation,
+            length(input.worldPosition - pointLights[i].position),
+            input.worldPosition - pointLights[i].position,
+            input.worldPosition,
+            input.worldNormal,
+            texColor.rgb
+        );
+    }
+    
+    /* Spot lights */
+    for (i = 0; i < numSpotLights; ++i)
+    {  
+        float3 lightDir = (input.worldPosition - spotLights[i].position);
+        float spotFactor = dot(normalize(lightDir), normalize(spotLights[i].direction));
+        float cutoff = cos(spotLights[i].angle);
+
+        if (spotFactor > cutoff)
+        {
+            float3 color = CalculateLightColor(
+                spotLights[i].color,
+                spotLights[i].intensity,
+                spotLights[i].attenuation,
+                length(lightDir),
+                lightDir,
+                input.worldPosition,
+                input.worldNormal,
+                texColor.rgb
+            );
+
+            // Smoothes out the outer 20% of the light
+            // TODO: Add an outer angle to decide what the "outer percent" is
+            float falloffFactor = (1.0 - (1.0 - spotFactor) / (1.0 - cutoff)) * 5;
+            falloffFactor = min(falloffFactor, 1);
+
+            color = color * falloffFactor;
+
+            totalLight += color;
+        }
+    }
+   
     return float4(totalLight.rgb, 1.0f);
 }

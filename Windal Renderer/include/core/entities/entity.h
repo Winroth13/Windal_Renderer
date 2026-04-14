@@ -26,6 +26,7 @@ public:
 	void SetName(const std::string& name) { mName = name; }
 
 	bool IsVisible();
+	void SetVisisble(const bool visible) { mVisible = visible; }
 
 	DirectX::XMMATRIX GetGlobalTransform();
 

@@ -231,14 +231,48 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
+	/* Create Directional Light Buffers */
+	{
+		D3D11_BUFFER_DESC lightBufferDesc = {};
+		lightBufferDesc.ByteWidth = sizeof(DirectionalLightData) * MAX_DIRECTIONAL_LIGHTS;
+		lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		lightBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		lightBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		lightBufferDesc.StructureByteStride = sizeof(DirectionalLightData);
+
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = 0;
+		data.SysMemPitch = 0;
+		data.SysMemSlicePitch = 0;
+
+		if (FAILED(sDevice->CreateBuffer(&lightBufferDesc, NULL, &mDirectionalLightsBuffer)))
+		{
+			Logger::Error("Failed to create directional lights buffer");
+			return false;
+		}
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.NumElements = MAX_DIRECTIONAL_LIGHTS;
+
+		if (FAILED(sDevice->CreateShaderResourceView(mDirectionalLightsBuffer, &srvDesc, &mDirectionalLightsSRV)))
+		{
+			Logger::Error("Failed to create directional lights shader resource view");
+			return false;
+		}
+
+		mDirectionalLightsData.reserve(MAX_DIRECTIONAL_LIGHTS);
+	}
+
 	/* Create Point Light Buffers */
 	{
-		constexpr int POINT_LIGHT_COUNT = 8;
-
 		D3D11_BUFFER_DESC pointLightsBufferDesc = {};
-		pointLightsBufferDesc.ByteWidth = sizeof(PointLightData) * POINT_LIGHT_COUNT;
+		pointLightsBufferDesc.ByteWidth = sizeof(PointLightData) * MAX_POINT_LIGHTS;
 		pointLightsBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-		pointLightsBufferDesc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+		pointLightsBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pointLightsBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		pointLightsBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 		pointLightsBufferDesc.StructureByteStride = sizeof(PointLightData);
@@ -258,7 +292,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 		srvDesc.Buffer.FirstElement = 0;
-		srvDesc.Buffer.NumElements = POINT_LIGHT_COUNT;
+		srvDesc.Buffer.NumElements = MAX_POINT_LIGHTS;
 
 		if (FAILED(sDevice->CreateShaderResourceView(mPointLightsBuffer, &srvDesc, &mPointLightsSRV)))
 		{
@@ -266,7 +300,43 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			return false;
 		}
 
-		mPointLightsData.reserve(POINT_LIGHT_COUNT);
+		mPointLightsData.reserve(MAX_POINT_LIGHTS);
+	}
+
+	/* Create Spot Light Buffers */
+	{
+		D3D11_BUFFER_DESC lightBufferDesc = {};
+		lightBufferDesc.ByteWidth = sizeof(SpotLightData) * MAX_SPOT_LIGHTS;
+		lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		lightBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		lightBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		lightBufferDesc.StructureByteStride = sizeof(SpotLightData);
+
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = 0;
+		data.SysMemPitch = 0;
+		data.SysMemSlicePitch = 0;
+
+		if (FAILED(sDevice->CreateBuffer(&lightBufferDesc, NULL, &mSpotLightsBuffer)))
+		{
+			Logger::Error("Failed to create spot lights buffer");
+			return false;
+		}
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.NumElements = MAX_SPOT_LIGHTS;
+
+		if (FAILED(sDevice->CreateShaderResourceView(mSpotLightsBuffer, &srvDesc, &mSpotLightsSRV)))
+		{
+			Logger::Error("Failed to create spot lights shader resource view");
+			return false;
+		}
+
+		mSpotLightsData.reserve(MAX_SPOT_LIGHTS);
 	}
 
 	return true;
@@ -274,11 +344,26 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 void Renderer::Shutdown()
 {
-	if (mPointLightsBuffer != nullptr)
-		mPointLightsBuffer->Release();
-	
-	if (mPointLightsSRV != nullptr)
-		mPointLightsSRV->Release();
+	/* Release Light Buffers */
+	{
+		if (mDirectionalLightsBuffer != nullptr)
+			mDirectionalLightsBuffer->Release();
+
+		if (mDirectionalLightsSRV != nullptr)
+			mDirectionalLightsSRV->Release();
+
+		if (mPointLightsBuffer != nullptr)
+			mPointLightsBuffer->Release();
+
+		if (mPointLightsSRV != nullptr)
+			mPointLightsSRV->Release();
+
+		if (mSpotLightsBuffer != nullptr)
+			mSpotLightsBuffer->Release();
+
+		if (mSpotLightsSRV != nullptr)
+			mSpotLightsSRV->Release();
+	}
 
 	if (mPerViewBuffer != nullptr)
 		mPerViewBuffer->Release();
@@ -336,27 +421,15 @@ void Renderer::Render()
 {
 	UpdatePerFrameBuffer(
 		mEnviromentData.ambientColor,
-		mEnviromentData.sunColor,
-		mEnviromentData.sunDirection,
-		(uint32_t)mPointLightsData.size()
+		(uint32_t)mDirectionalLightsData.size(),
+		(uint32_t)mPointLightsData.size(),
+		(uint32_t)mSpotLightsData.size(),
+		mEnviromentData.useBlinnPhong
 	);
 
-	/* Update Light Buffers */
-	{
-		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		HRESULT result = mImmediateContext->Map(mPointLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		if (FAILED(result))
-		{
-			Logger::Error("Failed to map point lights buffer");
-			throw std::runtime_error("");
-		}
-
-		size_t numBytes = mPointLightsData.size() * sizeof(PointLightData);
-		memcpy_s(mappedResource.pData, numBytes, mPointLightsData.data(), numBytes);
-		mImmediateContext->Unmap(mPointLightsBuffer, 0);
-
-		mImmediateContext->PSSetShaderResources(9, 1, &mPointLightsSRV);
-	}
+	BindDirectionalLights();
+	BindPointLights();
+	BindSpotLights();
 
 	/* Draw each set of Mesh and Material Data */
 	for (size_t i = 0; i < mGeometryData.size(); ++i)
@@ -381,16 +454,19 @@ void Renderer::EndRender()
 
 void Renderer::UpdatePerFrameBuffer(
 	const DirectX::XMFLOAT3 ambientColor,
-	const DirectX::XMFLOAT3 sunColor,
-	const DirectX::XMFLOAT3 sunDirection,
-	const uint32_t numPointLights)
+	const uint32_t numDirectionalLights,
+	const uint32_t numPointLights,
+	const uint32_t numSpotLights,
+	bool useBlinnPhong)
 {
 	PerFrameBuffer perFrameBuffer = {};
 	perFrameBuffer.ambientColor = ambientColor;
-	perFrameBuffer.sunDirection = sunDirection;
-	perFrameBuffer.sunColor = sunColor;
 
+	perFrameBuffer.numDirectionalLights = numDirectionalLights;
 	perFrameBuffer.numPointLights = numPointLights;
+	perFrameBuffer.numSpotLights = numSpotLights;
+
+	perFrameBuffer.useBlinnPhong = (uint32_t)useBlinnPhong;
 
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }
@@ -427,28 +503,40 @@ void Renderer::PushMaterialData(const MaterialData& materialData)
 	mMaterialData.push_back(materialData);
 }
 
+void Renderer::PushDirectionalLightData(const DirectionalLightData& directionalLightData)
+{
+	if (mDirectionalLightsData.size() < MAX_DIRECTIONAL_LIGHTS)
+	{
+		mDirectionalLightsData.push_back(directionalLightData);
+	}
+	else
+	{
+		Logger::Warn("Directional lights cannot exceed " + std::to_string(MAX_DIRECTIONAL_LIGHTS));
+	}
+}
+
 void Renderer::PushPointLightData(const PointLightData& pointLightData)
 {
-	if (mPointLightsData.size() < 8)
+	if (mPointLightsData.size() < MAX_POINT_LIGHTS)
 	{
 		mPointLightsData.push_back(pointLightData);
 	}
 	else
 	{
-		Logger::Warn("Point lights cannot exceed 8");
+		Logger::Warn("Point lights cannot exceed " + std::to_string(MAX_POINT_LIGHTS));
 	}
 }
 
-void Renderer::PushSpotLightData(const PointLightData& pointLightData)
+void Renderer::PushSpotLightData(const SpotLightData& spotLightData)
 {
-	mPointLightsData.push_back(pointLightData);
-	Logger::Warn("Spot lights haven't been implemented!");
-}
-
-void Renderer::PushDirectionalLightData(const PointLightData& pointLightData)
-{
-	mPointLightsData.push_back(pointLightData);
-	Logger::Warn("Directional lights haven't been implemented!");
+	if (mSpotLightsData.size() < MAX_SPOT_LIGHTS)
+	{
+		mSpotLightsData.push_back(spotLightData);
+	}
+	else
+	{
+		Logger::Warn("Spot lights cannot exceed " + std::to_string(MAX_SPOT_LIGHTS));
+	}
 }
 
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
@@ -458,12 +546,10 @@ void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 
 void Renderer::BindMaterial(std::shared_ptr<Material> material)
 {
-	constexpr UINT DIFFUSE_SLOT = 0;
-
 	BindVertexShader(material->GetVertexShader());
 	BindPixelShader(material->GetPixelShader());
 
-	BindTexture2D(material->GetTexture(), DIFFUSE_SLOT);
+	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT);
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 
@@ -511,6 +597,57 @@ void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
 	mImmediateContext->PSSetShaderResources(slot, 1, &srv);
 }
 
+void Renderer::BindDirectionalLights()
+{
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT result = mImmediateContext->Map(mDirectionalLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		Logger::Error("Failed to map directional lights buffer");
+		throw std::runtime_error("");
+	}
+
+	size_t numBytes = mDirectionalLightsData.size() * sizeof(DirectionalLightData);
+	memcpy_s(mappedResource.pData, numBytes, mDirectionalLightsData.data(), numBytes);
+	mImmediateContext->Unmap(mDirectionalLightsBuffer, 0);
+
+	mImmediateContext->PSSetShaderResources(DIRECTIONAL_LIGHT_SLOT, 1, &mDirectionalLightsSRV);
+}
+
+void Renderer::BindPointLights()
+{
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT result = mImmediateContext->Map(mPointLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		Logger::Error("Failed to map point lights buffer");
+		throw std::runtime_error("");
+	}
+
+	size_t numBytes = mPointLightsData.size() * sizeof(PointLightData);
+	memcpy_s(mappedResource.pData, numBytes, mPointLightsData.data(), numBytes);
+	mImmediateContext->Unmap(mPointLightsBuffer, 0);
+
+	mImmediateContext->PSSetShaderResources(POINT_LIGHT_SLOT, 1, &mPointLightsSRV);
+}
+
+void Renderer::BindSpotLights()
+{
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	HRESULT result = mImmediateContext->Map(mSpotLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		Logger::Error("Failed to map spot lights buffer");
+		throw std::runtime_error("");
+	}
+
+	size_t numBytes = mSpotLightsData.size() * sizeof(SpotLightData);
+	memcpy_s(mappedResource.pData, numBytes, mSpotLightsData.data(), numBytes);
+	mImmediateContext->Unmap(mSpotLightsBuffer, 0);
+
+	mImmediateContext->PSSetShaderResources(SPOT_LIGHT_SLOT, 1, &mSpotLightsSRV);
+}
+
 void Renderer::UnbindMaterial()
 {
 	UnbindVertexShader();
@@ -543,6 +680,8 @@ void Renderer::ClearFrameData()
 {
 	/* Lights */
 	{
+		mDirectionalLightsData.clear();
+		mSpotLightsData.clear();
 		mPointLightsData.clear();
 	}
 
