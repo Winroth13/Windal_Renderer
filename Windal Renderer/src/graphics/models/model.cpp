@@ -9,48 +9,63 @@
 #include "imgui/imgui.h"
 
 Model::Model()
-	: mMesh(nullptr), mMaterial(nullptr)
 {
 }
 
 Model::Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
-	: mMesh(mesh), mMaterial(material)
 {
+	AddMesh(mesh);
+	AddMaterial(material);
 }
 
 Model::~Model()
 {
 	Logger::Info("Model Destructor!");
-};
-
-void Model::SetMesh(std::shared_ptr<Mesh> mesh)
-{
-	mMesh = mesh;
 }
 
-void Model::SetMaterial(std::shared_ptr<Material> material)
+void Model::AddMesh(std::shared_ptr<Mesh> mesh, size_t materialIndex)
 {
-	mMaterial = material;
+	mMeshes.emplace_back(mesh);
+	mMaterialIndicies.push_back(materialIndex);
 }
 
-size_t Model::GetNumIndicies()
+void Model::AddMaterial(std::shared_ptr<Material> material)
 {
-	return mMesh->GetNumIndicies();
+	mMaterials.emplace_back(material);
+}
+
+size_t Model::GetNumIndicies(size_t index)
+{
+	return mMeshes[index]->GetNumIndicies();
 }
 
 void Model::RenderImgui()
 {
 	if (ImGui::TreeNodeEx("Model", TREE_NODE_FLAGS))
 	{
-		if (ImGui::TreeNodeEx("Material", TREE_NODE_FLAGS))
+		if (ImGui::TreeNodeEx("Materials", TREE_NODE_FLAGS))
 		{
-			mMaterial->RenderImgui();
+			for (auto& material : mMaterials)
+			{
+				if (ImGui::TreeNodeEx(material->GetName().c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_Framed))
+				{
+					material->RenderImgui();
+					ImGui::TreePop();
+				}
+			}
 			ImGui::TreePop();
 		}
-			
-		if (ImGui::TreeNodeEx("Mesh", TREE_NODE_FLAGS))
+
+		if (ImGui::TreeNodeEx("Meshes", TREE_NODE_FLAGS))
 		{
-			mMesh->RenderImgui();
+			for (auto& mesh : mMeshes)
+			{
+				if (ImGui::TreeNodeEx(mesh->GetName().c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_Framed))
+				{
+					mesh->RenderImgui();
+					ImGui::TreePop();
+				}
+			}
 			ImGui::TreePop();
 		}
 

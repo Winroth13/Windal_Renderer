@@ -31,10 +31,10 @@ public:
 	{
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 		auto pShader = std::make_shared<PixelShader>("resources/PixelShader.cso");
-		//auto model = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader);
+		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader);
 
-		//auto& entity = mScene->CreateEntity<ModelEntity>("Model 1", model);
-		//entity.transform.SetPosition(0, 0, 3);
+		auto& entity = mScene->CreateEntity<ModelEntity>("Sponza", sponza);
+		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
 
@@ -44,6 +44,7 @@ public:
 		pointLightEntity1.SetColor({ 0, 1, 0 });
 
 		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>("Sun");
+		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>("Spot Light");
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });

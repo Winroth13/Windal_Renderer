@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 class Material;
 class Mesh;
@@ -13,17 +14,22 @@ public:
 
 	~Model();
 
-	void SetMesh(std::shared_ptr<Mesh> mesh);
-	void SetMaterial(std::shared_ptr<Material> material);
+	void AddMesh(std::shared_ptr<Mesh> mesh, size_t materialIndex = 0);
+	void AddMaterial(std::shared_ptr<Material> material);
 
-	std::shared_ptr<Mesh> GetMesh() { return mMesh; }
-	std::shared_ptr<Material> GetMaterial() { return mMaterial; }
+	std::vector<std::shared_ptr<Mesh>> GetMeshes() { return mMeshes; }
+	std::vector<std::shared_ptr<Material>> GetMaterials() { return mMaterials; }
 
-	size_t GetNumIndicies();
+	std::shared_ptr<Mesh> GetMesh(size_t index) { return mMeshes[index]; }
+	std::shared_ptr<Material> GetMaterial(size_t index) { return mMaterials[mMaterialIndicies[index]]; }
+
+	size_t GetNumIndicies(size_t index);
+	const size_t GetMeshCount() { return mMeshes.size(); }
 
 	void RenderImgui();
 
 private:
-	std::shared_ptr<Mesh> mMesh;
-	std::shared_ptr<Material> mMaterial;
+	std::vector<std::shared_ptr<Mesh>> mMeshes;
+	std::vector<size_t> mMaterialIndicies;
+	std::vector<std::shared_ptr<Material>> mMaterials;
 };

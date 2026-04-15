@@ -1,6 +1,4 @@
 #pragma once
-// Prevent Windows from defining min and max macros, required when using both Windows.h and DirectXMesh.h
-#define NOMINMAX
 
 #include <iostream>
 #include <Windows.h>
@@ -20,39 +18,39 @@
 
 struct WindowProps
 {
-	std::string title;
-	int width;
-	int height;
+    std::string title;
+    int width;
+    int height;
 };
 
 App* CreateApp();
 WindowProps CreateWindowProperties();
 
 int APIENTRY wWinMain(
-	_In_ HINSTANCE hInstance,
-	_In_opt_ HINSTANCE hPrevInstance,
-	_In_ LPWSTR lpCmdLine,
-	_In_ int nCmdShow
+    _In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR lpCmdLine,
+    _In_ int nCmdShow
 )
 {
-	// Memory leak debugging on program exit
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    // Memory leak debugging on program exit
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	CreateNewConsole(1024);
+    CreateNewConsole(1024);
 
-	App* app = CreateApp();
-	WindowProps props = CreateWindowProperties();
+    App* app = CreateApp();
+    WindowProps props = CreateWindowProperties();
 
-	Engine* engine = new Engine();
-	engine->Run(app, props.title, props.width, props.height);
+    Engine* engine = new Engine();
+    engine->Run(app, props.title, props.width, props.height);
 
-	delete engine;
-	delete app;
+    delete engine;
+    delete app;
 
-	if (KEEP_CONSOLE)
-		PauseConsole();
-	ReleaseConsole();
+    if (KEEP_CONSOLE)
+        PauseConsole();
+    ReleaseConsole();
 
-	return 0;
+    return 0;
 }

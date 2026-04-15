@@ -1,5 +1,4 @@
 #pragma once
-#define NOMINMAX
 #include <Windows.h>
 
 class Window;
@@ -8,13 +7,13 @@ class Renderer;
 class ImguiWindow
 {
 public:
-	ImguiWindow() {};
-	~ImguiWindow() {};
+    ImguiWindow() {};
+    ~ImguiWindow() {};
 
-	bool ProcessMessages(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	bool Create(Window* window, Renderer* renderer);
-	void Shutdown();
+    bool ProcessMessages(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+    bool Create(Window* window, Renderer* renderer);
+    void Shutdown();
 
-	void BeginRender();
-	void EndRender();
+    void BeginRender();
+    void EndRender();
 };

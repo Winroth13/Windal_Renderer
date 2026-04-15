@@ -21,8 +21,11 @@ void ModelEntity::UpdateSelf(double delta)
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.PushMesh(mModel->GetMesh(), transform.GetMatrix());
-	renderServer.PushMaterial(mModel->GetMaterial());
+	for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
+	{
+		renderServer.PushMesh(mModel->GetMesh(meshIndex), transform.GetMatrix());
+		renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
+	}
 }
 
 void ModelEntity::RenderImguiSelf()
