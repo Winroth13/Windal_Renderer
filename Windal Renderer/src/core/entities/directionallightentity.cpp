@@ -23,7 +23,7 @@ void DirectionalLightEntity::RenderSelf(RenderServer& renderServer)
 
 void DirectionalLightEntity::RenderImguiSelf()
 {
-	if (ImGui::TreeNodeEx("Point Light Properties", TREE_NODE_FLAGS))
+	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
 	{
 		ImGui::ColorEdit3("Color", &mColor.x);
 		ImGui::DragFloat("Intensity", &mIntensity);

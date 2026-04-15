@@ -59,6 +59,24 @@ void Model::RenderImgui()
 
 		if (ImGui::TreeNodeEx("Meshes", TREE_NODE_FLAGS))
 		{
+			ImGui::Text("Toggle Visibility");
+			ImGui::SameLine();
+			if (ImGui::Button("All"))
+			{
+				for (int i = 0; i < GetMeshCount(); ++i)
+				{
+					mMeshVisibility[i] = true;
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("None"))
+			{
+				for (int i = 0; i < GetMeshCount(); ++i)
+				{
+					mMeshVisibility[i] = false;
+				}
+			}
+
 			for (int i = 0; i < GetMeshCount(); ++i)
 			{
 				bool visible = mMeshVisibility[i];

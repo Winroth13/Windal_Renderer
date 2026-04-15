@@ -30,7 +30,7 @@ void SpotLightEntity::RenderSelf(RenderServer& renderServer)
 
 void SpotLightEntity::RenderImguiSelf()
 {
-	if (ImGui::TreeNodeEx("Spot Light Properties", TREE_NODE_FLAGS))
+	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
 	{
 		ImGui::ColorEdit3("Color", &mColor.x);
 		ImGui::DragFloat("Intensity", &mIntensity);
