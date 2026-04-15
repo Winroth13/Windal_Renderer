@@ -31,7 +31,7 @@ public:
 	{
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 		auto pShader = std::make_shared<PixelShader>("resources/PixelShader.cso");
-		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader);
+		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader, true);
 
 		auto& entity = mScene->CreateEntity<ModelEntity>("Sponza", sponza);
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);

@@ -50,26 +50,24 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 
 	/* Create Texture */
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	desc.MipLevels = 1;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	desc.MipLevels = 0;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.Width = mWidth;
 	desc.Height = mHeight;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.CPUAccessFlags = 0;
-	desc.MiscFlags = 0;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = imageData;
 	data.SysMemPitch = mWidth * sizeof(char) * 4;
 	data.SysMemSlicePitch = 0;
 
-	hr = Renderer::GetDevice()->CreateTexture2D(&desc, &data, &mTexture);
-
-	stbi_image_free(imageData);
+	hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture);
 
 	if (FAILED(hr))
 	{
@@ -77,18 +75,31 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 		throw std::runtime_error("");
 	}
 
-	hr = Renderer::GetDevice()->CreateShaderResourceView(mTexture, nullptr, &mShaderResourceView);
+	D3D11_SHADER_RESOURCE_VIEW_DESC mipSrvDesc = {};
+	memset(&mipSrvDesc, 0, sizeof(mipSrvDesc));
+	mipSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	mipSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	mipSrvDesc.Texture2D.MipLevels = -1;
+
+	hr = Renderer::GetDevice()->CreateShaderResourceView(mTexture, &mipSrvDesc, &mShaderResourceView);
 
 	if (FAILED(hr))
 	{
 		Logger::Error("DirectX failed to shader resource view for texture:" + path);
 		throw std::runtime_error("");
 	}
+
+	UINT rowPitch = mWidth * sizeof(char) * 4;
+	size_t imageSize = rowPitch * mHeight;
+
+	Renderer::GetContext()->UpdateSubresource(mTexture, 0, nullptr, imageData, rowPitch, imageSize);
+	Renderer::GetContext()->GenerateMips(mShaderResourceView);
+
+	stbi_image_free(imageData);
 }
 
 ImageTexture2D::~ImageTexture2D()
 {
-	
 }
 
 void ImageTexture2D::RenderImgui(const uint32_t width, const uint32_t height)

@@ -101,7 +101,7 @@ public:
 	void EndRender();
 
 	static ID3D11Device* GetDevice() { return Renderer::sDevice; }
-	ID3D11DeviceContext* GetContext() { return mImmediateContext; }
+	static ID3D11DeviceContext* GetContext() { return Renderer::mImmediateContext; }
 	RenderServer& GetRenderServer() { return mRenderServer; }
 
 	void UpdatePerFrameBuffer(
@@ -161,7 +161,7 @@ private:
 	Window* mWindow;
 
 	static ID3D11Device* sDevice;
-	ID3D11DeviceContext* mImmediateContext;
+	static ID3D11DeviceContext* mImmediateContext;
 
 	IDXGISwapChain* mSwapChain;
 	ID3D11RenderTargetView* mRenderTargetView;

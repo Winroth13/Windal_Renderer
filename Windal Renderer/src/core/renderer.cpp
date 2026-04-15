@@ -7,7 +7,6 @@
 #include "graphics/camera.h"
 
 Renderer::Renderer() :
-	mImmediateContext(nullptr),
 	mSwapChain(nullptr),
 	mRenderTargetView(nullptr),
 	mDepthStencilTexture(nullptr),
@@ -22,6 +21,7 @@ Renderer::Renderer() :
 }
 
 ID3D11Device* Renderer::sDevice = nullptr;
+ID3D11DeviceContext* Renderer::mImmediateContext = nullptr;
 
 Renderer::~Renderer()
 {
