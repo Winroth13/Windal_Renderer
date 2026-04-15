@@ -46,6 +46,7 @@ public:
 
 		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>("Sun");
 		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
+		sunEntity.SetIntensity(0.75f);
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>("Spot Light");
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
