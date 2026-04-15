@@ -62,11 +62,6 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = imageData;
-	data.SysMemPitch = mWidth * sizeof(char) * 4;
-	data.SysMemSlicePitch = 0;
-
 	hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture);
 
 	if (FAILED(hr))
@@ -75,13 +70,19 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 		throw std::runtime_error("");
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC mipSrvDesc = {};
-	memset(&mipSrvDesc, 0, sizeof(mipSrvDesc));
-	mipSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	mipSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	mipSrvDesc.Texture2D.MipLevels = -1;
+	UINT rowPitch = mWidth * sizeof(char) * 4;
+	size_t imageSize = rowPitch * mHeight;
 
-	hr = Renderer::GetDevice()->CreateShaderResourceView(mTexture, &mipSrvDesc, &mShaderResourceView);
+	Renderer::GetContext()->UpdateSubresource(mTexture, 0, nullptr, imageData, rowPitch, imageSize);
+
+	stbi_image_free(imageData);
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = -1;
+
+	hr = Renderer::GetDevice()->CreateShaderResourceView(mTexture, &srvDesc, &mShaderResourceView);
 
 	if (FAILED(hr))
 	{
@@ -89,13 +90,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 		throw std::runtime_error("");
 	}
 
-	UINT rowPitch = mWidth * sizeof(char) * 4;
-	size_t imageSize = rowPitch * mHeight;
-
-	Renderer::GetContext()->UpdateSubresource(mTexture, 0, nullptr, imageData, rowPitch, imageSize);
 	Renderer::GetContext()->GenerateMips(mShaderResourceView);
-
-	stbi_image_free(imageData);
 }
 
 ImageTexture2D::~ImageTexture2D()
