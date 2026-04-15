@@ -23,8 +23,11 @@ void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
 	for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
 	{
-		renderServer.PushMesh(mModel->GetMesh(meshIndex), transform.GetMatrix());
-		renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
+		if (mModel->IsMeshVisible(meshIndex))
+		{
+			renderServer.PushMesh(mModel->GetMesh(meshIndex), transform.GetMatrix());
+			renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
+		}
 	}
 }
 

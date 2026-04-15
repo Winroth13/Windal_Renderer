@@ -27,6 +27,7 @@ void Model::AddMesh(std::shared_ptr<Mesh> mesh, size_t materialIndex)
 {
 	mMeshes.emplace_back(mesh);
 	mMaterialIndicies.push_back(materialIndex);
+	mMeshVisibility.push_back(true);
 }
 
 void Model::AddMaterial(std::shared_ptr<Material> material)
@@ -58,11 +59,19 @@ void Model::RenderImgui()
 
 		if (ImGui::TreeNodeEx("Meshes", TREE_NODE_FLAGS))
 		{
-			for (auto& mesh : mMeshes)
+			for (int i = 0; i < GetMeshCount(); ++i)
 			{
-				if (ImGui::TreeNodeEx(mesh->GetName().c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_Framed))
+				bool visible = mMeshVisibility[i];
+				ImGui::PushID(i);
+				if (ImGui::Checkbox("", &visible))
+					mMeshVisibility[i] = visible;
+				ImGui::PopID();
+
+				ImGui::SameLine();
+
+				if (ImGui::TreeNodeEx(mMeshes[i]->GetName().c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_Framed))
 				{
-					mesh->RenderImgui();
+					mMeshes[i]->RenderImgui();
 					ImGui::TreePop();
 				}
 			}

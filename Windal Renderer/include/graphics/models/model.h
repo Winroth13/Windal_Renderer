@@ -26,10 +26,14 @@ public:
 	size_t GetNumIndicies(size_t index);
 	const size_t GetMeshCount() { return mMeshes.size(); }
 
+	const bool IsMeshVisible(const size_t index) { return mMeshVisibility[index]; }
+
 	void RenderImgui();
 
 private:
 	std::vector<std::shared_ptr<Mesh>> mMeshes;
 	std::vector<size_t> mMaterialIndicies;
 	std::vector<std::shared_ptr<Material>> mMaterials;
+
+	std::vector<bool> mMeshVisibility;
 };
