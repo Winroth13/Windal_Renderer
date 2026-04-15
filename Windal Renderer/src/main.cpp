@@ -39,6 +39,7 @@ public:
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
 
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
+		enviromentEntity.SetAmbientColor(108.f / 255, 150.f / 255, 177.f / 255);
 
 		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>("Point Light 1");
 		pointLightEntity1.SetColor({ 0, 1, 0 });

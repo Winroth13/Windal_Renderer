@@ -13,6 +13,11 @@ EnviromentEntity::~EnviromentEntity()
 {
 }
 
+void EnviromentEntity::SetAmbientColor(float r, float g, float b)
+{
+	GetScene().GetEnviroment().SetAmbientColor(r, g, b);
+}
+
 void EnviromentEntity::UpdateSelf(double delta)
 {
 }

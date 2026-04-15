@@ -64,6 +64,12 @@ OBJModel::OBJModel(
 		size_t indexOffset = 0;
 		for (size_t faceIndex = 0; faceIndex < nFaces; ++faceIndex)
 		{
+
+			if (shape.mesh.material_ids[0] != shape.mesh.material_ids[faceIndex])
+			{
+				Logger::Warn("Mesh " + shape.name + " has multiple materials");
+			}
+
 			size_t nVerticesInFace = size_t(shape.mesh.num_face_vertices[faceIndex]);
 			for (size_t vertexIndex = 0; vertexIndex < nVerticesInFace; ++vertexIndex)
 			{
