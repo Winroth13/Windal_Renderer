@@ -31,10 +31,10 @@ public:
 	{
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 		auto pShader = std::make_shared<PixelShader>("resources/PixelShader.cso");
-		auto model = std::make_shared<OBJModel>("assets/capsule/capsule.obj", vShader, pShader);
+		//auto model = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader);
 
-		auto& entity = mScene->CreateEntity<ModelEntity>("Model 1", model);
-		entity.transform.SetPosition(0, 0, 3);
+		//auto& entity = mScene->CreateEntity<ModelEntity>("Model 1", model);
+		//entity.transform.SetPosition(0, 0, 3);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
 

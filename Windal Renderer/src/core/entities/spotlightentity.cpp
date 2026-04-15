@@ -38,7 +38,7 @@ void SpotLightEntity::RenderImguiSelf()
 		ImGui::DragFloat("Angle", &mAngle, 0.02f, 0, DirectX::XM_PI);
 
 		DirectX::XMFLOAT3 dir = transform.GetForwardDir3f();
-		ImGui::DragFloat3("Direction", &dir.x);
+		ImGui::Text("Direction: (%.3f, %.3f, %.3f)", dir.x, dir.y, dir.z);
 		ImGui::TreePop();
 	}
 }
