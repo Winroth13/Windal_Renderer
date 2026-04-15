@@ -71,7 +71,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	}
 
 	UINT rowPitch = mWidth * sizeof(char) * 4;
-	size_t imageSize = rowPitch * mHeight;
+	UINT imageSize = rowPitch * mHeight;
 
 	Renderer::GetContext()->UpdateSubresource(mTexture, 0, nullptr, imageData, rowPitch, imageSize);
 

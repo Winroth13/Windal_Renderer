@@ -35,8 +35,10 @@ public:
 
 		auto& entity = mScene->CreateEntity<ModelEntity>("Sponza", sponza);
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
+		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
+		cameraEntity->transform.SetPosition(0, 1, 0);
 
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
 		enviromentEntity.SetAmbientColor(108.f / 255, 150.f / 255, 177.f / 255);
