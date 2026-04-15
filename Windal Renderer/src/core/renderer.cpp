@@ -449,7 +449,7 @@ void Renderer::Render()
 void Renderer::EndRender()
 {
 	ClearFrameData();
-	mSwapChain->Present(1, 0);
+	mSwapChain->Present(0, 0);
 }
 
 void Renderer::UpdatePerFrameBuffer(
