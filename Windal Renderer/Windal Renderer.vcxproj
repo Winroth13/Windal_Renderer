@@ -210,7 +210,7 @@
     </FxCompile>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)assets" "$(TargetDir)assets" /y /i /s /d
-xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /i /s /d</Command>
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /y /i /s /d</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
