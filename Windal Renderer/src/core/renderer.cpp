@@ -69,8 +69,10 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		swapChainDesc.Flags = 0;
 
 		UINT flags = 0;
-		if (_DEBUG)
-			flags = D3D11_CREATE_DEVICE_DEBUG;
+
+#ifdef _DEBUG
+		flags = D3D11_CREATE_DEVICE_DEBUG;
+#endif
 
 		D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
 
