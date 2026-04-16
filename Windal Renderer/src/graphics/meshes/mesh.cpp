@@ -14,7 +14,6 @@ Mesh::~Mesh()
 {
 	mVertexBuffer->Release();
 	mIndexBuffer->Release();
-	Logger::Info("Mesh destructor!");
 }
 
 bool Mesh::Create(

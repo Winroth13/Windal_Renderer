@@ -35,7 +35,8 @@ public:
 
 	void RenderImgui();
 
-	size_t GetNumIndicies() { return mNumIndicies; }
+	const size_t GetNumIndicies() { return mNumIndicies; }
+	const size_t GetNumVertices() { return mNumVertices; }
 
 	ID3D11Buffer* GetVertexBuffer() { return mVertexBuffer; }
 	ID3D11Buffer* GetIndexBuffer() { return mIndexBuffer; }
