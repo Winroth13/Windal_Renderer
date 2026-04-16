@@ -64,7 +64,6 @@ OBJModel::OBJModel(
 		size_t indexOffset = 0;
 		for (size_t faceIndex = 0; faceIndex < nFaces; ++faceIndex)
 		{
-
 			if (shape.mesh.material_ids[0] != shape.mesh.material_ids[faceIndex])
 			{
 				Logger::Warn("Mesh " + shape.name + " has multiple materials");
@@ -74,7 +73,6 @@ OBJModel::OBJModel(
 			for (size_t vertexIndex = 0; vertexIndex < nVerticesInFace; ++vertexIndex)
 			{
 				tinyobj::index_t idx = shape.mesh.indices[indexOffset + vertexIndex];
-				//tinyobj::index_t idx = shape.mesh.indices[vertexIndex];
 				tinyobj::real_t x = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
 				tinyobj::real_t y = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
 				tinyobj::real_t z = attrib.vertices[3 * size_t(idx.vertex_index) + 2];

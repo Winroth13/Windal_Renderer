@@ -90,6 +90,7 @@ void Model::RenderImgui()
 				if (ImGui::TreeNodeEx(mMeshes[i]->GetName().c_str(), ImGuiTreeNodeFlags_DrawLinesToNodes | ImGuiTreeNodeFlags_Framed))
 				{
 					mMeshes[i]->RenderImgui();
+					ImGui::Text("Material: %s", mMaterials[mMaterialIndicies[i]]->GetName().c_str());
 					ImGui::TreePop();
 				}
 			}
