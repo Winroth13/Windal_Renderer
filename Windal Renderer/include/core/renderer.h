@@ -21,6 +21,14 @@
 #define SPOT_LIGHT_SLOT 2
 #define DIFFUSE_TEXTURE_SLOT 3
 
+enum GBuffer
+{
+	GBUFFER_POSITION,
+	GBUFFER_NORMAL,
+	GBUFFER_COLOR,
+	MAX_GBUFFERS
+};
+
 struct PerFrameBuffer
 {
 	DirectX::XMFLOAT3 ambientColor;
@@ -172,6 +180,10 @@ private:
 	D3D11_VIEWPORT mViewport;
 
 	RenderServer mRenderServer;
+
+	std::vector<ID3D11Texture2D*> mGBufferTextures;
+	std::vector<ID3D11ShaderResourceView*> mGBufferResourceViews;
+	std::vector<ID3D11RenderTargetView*> mGBufferRenderTargetViews;
 
 	ID3D11Buffer* mPerFrameBuffer;
 	ID3D11Buffer* mPerViewBuffer;

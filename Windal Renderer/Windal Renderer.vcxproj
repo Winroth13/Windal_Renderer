@@ -208,6 +208,10 @@
       <ShaderModel>5.0</ShaderModel>
       <ObjectFileOutput>$(ProjectDir)resources\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)assets" "$(TargetDir)assets" /i /s /d
+xcopy "$(ProjectDir)resources" "$(TargetDir)resources" /i /s /d</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
