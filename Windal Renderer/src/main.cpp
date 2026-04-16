@@ -103,8 +103,8 @@ public:
 				cameraEntity->transform.RotateX(TURN_SPEED * (float)delta);
 			if (GetAsyncKeyState(MK_RBUTTON) & 0x8000)
 			{
-				float dx = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
-				float dy = 4 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
+				float dx = 20 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
+				float dy = 20 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
 
 				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
 				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);

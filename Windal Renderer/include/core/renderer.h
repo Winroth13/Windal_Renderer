@@ -17,10 +17,16 @@
 #define MAX_POINT_LIGHTS 8
 #define MAX_SPOT_LIGHTS 8
 
+#define MAX_MATERIALS 64
+
 #define DIRECTIONAL_LIGHT_SLOT 0
 #define POINT_LIGHT_SLOT 1
 #define SPOT_LIGHT_SLOT 2
+
 #define DIFFUSE_TEXTURE_SLOT 3
+
+#define DEFERRED_MATERIALS_SLOT 3
+#define GBUFFER_START_SLOT 4
 
 enum GBuffer
 {
@@ -30,6 +36,13 @@ enum GBuffer
 	MAX_GBUFFERS
 };
 
+enum class ShaderType
+{
+	VERTEX,
+	PIXEL,
+	COMPUTE
+};
+
 struct PerFrameBuffer
 {
 	DirectX::XMFLOAT3 ambientColor;
@@ -37,20 +50,36 @@ struct PerFrameBuffer
 	uint32_t numPointLights;
 	uint32_t numSpotLights;
 	uint32_t useBlinnPhong;
-	float pad;
+	float pad0;
 };
 
 struct PerViewBuffer
 {
 	DirectX::XMMATRIX viewProj;
 	DirectX::XMFLOAT3 cameraPos;
-	float pad;
+	float pad0;
 };
 
 struct PerObject
 {
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX worldInverseTranspose;
+};
+
+struct PerMaterial
+{
+	DirectX::XMFLOAT3 ambientCoefficient;
+	float pad0;
+	DirectX::XMFLOAT3 diffuseCoefficient;
+	float pad1;
+	DirectX::XMFLOAT3 specularCoefficient;
+	float phongExponent;
+};
+
+struct MaterialIndexBuffer
+{
+	uint32_t materialIndex;
+	DirectX::XMFLOAT3 pad0;
 };
 
 struct DirectionalLightData
@@ -106,8 +135,14 @@ public:
 	void Shutdown();
 
 	void BeginRender();
-	void Render();
-	void EndRender();
+
+	void RenderDeferred();
+
+	void BeginForward();
+	void RenderForward();
+	void EndForward();
+
+	void PresentRender();
 
 	static ID3D11Device* GetDevice() { return Renderer::sDevice; }
 	static ID3D11DeviceContext* GetContext() { return Renderer::mImmediateContext; }
@@ -141,15 +176,18 @@ private:
 	void BindGBuffers();
 	void UnbindGBuffers();
 
-	void BindMaterial(std::shared_ptr<Material> material);
+	void BindPerFrameBuffer(ShaderType shaderType);
+	void BindPerViewBuffer(ShaderType shaderType);
+
+	void BindMaterial(std::shared_ptr<Material> material, uint32_t index);
 	void BindMesh(std::shared_ptr<Mesh> mesh);
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
 	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
 	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
 
-	void BindDirectionalLights();
-	void BindPointLights();
-	void BindSpotLights();
+	void BindDirectionalLights(ShaderType shaderType);
+	void BindPointLights(ShaderType shaderType);
+	void BindSpotLights(ShaderType shaderType);
 
 	/* Unbind Functions */
 	void UnbindMaterial();
@@ -157,6 +195,9 @@ private:
 	void UnbindVertexShader();
 	void UnbindPixelShader();
 	void UnbindTexture2D(UINT slot);
+
+	/* Update Buffers */
+	void UpdateMaterialIndexBuffer(uint32_t index);
 
 	void ClearFrameData();
 
@@ -179,6 +220,7 @@ private:
 
 	IDXGISwapChain* mSwapChain;
 	ID3D11RenderTargetView* mBackBufferRenderTargetView;
+	ID3D11UnorderedAccessView* mBackBufferUAV;
 
 	ID3D11Texture2D* mDepthStencilTexture;
 	ID3D11DepthStencilView* mDepthStencilView;
@@ -195,6 +237,8 @@ private:
 	ID3D11Buffer* mPerViewBuffer;
 	ID3D11Buffer* mPerObjectBuffer;
 
+	ID3D11Buffer* mMaterialIndexBuffer;
+
 	ID3D11Buffer* mDirectionalLightsBuffer;
 	ID3D11ShaderResourceView* mDirectionalLightsSRV;
 
@@ -203,4 +247,7 @@ private:
 
 	ID3D11Buffer* mSpotLightsBuffer;
 	ID3D11ShaderResourceView* mSpotLightsSRV;
+
+	ID3D11Buffer* mMaterialsBuffer;
+	ID3D11ShaderResourceView* mMaterialsSRV;
 };

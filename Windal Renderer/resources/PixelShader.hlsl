@@ -7,6 +7,7 @@ struct PixelShaderInput
     float2 uv : UV;
 };
 
+// Lights
 struct DirectionalLight
 {
     float3 direction;

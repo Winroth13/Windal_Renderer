@@ -3,6 +3,7 @@
 #include "core/logger.h"
 
 #include <DirectXMath.h>
+#include <unordered_map>
 
 #include "graphics/camera.h"
 
@@ -95,7 +96,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
-	/* Create Render Target View */
+	/* Create Render Target View and Unordered Access View */
 	{
 		ID3D11Texture2D* backBuffer = nullptr;
 		if (
@@ -106,11 +107,18 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 
 		HRESULT hr = sDevice->CreateRenderTargetView(backBuffer, nullptr, &mBackBufferRenderTargetView);
-		backBuffer->Release();
 
 		if (FAILED(hr))
 		{
-			Logger::Error("Failed to create render target view");
+			Logger::Error("Failed to create render target view for the back buffer");
+			return false;
+		}
+
+		hr = sDevice->CreateUnorderedAccessView(backBuffer, nullptr, &mBackBufferUAV);
+		backBuffer->Release();
+		if (FAILED(hr))
+		{
+			Logger::Error("Failed to create unordered access view for the back buffer");
 			return false;
 		}
 	}
@@ -226,6 +234,29 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			if (FAILED(hr))
 			{
 				Logger::Error("Failed to create per view buffer");
+				return false;
+			}
+		}
+
+		/* Material Index */
+		{
+			MaterialIndexBuffer materialIndexBuffer = {};
+			D3D11_BUFFER_DESC materialIndexBufferDesc = {};
+			materialIndexBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			materialIndexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			materialIndexBufferDesc.CPUAccessFlags = 0;
+			materialIndexBufferDesc.MiscFlags = 0;
+			materialIndexBufferDesc.ByteWidth = sizeof(materialIndexBuffer);
+			materialIndexBufferDesc.StructureByteStride = 0;
+
+			D3D11_SUBRESOURCE_DATA data = {};
+			data.pSysMem = &materialIndexBuffer;
+
+			HRESULT hr = sDevice->CreateBuffer(&materialIndexBufferDesc, &data, &mMaterialIndexBuffer);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create material index buffer");
 				return false;
 			}
 		}
@@ -384,6 +415,40 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
+	/* Create Materials Structured Buffer */
+	{
+		D3D11_BUFFER_DESC perMaterialBufferDesc = {};
+		perMaterialBufferDesc.ByteWidth = sizeof(PerMaterial) * MAX_MATERIALS;
+		perMaterialBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		perMaterialBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		perMaterialBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		perMaterialBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		perMaterialBufferDesc.StructureByteStride = sizeof(PerMaterial);
+
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = 0;
+		data.SysMemPitch = 0;
+		data.SysMemSlicePitch = 0;
+
+		if (FAILED(sDevice->CreateBuffer(&perMaterialBufferDesc, NULL, &mMaterialsBuffer)))
+		{
+			Logger::Error("Failed to create materials structured buffer");
+			return false;
+		}
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.NumElements = MAX_MATERIALS;
+
+		if (FAILED(sDevice->CreateShaderResourceView(mMaterialsBuffer, &srvDesc, &mMaterialsSRV)))
+		{
+			Logger::Error("Failed to create materials shader resource view");
+			return false;
+		}
+	}
+
 	/* Load Deferred Lighting Shader */
 	mLightingComputeShader = std::make_unique<ComputeShader>("resources/DeferredLightingComputeShader.cso");
 
@@ -429,6 +494,12 @@ void Renderer::Shutdown()
 			mSpotLightsSRV->Release();
 	}
 
+	if (mMaterialsBuffer != nullptr)
+		mMaterialsBuffer->Release();
+
+	if (mMaterialsSRV != nullptr)
+		mMaterialsSRV->Release();
+
 	if (mPerViewBuffer != nullptr)
 		mPerViewBuffer->Release();
 
@@ -438,6 +509,9 @@ void Renderer::Shutdown()
 	if (mPerFrameBuffer != nullptr)
 		mPerFrameBuffer->Release();
 
+	if (mMaterialIndexBuffer != nullptr)
+		mMaterialIndexBuffer->Release();
+
 	if (mDepthStencilView != nullptr)
 		mDepthStencilView->Release();
 
@@ -446,6 +520,9 @@ void Renderer::Shutdown()
 
 	if (mBackBufferRenderTargetView != nullptr)
 		mBackBufferRenderTargetView->Release();
+
+	if (mBackBufferUAV != nullptr)
+		mBackBufferUAV->Release();
 
 	if (mSwapChain != nullptr)
 		mSwapChain->Release();
@@ -471,63 +548,144 @@ void Renderer::BeginRender()
 		0
 	);
 
-	//mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
-	BindGBuffers();
-
 	mImmediateContext->RSSetViewports(1, &mViewport);
 
-	mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
-	mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
-
-	mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
-	mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
+	BindPerFrameBuffer(ShaderType::VERTEX);
+	BindPerViewBuffer(ShaderType::VERTEX);
 }
 
-void Renderer::Render()
+void Renderer::RenderDeferred()
 {
-	UpdatePerFrameBuffer(
-		mEnviromentData.ambientColor,
-		(uint32_t)mDirectionalLightsData.size(),
-		(uint32_t)mPointLightsData.size(),
-		(uint32_t)mSpotLightsData.size(),
-		mEnviromentData.useBlinnPhong
-	);
-
-	BindDirectionalLights();
-	BindPointLights();
-	BindSpotLights();
-
-	/* Draw each set of Mesh and Material Data */
-	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	/* Setup */
 	{
-		auto& mesh = mGeometryData[i].mesh;
-		auto& mat = mMaterialData[i].material;
+		BindGBuffers();
 
-		BindMesh(mesh);
-		BindMaterial(mat);
+		UpdatePerFrameBuffer(
+			mEnviromentData.ambientColor,
+			(uint32_t)mDirectionalLightsData.size(),
+			(uint32_t)mPointLightsData.size(),
+			(uint32_t)mSpotLightsData.size(),
+			mEnviromentData.useBlinnPhong
+		);
 
-		UpdatePerObjectBuffer(mGeometryData[i].transform);
+		BindPerFrameBuffer(ShaderType::COMPUTE);
+		BindPerViewBuffer(ShaderType::COMPUTE);
 
-		mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		BindDirectionalLights(ShaderType::COMPUTE);
+		BindPointLights(ShaderType::COMPUTE);
+		BindSpotLights(ShaderType::COMPUTE);
+	}
+
+	std::vector<PerMaterial> materials;
+
+	/* Draw */
+	{
+		materials.reserve(MAX_MATERIALS);
+		std::unordered_map<std::shared_ptr<Material>, uint32_t> materialsMap;
+
+		/* Draw each mesh and material pair	*/
+		for (size_t i = 0; i < mGeometryData.size(); ++i)
+		{
+			auto& mesh = mGeometryData[i].mesh;
+			auto& mat = mMaterialData[i].material;
+
+			/* When we encounter a new material, add it! */
+			if (materialsMap.find(mat) == materialsMap.end())
+			{
+				materialsMap[mat] = (uint32_t)materials.size();
+
+				PerMaterial data = {};
+				data.ambientCoefficient = mat->GetAmbientCoefficient3f();
+				data.diffuseCoefficient = mat->GetDiffuseCoefficient3f();
+				data.specularCoefficient = mat->GetSpecularCoefficient3f();
+				data.phongExponent = mat->GetPhongExponent();
+
+				if (materials.size() < MAX_MATERIALS)
+					materials.emplace_back(data);
+				else
+					Logger::Warn("Materials cannot exceed " + MAX_MATERIALS);
+			}
+
+			uint32_t matIndex = materialsMap[mat];
+
+			BindMesh(mesh);
+			BindMaterial(mat, matIndex);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		}
+
+		/* Fill materials buffer */
+		{
+			D3D11_MAPPED_SUBRESOURCE mappedResource;
+			HRESULT result = mImmediateContext->Map(mMaterialsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			if (FAILED(result))
+			{
+				Logger::Error("Failed to map materials buffer");
+				throw std::runtime_error("");
+			}
+
+			size_t numBytes = materials.size() * sizeof(PerMaterial);
+			memcpy_s(mappedResource.pData, numBytes, materials.data(), numBytes);
+			mImmediateContext->Unmap(mMaterialsBuffer, 0);
+		}
+	}
+
+	/* End */
+	{
+		UnbindGBuffers();
+
+		/* Compute Deferred Lighting */
+		{
+			mImmediateContext->CSSetShader(mLightingComputeShader->GetShader(), nullptr, 0);
+
+			/* Bind GBuffer Shader Views */
+			mImmediateContext->CSSetShaderResources(GBUFFER_START_SLOT, MAX_GBUFFERS, mGBufferResourceViews.data());
+
+			/* Bind Render Target */
+			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &mBackBufferUAV, nullptr);
+
+			/* Bind Materials Shader Views */
+			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, &mMaterialsSRV);
+
+			/* Dispatch Compute Shader */
+			UINT threadGroupCountX = mWindow->Width() / 8;
+			UINT threadGroupCountY = mWindow->Height() / 8;
+			mImmediateContext->Dispatch(threadGroupCountX, threadGroupCountY, 1);
+
+			/* Unbind GBuffer Shader Views */
+			ID3D11ShaderResourceView* nullShaderViews[MAX_GBUFFERS] = { nullptr };
+			mImmediateContext->CSSetShaderResources(GBUFFER_START_SLOT, MAX_GBUFFERS, nullShaderViews);
+
+			/* Unbind Render Target */
+			ID3D11UnorderedAccessView* nullUAView{};
+			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &nullUAView, nullptr);
+
+			/* Unbind Materials Shader Views */
+			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, nullShaderViews);
+		}
 	}
 }
 
-void Renderer::EndRender()
+void Renderer::BeginForward()
 {
-	UnbindGBuffers();
+	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mDepthStencilView);
+}
 
-	/* Compute Deferred Lighting */
-	{
-		mImmediateContext->CSSetShader(mLightingComputeShader->GetShader(), nullptr, 0);
+void Renderer::RenderForward()
+{
+	// Here you can do transparency :)
+}
 
-		/* Bind GBuffer Shader Views */
-		mImmediateContext->CSSetShaderResources(0, MAX_GBUFFERS, mGBufferResourceViews.data());
+void Renderer::EndForward()
+{
+	ID3D11RenderTargetView* nullView{};
+	mImmediateContext->OMSetRenderTargets(1, &nullView, mDepthStencilView);
+}
 
-		/* Unbind GBuffer Shader Views */
-		ID3D11ShaderResourceView* views[MAX_GBUFFERS] = { nullptr };
-		mImmediateContext->CSSetShaderResources(0, MAX_GBUFFERS, views);
-	}
-
+void Renderer::PresentRender()
+{
 	ClearFrameData();
 	mSwapChain->Present(0, 0);
 }
@@ -634,7 +792,45 @@ void Renderer::UnbindGBuffers()
 	mImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
-void Renderer::BindMaterial(std::shared_ptr<Material> material)
+void Renderer::BindPerFrameBuffer(ShaderType shaderType)
+{
+	switch (shaderType)
+	{
+	case ShaderType::VERTEX:
+		mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		break;
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		break;
+	default:
+		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
+		break;
+	}
+}
+
+void Renderer::BindPerViewBuffer(ShaderType shaderType)
+{
+	switch (shaderType)
+	{
+	case ShaderType::VERTEX:
+		mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		break;
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		break;
+	default:
+		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
+		break;
+	}
+}
+
+void Renderer::BindMaterial(std::shared_ptr<Material> material, uint32_t index)
 {
 	BindVertexShader(material->GetVertexShader());
 	BindPixelShader(material->GetPixelShader());
@@ -643,8 +839,11 @@ void Renderer::BindMaterial(std::shared_ptr<Material> material)
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 
-	ID3D11Buffer* buffer = material->GetBuffer(mImmediateContext);
-	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_MATERIAL, 1, &buffer);
+	/*ID3D11Buffer* buffer = material->GetBuffer(mImmediateContext);
+	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_MATERIAL, 1, &buffer);*/
+
+	UpdateMaterialIndexBuffer(index);
+	mImmediateContext->PSSetConstantBuffers(1, 1, &mMaterialIndexBuffer);
 }
 
 void Renderer::BindMesh(std::shared_ptr<Mesh> mesh)
@@ -687,7 +886,7 @@ void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
 	mImmediateContext->PSSetShaderResources(slot, 1, &srv);
 }
 
-void Renderer::BindDirectionalLights()
+void Renderer::BindDirectionalLights(ShaderType shaderType)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	HRESULT result = mImmediateContext->Map(mDirectionalLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -701,10 +900,21 @@ void Renderer::BindDirectionalLights()
 	memcpy_s(mappedResource.pData, numBytes, mDirectionalLightsData.data(), numBytes);
 	mImmediateContext->Unmap(mDirectionalLightsBuffer, 0);
 
-	mImmediateContext->PSSetShaderResources(DIRECTIONAL_LIGHT_SLOT, 1, &mDirectionalLightsSRV);
+	switch (shaderType)
+	{
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetShaderResources(DIRECTIONAL_LIGHT_SLOT, 1, &mDirectionalLightsSRV);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SLOT, 1, &mDirectionalLightsSRV);
+		break;
+	default:
+		Logger::Warn("Trying to bind directional lights to an invalid shader type");
+		break;
+	}
 }
 
-void Renderer::BindPointLights()
+void Renderer::BindPointLights(ShaderType shaderType)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	HRESULT result = mImmediateContext->Map(mPointLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -718,10 +928,21 @@ void Renderer::BindPointLights()
 	memcpy_s(mappedResource.pData, numBytes, mPointLightsData.data(), numBytes);
 	mImmediateContext->Unmap(mPointLightsBuffer, 0);
 
-	mImmediateContext->PSSetShaderResources(POINT_LIGHT_SLOT, 1, &mPointLightsSRV);
+	switch (shaderType)
+	{
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetShaderResources(POINT_LIGHT_SLOT, 1, &mPointLightsSRV);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetShaderResources(POINT_LIGHT_SLOT, 1, &mPointLightsSRV);
+		break;
+	default:
+		Logger::Warn("Trying to bind point lights to an invalid shader type");
+		break;
+	}
 }
 
-void Renderer::BindSpotLights()
+void Renderer::BindSpotLights(ShaderType shaderType)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	HRESULT result = mImmediateContext->Map(mSpotLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -735,7 +956,18 @@ void Renderer::BindSpotLights()
 	memcpy_s(mappedResource.pData, numBytes, mSpotLightsData.data(), numBytes);
 	mImmediateContext->Unmap(mSpotLightsBuffer, 0);
 
-	mImmediateContext->PSSetShaderResources(SPOT_LIGHT_SLOT, 1, &mSpotLightsSRV);
+	switch (shaderType)
+	{
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetShaderResources(SPOT_LIGHT_SLOT, 1, &mSpotLightsSRV);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SLOT, 1, &mSpotLightsSRV);
+		break;
+	default:
+		Logger::Warn("Trying to bind spot lights to an invalid shader type");
+		break;
+	}
 }
 
 void Renderer::UnbindMaterial()
@@ -764,6 +996,13 @@ void Renderer::UnbindTexture2D(UINT slot)
 {
 	mImmediateContext->PSSetSamplers(slot, 1, nullptr);
 	mImmediateContext->PSSetShaderResources(slot, 1, nullptr);
+}
+
+void Renderer::UpdateMaterialIndexBuffer(uint32_t index)
+{
+	MaterialIndexBuffer data = {};
+	data.materialIndex = index;
+	mImmediateContext->UpdateSubresource(mMaterialIndexBuffer, 0, NULL, &data, 0, 0);
 }
 
 void Renderer::ClearFrameData()

@@ -69,13 +69,16 @@ void Engine::Render()
 
 	mApp->Render(mRenderer.GetRenderServer());
 	mScene.Render(mRenderer.GetRenderServer());
-	mRenderer.Render();
+	mRenderer.RenderDeferred();
 
+	mRenderer.BeginForward();
+	mRenderer.RenderForward();
 	mWindow.BeginImguiRender();
 	mApp->ImguiRender();
 	mWindow.EndImguiRender();
+	mRenderer.EndForward();
 
-	mRenderer.EndRender();
+	mRenderer.PresentRender();
 }
 
 const double Engine::GetDelta()
