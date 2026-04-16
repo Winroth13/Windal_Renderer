@@ -49,21 +49,28 @@ cbuffer cbPerFrame : register(b0)
     int numDirectionalLights;
     int numPointLights;
     int numSpotLights;
-    int usingBlinnPhong;
+    int flags;
     float pad0;
+    uint2 screenDimensions;
+    float2 pad1;
 };
 
 cbuffer cbPerView : register(b1)
 {
-    float4x4 pad1;
+    float4x4 pad2;
     float3 cameraPos;
-    float pad2;
+    float pad3;
 };
+
 
 StructuredBuffer<DirectionalLight> directionalLights : register(t0);
 StructuredBuffer<PointLight> pointLights : register(t1);
 StructuredBuffer<SpotLight> spotLights : register(t2);
 StructuredBuffer<Material> materials : register(t3);
+
+#define WIRE_FRAME 1
+#define	SHOW_GBUFFERS 2
+#define	USE_BLINN_PHONG 4
 
 float3 CalculateLightColor(
     float3 color,
@@ -95,7 +102,7 @@ float3 CalculateLightColor(
 
     float specularIntensity;
     // specular light
-    if (usingBlinnPhong)
+    if ((flags & USE_BLINN_PHONG) == USE_BLINN_PHONG)
     {
         // Blinn-Phong reflectance model
         float3 halfVect = normalize(-lightDir + -viewDir);
@@ -116,12 +123,57 @@ float3 CalculateLightColor(
 }
 
 [numthreads(8, 8, 1)]
-void main( uint3 DTid : SV_DispatchThreadID )
+void main( uint3 DTid : SV_DispatchThreadID)
 {   
-    float3 worldPosition = positionGBuffer[DTid.xy].xyz;
-    float3 worldNormal = normalGBuffer[DTid.xy].xyz;
-    float3 texColor = colorGBuffer[DTid.xy].rgb;
-    uint materialIndex = colorGBuffer[DTid.xy].a;
+    uint2 screenPos = DTid.xy;
+    float2 screenUV = float2(DTid.x / (float) screenDimensions.x, DTid.y / (float) screenDimensions.y);
+
+    float3 worldPosition = positionGBuffer[screenPos].xyz;
+    float3 worldNormal = normalGBuffer[screenPos].xyz;
+    float3 texColor = colorGBuffer[screenPos].rgb;
+    uint materialIndex = colorGBuffer[screenPos].a;
+    bool isSomething = positionGBuffer[screenPos].w;
+    
+    if ((flags & SHOW_GBUFFERS) == SHOW_GBUFFERS)
+    {
+        // Top-half
+        if (screenUV.y < 0.5)
+        {
+            // Top left
+            if (screenUV.x < 0.5)
+            {
+                backBufferUAV[screenPos] = float4(positionGBuffer[screenPos * 2].rgb, 1.0f);
+                return;
+            }
+            // Top right
+            isSomething = positionGBuffer[uint2(screenPos.x - screenDimensions.x / 2, screenPos.y) * 2].w;
+            if (!isSomething)
+            {
+                backBufferUAV[screenPos] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+                return;
+            }
+            backBufferUAV[screenPos] = float4(normalGBuffer[uint2(screenPos.x - screenDimensions.x / 2, screenPos.y) * 2].xyz, 1.0f);
+            return;
+        }
+        else if (screenUV.x < 0.5)
+        {
+            // Bottom left
+            backBufferUAV[screenPos] = float4(colorGBuffer[uint2(screenPos.x, screenPos.y - screenDimensions.y / 2) * 2].rgb, 1.0f);
+            return;
+        }
+        // Bottom right
+        uint2 offsetScreenPos = uint2(screenPos.x - screenDimensions.x / 2, screenPos.y - screenDimensions.y / 2) * 2;
+        worldPosition = positionGBuffer[offsetScreenPos].xyz;
+        worldNormal = normalGBuffer[offsetScreenPos].xyz;
+        texColor = colorGBuffer[offsetScreenPos].rgb;
+        materialIndex = colorGBuffer[offsetScreenPos].a;
+        isSomething = positionGBuffer[offsetScreenPos].w;
+    }
+
+    if (!isSomething)
+    {
+        return;
+    }
     
     float3 totalLight;
     
@@ -196,5 +248,5 @@ void main( uint3 DTid : SV_DispatchThreadID )
         }
     }
     
-    backBufferUAV[DTid.xy] = float4(totalLight.rgb, 1.0f);
+    backBufferUAV[screenPos] = float4(totalLight.rgb, 1.0f);
 }

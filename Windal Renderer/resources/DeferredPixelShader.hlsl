@@ -26,7 +26,7 @@ SamplerState samplerState : register(s3);
 PixelShaderOutput main(PixelShaderInput input)
 {
     PixelShaderOutput output;
-    output.position = float4(input.worldPosition, 1.0f);
+    output.position = float4(input.worldPosition, true);
     output.normal = float4(input.worldNormal, 1.0f);
     output.color = float4(
         diffuseTexture.Sample(samplerState, input.uv).rgb,

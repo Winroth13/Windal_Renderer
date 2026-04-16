@@ -74,7 +74,7 @@ void Engine::Render()
 	mRenderer.BeginForward();
 	mRenderer.RenderForward();
 	mWindow.BeginImguiRender();
-	mApp->ImguiRender();
+	mApp->ImguiRender(mRenderer.GetRenderServer());
 	mWindow.EndImguiRender();
 	mRenderer.EndForward();
 

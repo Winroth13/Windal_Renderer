@@ -538,6 +538,34 @@ void Renderer::Shutdown()
 
 void Renderer::BeginRender()
 {
+	if (mNewFlags != mFlags)
+	{
+		if ((mNewFlags & WIRE_FRAME) != (mFlags & WIRE_FRAME))
+		{
+			ID3D11RasterizerState* state;
+			D3D11_RASTERIZER_DESC desc = {};
+			desc.FillMode = ((mNewFlags & WIRE_FRAME) == WIRE_FRAME) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+			desc.CullMode = D3D11_CULL_BACK;
+
+			sDevice->CreateRasterizerState(&desc, &state);
+			mImmediateContext->RSSetState(state);
+			state->Release();
+		}
+
+		mFlags = mNewFlags;
+	}
+
+	mImmediateContext->ClearRenderTargetView(
+		mGBufferRenderTargetViews[GBUFFER_COLOR],
+		&mClearColor.x
+	);
+
+	DirectX::XMFLOAT4 noObject = { 0.0f, 0.0f, 0.0f, 0.0f };
+	mImmediateContext->ClearRenderTargetView(
+		mGBufferRenderTargetViews[GBUFFER_POSITION],
+		&noObject.x
+	);
+
 	mImmediateContext->ClearRenderTargetView(
 		mBackBufferRenderTargetView,
 		&mClearColor.x
@@ -567,7 +595,11 @@ void Renderer::RenderDeferred()
 			(uint32_t)mDirectionalLightsData.size(),
 			(uint32_t)mPointLightsData.size(),
 			(uint32_t)mSpotLightsData.size(),
-			mEnviromentData.useBlinnPhong
+			mFlags,
+			{
+				(uint32_t)mWindow->Width(),
+				(uint32_t)mWindow->Height()
+			}
 		);
 
 		BindPerFrameBuffer(ShaderType::COMPUTE);
@@ -697,7 +729,8 @@ void Renderer::UpdatePerFrameBuffer(
 	const uint32_t numDirectionalLights,
 	const uint32_t numPointLights,
 	const uint32_t numSpotLights,
-	bool useBlinnPhong)
+	const uint32_t flags,
+	const std::array<uint32_t, 2> screenDimensions)
 {
 	PerFrameBuffer perFrameBuffer = {};
 	perFrameBuffer.ambientColor = ambientColor;
@@ -705,8 +738,8 @@ void Renderer::UpdatePerFrameBuffer(
 	perFrameBuffer.numDirectionalLights = numDirectionalLights;
 	perFrameBuffer.numPointLights = numPointLights;
 	perFrameBuffer.numSpotLights = numSpotLights;
-
-	perFrameBuffer.useBlinnPhong = (uint32_t)useBlinnPhong;
+	perFrameBuffer.flags = flags;
+	perFrameBuffer.screenDimensions = screenDimensions;
 
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }

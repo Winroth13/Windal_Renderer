@@ -41,15 +41,17 @@ cbuffer cbPerFrame : register(b0)
     int numDirectionalLights;
     int numPointLights;
     int numSpotLights;
-    int usingBlinnPhong;
+    int flags;
     float pad4;
+    int2 screenDimentions;
+    float2 pad5;
 }
 
 cbuffer cbPerView : register(b1)
 {
     float4x4 viewProjMatrix;
     float3 cameraPos;
-    float pad5;
+    float pad6;
 }
 
 cbuffer cbPerObject : register(b2)
@@ -61,9 +63,9 @@ cbuffer cbPerObject : register(b2)
 cbuffer cbPerMaterial : register(b3)
 {
     float3 ambientCoefficient;
-    float pad6;
-    float3 diffuseCoefficient;
     float pad7;
+    float3 diffuseCoefficient;
+    float pad8;
     float3 specularCoefficient;
     float phongExponent;
 }
@@ -74,6 +76,10 @@ StructuredBuffer<SpotLight> spotLights : register(t2);
 
 Texture2D diffuseTexture : register(t3);
 SamplerState samplerState : register(s3);
+
+#define WIRE_FRAME 1
+#define	SHOW_GBUFFERS 2
+#define	USE_BLINN_PHONG 4
 
 float3 CalculateLightColor(
     float3 color,
@@ -104,7 +110,7 @@ float3 CalculateLightColor(
 
     float specularIntensity;
     // specular light
-    if (usingBlinnPhong)
+    if ((flags & USE_BLINN_PHONG) == USE_BLINN_PHONG)
     {
         // Blinn-Phong reflectance model
         float3 halfVect = normalize(-lightDir + -viewDir);

@@ -78,3 +78,27 @@ void RenderServer::UpdateEnviroment(Enviroment& enviroment)
 	data.useBlinnPhong = enviroment.IsUsingBlinnPhong();
 	mRenderer->SetEnviromentData(data);
 }
+
+void RenderServer::SetWireframe(bool value)
+{
+	if (value)
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() | WIRE_FRAME);
+	}
+	else
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() & ~WIRE_FRAME);
+	}
+}
+
+void RenderServer::SetShowGBuffer(bool value)
+{
+	if (value)
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() | SHOW_GBUFFERS);
+	}
+	else
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() & ~SHOW_GBUFFERS);
+	}
+}

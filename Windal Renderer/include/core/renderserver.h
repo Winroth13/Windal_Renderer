@@ -38,6 +38,9 @@ public:
 
 	void UpdateEnviroment(Enviroment& enviroment);
 
+	void SetWireframe(bool value);
+	void SetShowGBuffer(bool value);
+
 private:
 	Renderer* mRenderer = nullptr;
 };

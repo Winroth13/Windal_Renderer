@@ -18,7 +18,7 @@ public:
 
 	virtual void Update(double delta) = 0;
 	virtual void Render(RenderServer& renderServer) = 0;
-	virtual void ImguiRender() = 0;
+	virtual void ImguiRender(RenderServer& renderServer) = 0;
 
 	void SetScene(Scene* scene) { mScene = scene; }
 

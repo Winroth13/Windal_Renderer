@@ -12,6 +12,7 @@
 
 #include <DirectXMath.h>
 #include <vector>
+#include <array>
 
 #define MAX_DIRECTIONAL_LIGHTS 8
 #define MAX_POINT_LIGHTS 8
@@ -27,6 +28,13 @@
 
 #define DEFERRED_MATERIALS_SLOT 3
 #define GBUFFER_START_SLOT 4
+
+enum RenderFlags
+{
+	WIRE_FRAME = 1,
+	SHOW_GBUFFERS = 2,
+	USE_BLINN_PHONG = 4
+};
 
 enum GBuffer
 {
@@ -49,8 +57,10 @@ struct PerFrameBuffer
 	uint32_t numDirectionalLights;
 	uint32_t numPointLights;
 	uint32_t numSpotLights;
-	uint32_t useBlinnPhong;
+	uint32_t flags;
 	float pad0;
+	std::array<uint32_t, 2> screenDimensions;
+	DirectX::XMFLOAT2 pad1;
 };
 
 struct PerViewBuffer
@@ -153,7 +163,8 @@ public:
 		const uint32_t numDirectionalLights,
 		const uint32_t numPointLights,
 		const uint32_t numSpotLights,
-		const bool useBlinnPhong
+		const uint32_t flags,
+		const std::array<uint32_t, 2> screenDimensions
 	);
 
 	void UpdatePerViewBuffer(
@@ -170,6 +181,9 @@ public:
 	void PushSpotLightData(const SpotLightData& spotLightData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
+
+	const uint16_t GetFlags() { return mNewFlags; }
+	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
 
 private:
 	/* Bind Functions*/
@@ -250,4 +264,7 @@ private:
 
 	ID3D11Buffer* mMaterialsBuffer;
 	ID3D11ShaderResourceView* mMaterialsSRV;
+
+	uint16_t mFlags = 0;
+	uint16_t mNewFlags = 0;
 };

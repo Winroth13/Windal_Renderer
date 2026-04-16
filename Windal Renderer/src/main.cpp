@@ -118,7 +118,7 @@ public:
 	{
 	};
 
-	void ImguiRender() override
+	void ImguiRender(RenderServer& renderServer) override
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
@@ -136,6 +136,42 @@ public:
 				ImGui::Checkbox("Scene Hierarchy", &mShowHierarchy);
 				ImGui::Checkbox("Inspector", &mShowInspector);
 				ImGui::Checkbox("Diagnostics", &mShowDiagnostics);
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Debug"))
+			{
+				if (ImGui::BeginMenu("Viewport"))
+				{
+					bool changed = false;
+
+					if (ImGui::RadioButton("Default", mViewportDebugMode == 0))
+					{
+						mViewportDebugMode = 0;
+						changed = true;
+					}
+
+					if (ImGui::RadioButton("Wireframe", mViewportDebugMode == 1))
+					{
+						mViewportDebugMode = 1;
+						changed = true;
+					}
+
+					if (ImGui::RadioButton("GBuffers", mViewportDebugMode == 2))
+					{
+						mViewportDebugMode = 2;
+						changed = true;
+					}
+
+					if (changed)
+					{
+						renderServer.SetWireframe(mViewportDebugMode == 1);
+						renderServer.SetShowGBuffer(mViewportDebugMode == 2);
+					}
+
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenu();
 			}
 
@@ -191,6 +227,8 @@ public:
 	};
 
 private:
+	uint32_t mViewportDebugMode = 0;
+
 	bool mShowHierarchy = true;
 	bool mShowInspector = true;
 	bool mShowDiagnostics = true;
