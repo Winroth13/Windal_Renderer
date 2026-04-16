@@ -71,7 +71,7 @@ StructuredBuffer<DirectionalLight> directionalLights : register(t0);
 StructuredBuffer<PointLight> pointLights : register(t1);
 StructuredBuffer<SpotLight> spotLights : register(t2);
 
-Texture2D textures : register(t3);
+Texture2D diffuseTexture : register(t3);
 SamplerState samplerState : register(s3);
 
 float3 CalculateLightColor(
@@ -123,17 +123,12 @@ float3 CalculateLightColor(
     return totalLight;
 }
 
-float easeInExpo(float number)
-{
-    return pow(2, 10 * number - 10);
-}
-
 float4 main(PixelShaderInput input) : SV_TARGET
 {
     float3 totalLight;
     
     /* ambient */
-    float4 texColor = textures.Sample(samplerState, input.uv);
+    float4 texColor = diffuseTexture.Sample(samplerState, input.uv);
     float3 iAmbient = ambientColor;
     float3 cAmbient = ambientCoefficient * texColor.rgb;
     float3 ambientLight = cAmbient * iAmbient;
@@ -200,6 +195,6 @@ float4 main(PixelShaderInput input) : SV_TARGET
             totalLight += color;
         }
     }
-   
+
     return float4(totalLight.rgb, 1.0f);
 }

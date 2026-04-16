@@ -43,6 +43,7 @@
     <ClInclude Include="include\graphics\meshes\quadmesh.h" />
     <ClInclude Include="include\graphics\models\model.h" />
     <ClInclude Include="include\graphics\models\objmodel.h" />
+    <ClInclude Include="include\graphics\shaders\computeshader.h" />
     <ClInclude Include="include\graphics\shaders\pixelshader.h" />
     <ClInclude Include="include\graphics\shaders\shader.h" />
     <ClInclude Include="include\graphics\textures\imagetexture2d.h" />
@@ -84,6 +85,7 @@
     <ClCompile Include="src\graphics\meshes\quadmesh.cpp" />
     <ClCompile Include="src\graphics\models\model.cpp" />
     <ClCompile Include="src\graphics\models\objmodel.cpp" />
+    <ClCompile Include="src\graphics\shaders\computeshader.cpp" />
     <ClCompile Include="src\graphics\shaders\pixelshader.cpp" />
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\shaders\vertexshader.cpp" />
@@ -103,6 +105,22 @@
     <Image Include="resources\fallback.png" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="resources\DeferredLightingComputeShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="resources\DeferredPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="resources\PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>

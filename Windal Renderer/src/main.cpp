@@ -30,7 +30,7 @@ public:
 	void Initialize() override
 	{
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
-		auto pShader = std::make_shared<PixelShader>("resources/PixelShader.cso");
+		auto pShader = std::make_shared<PixelShader>("resources/DeferredPixelShader.cso");
 		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, pShader, true);
 
 		auto& entity = mScene->CreateEntity<ModelEntity>("Sponza", sponza);

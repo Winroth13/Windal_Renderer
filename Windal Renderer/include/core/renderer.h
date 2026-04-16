@@ -8,6 +8,7 @@
 #include "graphics/meshes/mesh.h"
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/shaders/pixelshader.h"
+#include "graphics/shaders/computeshader.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -137,6 +138,9 @@ public:
 
 private:
 	/* Bind Functions*/
+	void BindGBuffers();
+	void UnbindGBuffers();
+
 	void BindMaterial(std::shared_ptr<Material> material);
 	void BindMesh(std::shared_ptr<Mesh> mesh);
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
@@ -171,8 +175,10 @@ private:
 	static ID3D11Device* sDevice;
 	static ID3D11DeviceContext* mImmediateContext;
 
+	std::unique_ptr<ComputeShader> mLightingComputeShader;
+
 	IDXGISwapChain* mSwapChain;
-	ID3D11RenderTargetView* mRenderTargetView;
+	ID3D11RenderTargetView* mBackBufferRenderTargetView;
 
 	ID3D11Texture2D* mDepthStencilTexture;
 	ID3D11DepthStencilView* mDepthStencilView;

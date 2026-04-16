@@ -8,7 +8,7 @@
 
 Renderer::Renderer() :
 	mSwapChain(nullptr),
-	mRenderTargetView(nullptr),
+	mBackBufferRenderTargetView(nullptr),
 	mDepthStencilTexture(nullptr),
 	mDepthStencilView(nullptr),
 	mWindow(nullptr),
@@ -60,7 +60,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		swapChainDesc.SampleDesc.Count = 1;
 		swapChainDesc.SampleDesc.Quality = 0;
 
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS;
 		swapChainDesc.BufferCount = 2;
 		swapChainDesc.OutputWindow = mWindow->GetWindowsWindow();
 		swapChainDesc.Windowed = true;
@@ -105,7 +105,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			return false;
 		}
 
-		HRESULT hr = sDevice->CreateRenderTargetView(backBuffer, nullptr, &mRenderTargetView);
+		HRESULT hr = sDevice->CreateRenderTargetView(backBuffer, nullptr, &mBackBufferRenderTargetView);
 		backBuffer->Release();
 
 		if (FAILED(hr))
@@ -384,6 +384,9 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
+	/* Load Deferred Lighting Shader */
+	mLightingComputeShader = std::make_unique<ComputeShader>("resources/DeferredLightingComputeShader.cso");
+
 	return true;
 }
 
@@ -441,8 +444,8 @@ void Renderer::Shutdown()
 	if (mDepthStencilTexture != nullptr)
 		mDepthStencilTexture->Release();
 
-	if (mRenderTargetView != nullptr)
-		mRenderTargetView->Release();
+	if (mBackBufferRenderTargetView != nullptr)
+		mBackBufferRenderTargetView->Release();
 
 	if (mSwapChain != nullptr)
 		mSwapChain->Release();
@@ -457,7 +460,7 @@ void Renderer::Shutdown()
 void Renderer::BeginRender()
 {
 	mImmediateContext->ClearRenderTargetView(
-		mRenderTargetView,
+		mBackBufferRenderTargetView,
 		&mClearColor.x
 	);
 
@@ -469,7 +472,7 @@ void Renderer::BeginRender()
 	);
 
 	//mImmediateContext->OMSetRenderTargets(1, &mRenderTargetView, mDepthStencilView);
-	mImmediateContext->OMSetRenderTargets(MAX_GBUFFERS, mGBufferRenderTargetViews.data(), mDepthStencilView);
+	BindGBuffers();
 
 	mImmediateContext->RSSetViewports(1, &mViewport);
 
@@ -511,6 +514,20 @@ void Renderer::Render()
 
 void Renderer::EndRender()
 {
+	UnbindGBuffers();
+
+	/* Compute Deferred Lighting */
+	{
+		mImmediateContext->CSSetShader(mLightingComputeShader->GetShader(), nullptr, 0);
+
+		/* Bind GBuffer Shader Views */
+		mImmediateContext->CSSetShaderResources(0, MAX_GBUFFERS, mGBufferResourceViews.data());
+
+		/* Unbind GBuffer Shader Views */
+		ID3D11ShaderResourceView* views[MAX_GBUFFERS] = { nullptr };
+		mImmediateContext->CSSetShaderResources(0, MAX_GBUFFERS, views);
+	}
+
 	ClearFrameData();
 	mSwapChain->Present(0, 0);
 }
@@ -605,6 +622,16 @@ void Renderer::PushSpotLightData(const SpotLightData& spotLightData)
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 {
 	mEnviromentData = enviromentData;
+}
+
+void Renderer::BindGBuffers()
+{
+	mImmediateContext->OMSetRenderTargets(MAX_GBUFFERS, mGBufferRenderTargetViews.data(), mDepthStencilView);
+}
+
+void Renderer::UnbindGBuffers()
+{
+	mImmediateContext->OMSetRenderTargets(0, nullptr, nullptr);
 }
 
 void Renderer::BindMaterial(std::shared_ptr<Material> material)

@@ -138,6 +138,9 @@
     <ClInclude Include="vendor\tinyobjloader\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\graphics\shaders\computeshader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -248,6 +251,9 @@
     <ClCompile Include="vendor\tinyobjloader\tiny_obj_loader.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\shaders\computeshader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -257,5 +263,7 @@
   <ItemGroup>
     <FxCompile Include="resources\PixelShader.hlsl" />
     <FxCompile Include="resources\VertexShader.hlsl" />
+    <FxCompile Include="resources\DeferredPixelShader.hlsl" />
+    <FxCompile Include="resources\DeferredLightingComputeShader.hlsl" />
   </ItemGroup>
 </Project>
