@@ -157,6 +157,11 @@ OBJModel::OBJModel(
 
 		AddMesh(mesh, meshesIndicies[meshIndex]);
 	}
+
+	Logger::Info(
+		"Loaded obj model with " + std::to_string(meshCount) + 
+		" meshes and " + std::to_string(materialCount) + " materials: " + path
+	);
 }
 
 OBJModel::~OBJModel()
