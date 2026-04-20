@@ -451,6 +451,23 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		}
 	}
 
+	/* Create Shadow Maps */
+	{
+		mShadowMapVertexShader = std::make_unique<VertexShader>("resources/ShadowMapVertexShader.cso");
+
+		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS))
+		{
+			Logger::Error("Failed to create directional lights shadow map");
+			return false;
+		}
+
+		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS))
+		{
+			Logger::Error("Failed to create spot lights shadow map");
+			return false;
+		}
+	}
+
 	/* Load Deferred Lighting Shader */
 	{
 		mLightingComputeShader = std::make_unique<ComputeShader>("resources/DeferredLightingComputeShader.cso");
@@ -591,6 +608,14 @@ void Renderer::BeginRender()
 	BindPerViewBuffer(ShaderType::VERTEX);
 }
 
+void Renderer::RenderShadowMaps()
+{
+	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	{
+		auto& mesh = mGeometryData[i].mesh;
+	}
+}
+
 void Renderer::RenderDeferred()
 {
 	/* Setup */
@@ -623,6 +648,9 @@ void Renderer::RenderDeferred()
 
 	/* Draw */
 	{
+		// Draw using scene camera
+		UpdatePerViewBuffer(mSceneCamera);
+
 		materials.reserve(MAX_MATERIALS);
 		std::unordered_map<std::shared_ptr<Material>, uint32_t> materialsMap;
 
@@ -753,28 +781,6 @@ void Renderer::UpdatePerFrameBuffer(
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }
 
-void Renderer::UpdatePerViewBuffer(
-	const DirectX::XMMATRIX& viewProj,
-	const DirectX::XMFLOAT3& cameraPos
-)
-{
-	PerViewBuffer perViewBuffer = {};
-	perViewBuffer.cameraPos = cameraPos;
-	perViewBuffer.viewProj = viewProj;
-	mImmediateContext->UpdateSubresource(mPerViewBuffer, 0, NULL, &perViewBuffer, 0, 0);
-}
-
-void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
-{
-	PerObject perObjectBuffer = {};
-	perObjectBuffer.world = DirectX::XMMatrixTranspose(world);
-	perObjectBuffer.worldInverseTranspose = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, world));
-	mImmediateContext->UpdateSubresource(mPerObjectBuffer, 0, NULL, &perObjectBuffer, 0, 0);
-
-	mImmediateContext->VSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
-	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
-}
-
 void Renderer::PushGeometryData(const GeometryData& geometryData)
 {
 	mGeometryData.push_back(geometryData);
@@ -824,6 +830,30 @@ void Renderer::PushSpotLightData(const SpotLightData& spotLightData)
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 {
 	mEnviromentData = enviromentData;
+}
+
+void Renderer::SetSceneCamera(const CameraData& cameraData)
+{
+	mSceneCamera = cameraData;
+}
+
+void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
+{
+	PerViewBuffer perViewBuffer = {};
+	perViewBuffer.cameraPos = cameraData.pos;
+	perViewBuffer.viewProj = cameraData.viewProj;
+	mImmediateContext->UpdateSubresource(mPerViewBuffer, 0, NULL, &perViewBuffer, 0, 0);
+}
+
+void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
+{
+	PerObject perObjectBuffer = {};
+	perObjectBuffer.world = DirectX::XMMatrixTranspose(world);
+	perObjectBuffer.worldInverseTranspose = DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, world));
+	mImmediateContext->UpdateSubresource(mPerObjectBuffer, 0, NULL, &perObjectBuffer, 0, 0);
+
+	mImmediateContext->VSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 }
 
 void Renderer::BindGBuffers()

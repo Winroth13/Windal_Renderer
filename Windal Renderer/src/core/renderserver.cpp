@@ -68,7 +68,10 @@ void RenderServer::PushSpotLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 d
 
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
 {
-	mRenderer->UpdatePerViewBuffer(viewProj, cameraPos);
+	CameraData data = {};
+	data.viewProj = viewProj;
+	data.pos = cameraPos;
+	mRenderer->SetSceneCamera(data);
 }
 
 void RenderServer::UpdateEnviroment(Enviroment& enviroment)

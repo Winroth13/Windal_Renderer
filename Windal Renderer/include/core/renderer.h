@@ -9,6 +9,7 @@
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/shaders/pixelshader.h"
 #include "graphics/shaders/computeshader.h"
+#include "graphics/shadowmap.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -135,6 +136,12 @@ struct EnviromentData
 	bool useBlinnPhong;
 };
 
+struct CameraData
+{
+	DirectX::XMMATRIX viewProj;
+	DirectX::XMFLOAT3 pos;
+};
+
 class Renderer
 {
 public:
@@ -146,6 +153,7 @@ public:
 
 	void BeginRender();
 
+	void RenderShadowMaps();
 	void RenderDeferred();
 
 	void BeginForward();
@@ -167,12 +175,6 @@ public:
 		const std::array<uint32_t, 2> screenDimensions
 	);
 
-	void UpdatePerViewBuffer(
-		const DirectX::XMMATRIX& viewProj,
-		const DirectX::XMFLOAT3& cameraPos
-	);
-	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
-
 	void PushGeometryData(const GeometryData& geometryData);
 	void PushMaterialData(const MaterialData& materialData);
 
@@ -181,11 +183,15 @@ public:
 	void PushSpotLightData(const SpotLightData& spotLightData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
+	void SetSceneCamera(const CameraData& cameraData);
 
 	const uint16_t GetFlags() { return mNewFlags; }
 	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
 
 private:
+	void UpdatePerViewBuffer(const CameraData& cameraData);
+	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
+
 	/* Bind Functions*/
 	void BindGBuffers();
 	void UnbindGBuffers();
@@ -197,10 +203,10 @@ private:
 	void BindMesh(std::shared_ptr<Mesh> mesh);
 
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
-    void BindVertexShader(const std::unique_ptr<VertexShader>& vertexShader);
+	void BindVertexShader(const std::unique_ptr<VertexShader>& vertexShader);
 
 	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
-    void BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader);
+	void BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader);
 
 	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
 
@@ -222,12 +228,19 @@ private:
 
 	std::vector<GeometryData> mGeometryData;
 	std::vector<MaterialData> mMaterialData;
+
 	EnviromentData mEnviromentData;
+	CameraData mSceneCamera; // TODO: Maybe this should have a better name...
 
 	/* Lights */
+	std::vector<DirectionalLightData> mDirectionalLightsData;
 	std::vector<PointLightData> mPointLightsData;
 	std::vector<SpotLightData> mSpotLightsData;
-	std::vector<DirectionalLightData> mDirectionalLightsData;
+
+	/* Shadow Mapping */
+	std::unique_ptr<VertexShader> mShadowMapVertexShader;
+	ShadowMap mDirectionalLightsShadowMap;
+	ShadowMap mSpotLightsShadowMap;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;

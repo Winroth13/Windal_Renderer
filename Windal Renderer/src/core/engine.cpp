@@ -69,6 +69,8 @@ void Engine::Render()
 
 	mApp->Render(mRenderer.GetRenderServer());
 	mScene.Render(mRenderer.GetRenderServer());
+
+	mRenderer.RenderShadowMaps();
 	mRenderer.RenderDeferred();
 
 	mRenderer.BeginForward();

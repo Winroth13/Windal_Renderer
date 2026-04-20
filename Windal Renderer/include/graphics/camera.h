@@ -23,7 +23,8 @@ public:
 	float GetFarWindowWidth() const;
 	float GetFarWindowHeight() const;
 
-	void SetLens(float fovY, float aspect, float zNear, float zFar);
+	void SetPerspectiveLens(float fovY, float aspect, float zNear, float zFar);
+	void SetOrthographicLens(float width, float height, float zNear, float zFar);
 
 	DirectX::XMMATRIX GetView() const;
 	DirectX::XMMATRIX GetProj() const;

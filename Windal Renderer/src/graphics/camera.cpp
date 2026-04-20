@@ -3,8 +3,6 @@
 
 Camera::Camera()
 {
-	constexpr float fov = 1.396263f; // 80 degrees in radians
-	SetLens(fov, 16.f / 9.f, 0.1f, 1000.0f); // give the camera some sensible defaults
 }
 
 Camera::~Camera()
@@ -57,7 +55,7 @@ float Camera::GetFarWindowHeight() const
 	return mFarWindowHeight;
 }
 
-void Camera::SetLens(float fovY, float aspect, float zNear, float zFar)
+void Camera::SetPerspectiveLens(float fovY, float aspect, float zNear, float zFar)
 {
 	mFovY = fovY;
 	mAspect = aspect;
@@ -67,8 +65,22 @@ void Camera::SetLens(float fovY, float aspect, float zNear, float zFar)
 	mNearWindowHeight = 2.0f * mNearZ * tanf(0.5f * mFovY);
 	mFarWindowHeight = 2.0f * mFarZ * tanf(0.5f * mFovY);
 
-	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(mFovY, mAspect, mNearZ, mFarZ);
-	XMStoreFloat4x4(&mProj, P);
+	DirectX::XMMATRIX p = DirectX::XMMatrixPerspectiveFovLH(mFovY, mAspect, mNearZ, mFarZ);
+	XMStoreFloat4x4(&mProj, p);
+}
+
+void Camera::SetOrthographicLens(float width, float height, float zNear, float zFar)
+{
+	mFovY = 0;
+	mAspect = width / height;
+	mNearZ = zNear;
+	mFarZ = zFar;
+
+	mNearWindowHeight = height;
+	mFarWindowHeight = height;
+
+	DirectX::XMMATRIX o = DirectX::XMMatrixOrthographicLH(width, height, zNear, zFar);
+	XMStoreFloat4x4(&mProj, o);
 }
 
 DirectX::XMMATRIX Camera::GetView() const

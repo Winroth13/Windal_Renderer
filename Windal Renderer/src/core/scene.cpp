@@ -1,5 +1,12 @@
 #include "core/scene.h"
 
+Scene::Scene()
+{
+	// Give some nice defaults
+	constexpr float fov = DirectX::XMConvertToRadians(80);
+	mCamera.SetPerspectiveLens(fov, 16.f / 9.f, 0.1f, 1000.0f); // TODO: This assumes the aspect ratio will always be 16:9
+}
+
 void Scene::Update(double delta)
 {
 	for (std::unique_ptr<Entity>& e : mEntities)
@@ -10,9 +17,9 @@ void Scene::Update(double delta)
 
 void Scene::Render(RenderServer& renderServer)
 {
-	mCamera.UpdateViewMatrix(); // TEMP
+	mCamera.UpdateViewMatrix();
 	renderServer.UpdateCamera(
-		mCamera.GetViewProj(), 
+		mCamera.GetViewProj(),
 		mCamera.transform.GetPosition3f()
 	);
 

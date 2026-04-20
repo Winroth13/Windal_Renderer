@@ -11,7 +11,7 @@
 class Scene
 {
 public:
-    Scene() {};
+    Scene();
     ~Scene() {};
 
     void Update(double delta);

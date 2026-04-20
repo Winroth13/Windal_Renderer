@@ -141,6 +141,9 @@
     <ClInclude Include="include\graphics\shaders\computeshader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\graphics\shadowmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -254,6 +257,9 @@
     <ClCompile Include="src\graphics\shaders\computeshader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\shadowmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -265,5 +271,6 @@
     <FxCompile Include="resources\VertexShader.hlsl" />
     <FxCompile Include="resources\DeferredPixelShader.hlsl" />
     <FxCompile Include="resources\DeferredLightingComputeShader.hlsl" />
+    <FxCompile Include="resources\ShadowMapVertexShader.hlsl" />
   </ItemGroup>
 </Project>

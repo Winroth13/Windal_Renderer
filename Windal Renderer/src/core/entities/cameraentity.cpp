@@ -6,7 +6,7 @@
 
 CameraEntity::CameraEntity(const std::string& name)
 	: Entity(name)
-{
+{	
 }
 
 CameraEntity::~CameraEntity() {}
@@ -20,7 +20,6 @@ void CameraEntity::UpdateSelf(double delta)
 
 void CameraEntity::RenderSelf(RenderServer& renderServer)
 {
-	
 }
 
 void CameraEntity::RenderImguiSelf()
@@ -31,7 +30,7 @@ void CameraEntity::RenderImguiSelf()
 		if (ImGui::DragFloat("Fov", &fovInDegrees, 1, 1, 180, "%.f deg"))
 		{
 			auto& camera = GetScene().GetCamera();
-			camera.SetLens(
+			camera.SetPerspectiveLens(
 				fovInDegrees * (3.14159f / 180),
 				camera.GetAspect(),
 				camera.GetNearZ(),

@@ -46,6 +46,7 @@
     <ClInclude Include="include\graphics\shaders\computeshader.h" />
     <ClInclude Include="include\graphics\shaders\pixelshader.h" />
     <ClInclude Include="include\graphics\shaders\shader.h" />
+    <ClInclude Include="include\graphics\shadowmap.h" />
     <ClInclude Include="include\graphics\textures\imagetexture2d.h" />
     <ClInclude Include="include\graphics\textures\texture2d.h" />
     <ClInclude Include="include\graphics\shaders\vertexshader.h" />
@@ -89,6 +90,7 @@
     <ClCompile Include="src\graphics\shaders\pixelshader.cpp" />
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\shaders\vertexshader.cpp" />
+    <ClCompile Include="src\graphics\shadowmap.cpp" />
     <ClCompile Include="src\graphics\textures\imagetexture2d.cpp" />
     <ClCompile Include="src\graphics\textures\texture2d.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -126,6 +128,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="resources\ShadowMapVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="resources\VertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
