@@ -10,9 +10,8 @@
 
 Material::Material(
 	std::shared_ptr<VertexShader> vertexShader,
-	std::shared_ptr<PixelShader> pixelShader,
 	std::shared_ptr<Texture2D> texture2D
-) : mVertexShader(vertexShader), mPixelShader(pixelShader), mTexture(texture2D)
+) : mVertexShader(vertexShader), mTexture(texture2D)
 {
 	D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
 	{
@@ -134,7 +133,6 @@ void Material::RenderImgui()
 	if (ImGui::TreeNodeEx("Shaders", TREE_NODE_FLAGS))
 	{
 		ImGui::Text("Vertex Shader: %s", mVertexShader->GetPath().c_str());
-		ImGui::Text("Pixel Shader: %s", mPixelShader->GetPath().c_str());
 		ImGui::TreePop();
 	}
 

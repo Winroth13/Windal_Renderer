@@ -452,7 +452,14 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	}
 
 	/* Load Deferred Lighting Shader */
-	mLightingComputeShader = std::make_unique<ComputeShader>("resources/DeferredLightingComputeShader.cso");
+	{
+		mLightingComputeShader = std::make_unique<ComputeShader>("resources/DeferredLightingComputeShader.cso");
+	}
+
+	/* Load Deferred Pixel Shader */
+	{
+		mDeferredPixelShader = std::make_unique<PixelShader>("resources/DeferredPixelShader.cso");
+	}
 
 	return true;
 }
@@ -608,6 +615,8 @@ void Renderer::RenderDeferred()
 		BindDirectionalLights(ShaderType::COMPUTE);
 		BindPointLights(ShaderType::COMPUTE);
 		BindSpotLights(ShaderType::COMPUTE);
+
+		BindPixelShader(mDeferredPixelShader);
 	}
 
 	std::vector<PerMaterial> materials;
@@ -868,14 +877,9 @@ void Renderer::BindPerViewBuffer(ShaderType shaderType)
 void Renderer::BindMaterial(std::shared_ptr<Material> material, uint32_t index)
 {
 	BindVertexShader(material->GetVertexShader());
-	BindPixelShader(material->GetPixelShader());
-
 	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT);
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
-
-	/*ID3D11Buffer* buffer = material->GetBuffer(mImmediateContext);
-	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_MATERIAL, 1, &buffer);*/
 
 	UpdateMaterialIndexBuffer(index);
 	mImmediateContext->PSSetConstantBuffers(1, 1, &mMaterialIndexBuffer);
@@ -903,7 +907,25 @@ void Renderer::BindVertexShader(std::shared_ptr<VertexShader> vertexShader)
 	);
 }
 
+void Renderer::BindVertexShader(const std::unique_ptr<VertexShader>& vertexShader)
+{
+	mImmediateContext->VSSetShader(
+		vertexShader->GetShader(),
+		nullptr,
+		0
+	);
+}
+
 void Renderer::BindPixelShader(std::shared_ptr<PixelShader> pixelShader)
+{
+	mImmediateContext->PSSetShader(
+		pixelShader->GetShader(),
+		nullptr,
+		0
+	);
+}
+
+void Renderer::BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader)
 {
 	mImmediateContext->PSSetShader(
 		pixelShader->GetShader(),

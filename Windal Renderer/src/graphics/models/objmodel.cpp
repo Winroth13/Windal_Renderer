@@ -1,6 +1,5 @@
 #include "graphics/models/objmodel.h"
 #include "graphics/shaders/vertexshader.h"
-#include "graphics/shaders/pixelshader.h"
 #include "graphics/meshes/mesh.h"
 #include "graphics/textures/imagetexture2d.h"
 #include "graphics/materials/material.h"
@@ -14,7 +13,6 @@
 OBJModel::OBJModel(
 	const std::string& path,
 	std::shared_ptr<VertexShader> vertexShader,
-	std::shared_ptr<PixelShader> pixelShader,
 	const bool isLeftHanded
 )
 {
@@ -128,7 +126,7 @@ OBJModel::OBJModel(
 
 		std::shared_ptr<ImageTexture2D> texture = std::make_shared<ImageTexture2D>(texturePath);
 
-		std::shared_ptr<Material> material = std::make_shared<Material>(vertexShader, pixelShader, texture);
+		std::shared_ptr<Material> material = std::make_shared<Material>(vertexShader, texture);
 
 		material->SetAmbientCoefficient(objMaterial.ambient[0], objMaterial.ambient[1], objMaterial.ambient[2]);
 		material->SetDiffuseCoefficient(objMaterial.diffuse[0], objMaterial.diffuse[1], objMaterial.diffuse[2]);

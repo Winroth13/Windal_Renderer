@@ -195,8 +195,13 @@ private:
 
 	void BindMaterial(std::shared_ptr<Material> material, uint32_t index);
 	void BindMesh(std::shared_ptr<Mesh> mesh);
+
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
+    void BindVertexShader(const std::unique_ptr<VertexShader>& vertexShader);
+
 	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
+    void BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader);
+
 	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
 
 	void BindDirectionalLights(ShaderType shaderType);
@@ -231,6 +236,7 @@ private:
 	static ID3D11DeviceContext* mImmediateContext;
 
 	std::unique_ptr<ComputeShader> mLightingComputeShader;
+	std::unique_ptr<PixelShader> mDeferredPixelShader;
 
 	IDXGISwapChain* mSwapChain;
 	ID3D11RenderTargetView* mBackBufferRenderTargetView;
