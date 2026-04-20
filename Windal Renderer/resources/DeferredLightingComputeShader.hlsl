@@ -136,33 +136,37 @@ void main( uint3 DTid : SV_DispatchThreadID)
     
     if ((flags & SHOW_GBUFFERS) == SHOW_GBUFFERS)
     {
+        uint topY = screenPos.y;
+        uint bottomY = screenPos.y - screenDimensions.y / 2;
+        uint leftX = screenPos.x;
+        uint rightX = screenPos.x - screenDimensions.x / 2;
         // Top-half
         if (screenUV.y < 0.5)
         {
             // Top left
             if (screenUV.x < 0.5)
             {
-                backBufferUAV[screenPos] = float4(positionGBuffer[screenPos * 2].rgb, 1.0f);
+                backBufferUAV[screenPos] = float4(positionGBuffer[uint2(leftX, topY) * 2].rgb, 1.0f);
                 return;
             }
             // Top right
-            isSomething = positionGBuffer[uint2(screenPos.x - screenDimensions.x / 2, screenPos.y) * 2].w;
+            isSomething = positionGBuffer[uint2(rightX, topY) * 2].w;
             if (!isSomething)
             {
                 backBufferUAV[screenPos] = float4(0.0f, 0.0f, 0.0f, 1.0f);
                 return;
             }
-            backBufferUAV[screenPos] = float4(normalGBuffer[uint2(screenPos.x - screenDimensions.x / 2, screenPos.y) * 2].xyz, 1.0f);
+            backBufferUAV[screenPos] = float4(normalGBuffer[uint2(rightX, topY) * 2].xyz, 1.0f);
             return;
         }
         else if (screenUV.x < 0.5)
         {
             // Bottom left
-            backBufferUAV[screenPos] = float4(colorGBuffer[uint2(screenPos.x, screenPos.y - screenDimensions.y / 2) * 2].rgb, 1.0f);
+            backBufferUAV[screenPos] = float4(colorGBuffer[uint2(leftX, bottomY) * 2].rgb, 1.0f);
             return;
         }
         // Bottom right
-        uint2 offsetScreenPos = uint2(screenPos.x - screenDimensions.x / 2, screenPos.y - screenDimensions.y / 2) * 2;
+        uint2 offsetScreenPos = uint2(rightX, bottomY) * 2;
         worldPosition = positionGBuffer[offsetScreenPos].xyz;
         worldNormal = normalGBuffer[offsetScreenPos].xyz;
         texColor = colorGBuffer[offsetScreenPos].rgb;
