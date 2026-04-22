@@ -104,6 +104,7 @@ struct MaterialIndexBuffer
 
 struct DirectionalLightData
 {
+	DirectX::XMMATRIX viewProj;
 	DirectX::XMFLOAT3 direction;
 	float intensity;
 	DirectX::XMFLOAT3 color;

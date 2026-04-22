@@ -44,23 +44,26 @@ public:
 
 		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>("Point Light 1");
 		pointLightEntity1.SetColor({ 0, 1, 0 });
+		pointLightEntity1.SetVisble(false);
 
 		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>("Sun");
 		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
 		sunEntity.SetIntensity(0.75f);
-		sunEntity.SetVisisble(false);
+		sunEntity.SetVisble(true);
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>("Spot Light 1");
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
 		spotEntity.transform.SetPosition(0, 2, 0);
 		spotEntity.transform.SetAngles(0, (float)3.14 / 2, 0);
 		spotEntity.SetIntensity(32);
+		spotEntity.SetVisble(false);
 
 		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>("Spot Light 2");
 		spotEntity2.SetColor({ 0.0, 1.0, 0.0 });
 		spotEntity2.transform.SetPosition(0, 2, 0);
 		spotEntity2.transform.SetAngles(0, 0, 0);
 		spotEntity2.SetIntensity(32);
+		spotEntity2.SetVisble(false);
 	};
 
 	void Shutdown() override

@@ -10,43 +10,43 @@ class Scene;
 
 class Entity
 {
-friend class Scene;
+    friend class Scene;
 
 public:
-	Entity() : mName("Entity") {};
-	Entity(const std::string& name);
+    Entity() : mName("Entity") {};
+    Entity(const std::string& name);
 
-	virtual ~Entity() = default;
+    virtual ~Entity() = default;
 
-	void Update(double delta);
-	void Render(RenderServer& renderServer);
-	void RenderImgui();
+    void Update(double delta);
+    void Render(RenderServer& renderServer);
+    void RenderImgui();
 
-	std::string& GetName() { return mName; }
-	void SetName(const std::string& name) { mName = name; }
+    std::string& GetName() { return mName; }
+    void SetName(const std::string& name) { mName = name; }
 
-	bool IsVisible();
-	void SetVisisble(const bool visible) { mVisible = visible; }
+    bool IsVisible();
+    void SetVisble(const bool visible) { mVisible = visible; }
 
-	DirectX::XMMATRIX GetGlobalTransform();
+    DirectX::XMMATRIX GetGlobalTransform();
 
-	void Attach(Entity* entity) { mAttach = entity; }
+    void Attach(Entity* entity) { mAttach = entity; }
 
 public:
-	Transform transform;
+    Transform transform;
 
 protected:
-	Scene& GetScene() { return *mScene; }
+    Scene& GetScene() { return *mScene; }
 
-	virtual void UpdateSelf(double delta) {};
-	virtual void RenderSelf(RenderServer& renderServer) {};
-	virtual void RenderImguiSelf() {};
+    virtual void UpdateSelf(double delta) {};
+    virtual void RenderSelf(RenderServer& renderServer) {};
+    virtual void RenderImguiSelf() {};
 
-	std::string mName;
-	bool mVisible = true;
+    std::string mName;
+    bool mVisible = true;
 
-	Entity* mAttach = nullptr;
+    Entity* mAttach = nullptr;
 
 private:
-	Scene* mScene;
+    Scene* mScene;
 };

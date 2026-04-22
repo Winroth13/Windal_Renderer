@@ -685,6 +685,48 @@ void Renderer::RenderShadowMaps()
 	/* Bind Input Layout */
 	mImmediateContext->IASetInputLayout(mShadowInputLayout);
 
+	/* Directional Lights */
+	for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
+	{
+		DirectionalLightData& dirLight = mDirectionalLightsData[i];
+
+		/* Bind Shadow Map Depth Stencil */
+		ID3D11DepthStencilView* dsv = mDirectionalLightsShadowMap.GetDSV(i);
+		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+		Camera camera;
+		camera.SetOrthographicLens(50, 50, 1, 200.0f);
+		camera.transform.SetAngles(
+			DirectX::XMConvertToRadians(60),
+			DirectX::XMConvertToRadians(-100),
+			0
+		); // TODO: don't hardcode this
+
+		XMFLOAT3 cameraPos = camera.transform.GetForwardDir3f();
+		cameraPos.x *= -100;
+		cameraPos.y *= -100;
+		cameraPos.z *= -100;
+		camera.transform.SetPosition(cameraPos);
+
+		//camera.transform.SetAngles(0, 0, 0);
+		camera.UpdateViewMatrix();
+
+		dirLight.viewProj = camera.GetViewProj();
+
+		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
+
+		/* Draw to depth stencil */
+		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		{
+			auto& mesh = mGeometryData[j].mesh;
+			BindMesh(mesh);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		}
+	}
+
 	/* Spot Lights */
 	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
 	{
@@ -835,10 +877,21 @@ void Renderer::RenderDeferred()
 			/* Bind Shadow Sampler */
 			mImmediateContext->CSSetSamplers(SHADOW_MAP_SAMPLER_SLOT, 1, &mShadowMapSampler);
 
+			/* Bind Directional Light Shadow Maps */
+			size_t nDirLights = mDirectionalLightsData.size();
+			if (nDirLights > 0)
+			{
+				ID3D11ShaderResourceView* dirLightsSRV = mDirectionalLightsShadowMap.GetSRV(nDirLights);
+				mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &dirLightsSRV);
+			}
+
 			/* Bind Spot Light Shadow Maps */
 			size_t nSpotlights = mSpotLightsData.size();
-			ID3D11ShaderResourceView* spotLightsSRV = mSpotLightsShadowMap.GetSRV(nSpotlights);
-			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &spotLightsSRV);
+			if (nSpotlights > 0)
+			{
+				ID3D11ShaderResourceView* spotLightsSRV = mSpotLightsShadowMap.GetSRV(nSpotlights);
+				mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &spotLightsSRV);
+			}
 
 			/* Dispatch Compute Shader */
 			UINT threadGroupCountX = mWindow->Width() / 8;
@@ -848,6 +901,7 @@ void Renderer::RenderDeferred()
 			/* Unbind Light Shadow Maps */
 			ID3D11ShaderResourceView* views = { nullptr };
 			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
+			mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
 
 			/* Unbind GBuffer Shader Views */
 			ID3D11ShaderResourceView* nullShaderViews[MAX_GBUFFERS] = { nullptr };

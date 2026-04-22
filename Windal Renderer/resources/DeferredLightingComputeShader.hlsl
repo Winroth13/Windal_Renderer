@@ -7,6 +7,7 @@ Texture2D<float4> colorGBuffer : register(t9);
 // Lights
 struct DirectionalLight
 {
+    float4x4 viewProjMatrix;
     float3 direction;
     float intensity;
     float3 color;
@@ -77,6 +78,26 @@ sampler shadowMapSampler : register(s0);
 #define WIRE_FRAME 1
 #define	SHOW_GBUFFERS 2
 #define	USE_BLINN_PHONG 4
+
+bool isInDirectionalLightShadow(
+    float3 fragmentWorldPosition,
+    float4x4 lightViewProjMatrix,
+    int index
+)
+{
+    float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
+    float3 NDC = lightClipPos.xyz / lightClipPos.w;
+    float fragmentDepth = NDC.z;
+
+    float uvX = (NDC.x * 0.5) + 0.5;
+    float uvY = (-NDC.y * 0.5) + 0.5;
+    float3 shadowMapUV = float3(uvX, uvY, index);
+    float nearestDepth = directionalLightShadowMaps.SampleLevel(shadowMapSampler, shadowMapUV, 0);
+
+    float bias = 0.001;
+
+    return fragmentDepth > (nearestDepth + bias);
+}
 
 bool isInSpotLightShadow(
     float3 fragmentWorldPosition,
@@ -217,7 +238,13 @@ void main( uint3 DTid : SV_DispatchThreadID)
     /* Directional lights */
     for (int i = 0; i < numDirectionalLights; ++i)
     {
-        totalLight += CalculateLightColor(
+        if (!isInDirectionalLightShadow(
+                worldPosition,
+                directionalLights[i].viewProjMatrix,
+                i
+            ))
+        {
+            totalLight += CalculateLightColor(
             directionalLights[i].color,
             directionalLights[i].intensity,
             1,
@@ -228,6 +255,7 @@ void main( uint3 DTid : SV_DispatchThreadID)
             texColor.rgb,
             materialIndex
         );
+        }
     }
     
     /* Point lights */
