@@ -339,12 +339,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	/* Create Spot Light Buffers */
 	{
 		D3D11_BUFFER_DESC lightBufferDesc = {};
-		lightBufferDesc.ByteWidth = sizeof(SpotLightData) * MAX_SPOT_LIGHTS;
+		lightBufferDesc.ByteWidth = sizeof(SpotLightBuffer) * MAX_SPOT_LIGHTS;
 		lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		lightBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		lightBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		lightBufferDesc.StructureByteStride = sizeof(SpotLightData);
+		lightBufferDesc.StructureByteStride = sizeof(SpotLightBuffer);
 
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = 0;
@@ -466,6 +466,38 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			Logger::Error("Failed to create spot lights shadow map");
 			return false;
 		}
+
+		/* Update Shadow Viewport */
+		{
+			mShadowMapViewport.TopLeftX = 0;
+			mShadowMapViewport.TopLeftY = 0;
+			mShadowMapViewport.Width = static_cast<float>(SHADOW_MAP_WIDTH);
+			mShadowMapViewport.Height = static_cast<float>(SHADOW_MAP_HEIGHT);
+			mShadowMapViewport.MinDepth = 0;
+			mShadowMapViewport.MaxDepth = 1;
+		}
+
+		/* Create Input Layout */
+		{
+			D3D11_INPUT_ELEMENT_DESC inputDesc[1] =
+			{
+				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			};
+
+			HRESULT hr = Renderer::GetDevice()->CreateInputLayout(
+				inputDesc,
+				1,
+				mShadowMapVertexShader->GetByteCode().c_str(),
+				mShadowMapVertexShader->GetByteCode().length(),
+				&mShadowInputLayout
+			);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create shadow map input layout");
+				return false;
+			}
+		}
 	}
 
 	/* Load Deferred Lighting Shader */
@@ -519,6 +551,9 @@ void Renderer::Shutdown()
 		if (mSpotLightsSRV != nullptr)
 			mSpotLightsSRV->Release();
 	}
+
+	if (mShadowInputLayout != nullptr)
+		mShadowInputLayout->Release();
 
 	if (mMaterialsBuffer != nullptr)
 		mMaterialsBuffer->Release();
@@ -610,10 +645,57 @@ void Renderer::BeginRender()
 
 void Renderer::RenderShadowMaps()
 {
-	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	/* Bind Shadow Map Vertex Shader */
+	BindVertexShader(mShadowMapVertexShader);
+
+	/* Unbind Pixel Shader to make it depth-only pass */
+	UnbindPixelShader();
+
+	/* Set Shadow Map Viewport */
+	mImmediateContext->RSSetViewports(1, &mShadowMapViewport);
+
+	/* Bind Input Layout */
+	mImmediateContext->IASetInputLayout(mShadowInputLayout);
+
+	/* Spot Lights */
+	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
 	{
-		auto& mesh = mGeometryData[i].mesh;
+		SpotLightData& spotLight = mSpotLightsData[i];
+
+		/* Bind Shadow Map Depth Stencil */
+		ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
+
+		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+		/* Update View Buffer */
+		Camera camera;
+		camera.SetPerspectiveLens(
+			spotLight.angle * 2,
+			SHADOW_MAP_WIDTH / SHADOW_MAP_HEIGHT,
+			0.1f,
+			100.0f
+		);
+		camera.transform = spotLight.transform;
+		camera.UpdateViewMatrix();
+		
+		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
+
+		/* Draw to depth stencil */
+		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		{
+			auto& mesh = mGeometryData[j].mesh;
+			BindMesh(mesh);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		}
 	}
+
+	UnbindVertexShader();
+	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mDepthStencilView);
+	mImmediateContext->RSSetViewports(1, &mViewport);
+	mImmediateContext->IASetInputLayout(nullptr);
 }
 
 void Renderer::RenderDeferred()
@@ -1031,6 +1113,21 @@ void Renderer::BindPointLights(ShaderType shaderType)
 
 void Renderer::BindSpotLights(ShaderType shaderType)
 {
+	std::vector<SpotLightBuffer> spotLightsBufferData;
+	spotLightsBufferData.reserve(mSpotLightsData.size());
+
+	for (auto& spotlightData : mSpotLightsData)
+	{
+		SpotLightBuffer data = {};
+		data.position = spotlightData.transform.GetPosition3f();
+		data.direction = spotlightData.transform.GetForwardDir3f();
+		data.angle = spotlightData.angle;
+		data.intensity = spotlightData.intensity;
+		data.color = spotlightData.color;
+		data.attenuation = spotlightData.attenuation;
+		spotLightsBufferData.emplace_back(data);
+	}
+
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	HRESULT result = mImmediateContext->Map(mSpotLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
@@ -1039,8 +1136,8 @@ void Renderer::BindSpotLights(ShaderType shaderType)
 		throw std::runtime_error("");
 	}
 
-	size_t numBytes = mSpotLightsData.size() * sizeof(SpotLightData);
-	memcpy_s(mappedResource.pData, numBytes, mSpotLightsData.data(), numBytes);
+	size_t numBytes = spotLightsBufferData.size() * sizeof(SpotLightBuffer);
+	memcpy_s(mappedResource.pData, numBytes, spotLightsBufferData.data(), numBytes);
 	mImmediateContext->Unmap(mSpotLightsBuffer, 0);
 
 	switch (shaderType)

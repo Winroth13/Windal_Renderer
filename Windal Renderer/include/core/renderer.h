@@ -10,6 +10,7 @@
 #include "graphics/shaders/pixelshader.h"
 #include "graphics/shaders/computeshader.h"
 #include "graphics/shadowmap.h"
+#include "core/transform.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -110,6 +111,15 @@ struct PointLightData
 };
 
 struct SpotLightData
+{
+	Transform transform;
+	DirectX::XMFLOAT3 color;
+	float attenuation;
+	float intensity;
+	float angle;
+};
+
+struct SpotLightBuffer
 {
 	DirectX::XMFLOAT3 position;
 	float attenuation;
@@ -241,6 +251,8 @@ private:
 	std::unique_ptr<VertexShader> mShadowMapVertexShader;
 	ShadowMap mDirectionalLightsShadowMap;
 	ShadowMap mSpotLightsShadowMap;
+	D3D11_VIEWPORT mShadowMapViewport;
+	ID3D11InputLayout* mShadowInputLayout;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;

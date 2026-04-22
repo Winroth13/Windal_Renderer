@@ -2,7 +2,10 @@
 #include <iostream>
 #include <Windows.h>
 
-void Logger::Info(std::string text)
+#include <stdarg.h>
+#include <stdio.h>
+
+void Logger::Info(const std::string& text)
 {
 #ifdef _DEBUG
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10);
@@ -12,7 +15,7 @@ void Logger::Info(std::string text)
 #endif
 }
 
-void Logger::Error(std::string text)
+void Logger::Error(const std::string& text)
 {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
 	std::cout << "ERROR: ";
@@ -20,7 +23,7 @@ void Logger::Error(std::string text)
 	std::cout << text << std::endl;
 }
 
-void Logger::Warn(std::string text)
+void Logger::Warn(const std::string& text)
 {
 #ifdef _DEBUG
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
