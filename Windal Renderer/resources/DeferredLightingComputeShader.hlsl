@@ -1,8 +1,8 @@
 RWTexture2D<unorm float4> backBufferUAV;
 
-Texture2D<float4> positionGBuffer : register(t4);
-Texture2D<float4> normalGBuffer : register(t5);
-Texture2D<float4> colorGBuffer : register(t6);
+Texture2D<float4> positionGBuffer : register(t7);
+Texture2D<float4> normalGBuffer : register(t8);
+Texture2D<float4> colorGBuffer : register(t9);
 
 // Lights
 struct DirectionalLight
@@ -23,6 +23,7 @@ struct PointLight
 
 struct SpotLight
 {
+    float4x4 viewProjMatrix;
     float3 position;
     float attenuation;
     float3 color;
@@ -62,15 +63,40 @@ cbuffer cbPerView : register(b1)
     float pad3;
 };
 
-
 StructuredBuffer<DirectionalLight> directionalLights : register(t0);
 StructuredBuffer<PointLight> pointLights : register(t1);
 StructuredBuffer<SpotLight> spotLights : register(t2);
 StructuredBuffer<Material> materials : register(t3);
 
+Texture2DArray<float> directionalLightShadowMaps : register(t4);
+Texture2DArray<float> pointLightShadowMaps : register(t5);
+Texture2DArray<float> spotLightShadowMaps : register(t6);
+
+sampler shadowMapSampler : register(s0);
+
 #define WIRE_FRAME 1
 #define	SHOW_GBUFFERS 2
 #define	USE_BLINN_PHONG 4
+
+bool isInSpotLightShadow(
+    float3 fragmentWorldPosition,
+    float4x4 lightViewProjMatrix,
+    int index
+)
+{
+    float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
+    float3 NDC = lightClipPos.xyz / lightClipPos.w;
+    float fragmentDepth = NDC.z;
+
+    float uvX = (NDC.x * 0.5) + 0.5;
+    float uvY = (-NDC.y * 0.5) + 0.5;
+    float3 shadowMapUV = float3(uvX, uvY, index);
+    float nearestDepth = spotLightShadowMaps.SampleLevel(shadowMapSampler, shadowMapUV, 0);
+
+    float bias = 0.001;
+
+    return fragmentDepth > (nearestDepth + bias);
+}
 
 float3 CalculateLightColor(
     float3 color,
@@ -227,7 +253,12 @@ void main( uint3 DTid : SV_DispatchThreadID)
         float spotFactor = dot(normalize(lightDir), normalize(spotLights[i].direction));
         float cutoff = cos(spotLights[i].angle);
 
-        if (spotFactor > cutoff)
+        if (spotFactor > cutoff &&
+            !isInSpotLightShadow(
+                worldPosition,
+                spotLights[i].viewProjMatrix,
+                i
+            ))
         {
             float3 color = CalculateLightColor(
                 spotLights[i].color,

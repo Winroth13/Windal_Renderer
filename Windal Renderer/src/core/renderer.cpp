@@ -498,6 +498,31 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 				return false;
 			}
 		}
+
+		/* Create Sampler */
+		{
+			D3D11_SAMPLER_DESC samplerDesc = {};
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.BorderColor[0] = 0.0f;
+			samplerDesc.BorderColor[1] = 0.0f;
+			samplerDesc.BorderColor[2] = 0.0f;
+			samplerDesc.BorderColor[3] = 0.0f;
+			samplerDesc.MipLODBias = 0.0f;
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+			samplerDesc.MinLOD = 0;
+			samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+			HRESULT hr = Renderer::GetDevice()->CreateSamplerState(&samplerDesc, &mShadowMapSampler);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("DirectX failed to create sampler state for shadow maps");
+				return false;
+			}
+		}
 	}
 
 	/* Load Deferred Lighting Shader */
@@ -551,6 +576,9 @@ void Renderer::Shutdown()
 		if (mSpotLightsSRV != nullptr)
 			mSpotLightsSRV->Release();
 	}
+
+	if (mShadowMapSampler != nullptr)
+		mShadowMapSampler->Release();
 
 	if (mShadowInputLayout != nullptr)
 		mShadowInputLayout->Release();
@@ -678,7 +706,9 @@ void Renderer::RenderShadowMaps()
 		);
 		camera.transform = spotLight.transform;
 		camera.UpdateViewMatrix();
-		
+
+		spotLight.viewProj = camera.GetViewProj();
+
 		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
 
 		/* Draw to depth stencil */
@@ -802,10 +832,22 @@ void Renderer::RenderDeferred()
 			/* Bind Materials Shader Views */
 			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, &mMaterialsSRV);
 
+			/* Bind Shadow Sampler */
+			mImmediateContext->CSSetSamplers(SHADOW_MAP_SAMPLER_SLOT, 1, &mShadowMapSampler);
+
+			/* Bind Spot Light Shadow Maps */
+			size_t nSpotlights = mSpotLightsData.size();
+			ID3D11ShaderResourceView* spotLightsSRV = mSpotLightsShadowMap.GetSRV(nSpotlights);
+			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &spotLightsSRV);
+
 			/* Dispatch Compute Shader */
 			UINT threadGroupCountX = mWindow->Width() / 8;
 			UINT threadGroupCountY = mWindow->Height() / 8;
 			mImmediateContext->Dispatch(threadGroupCountX, threadGroupCountY, 1);
+
+			/* Unbind Light Shadow Maps */
+			ID3D11ShaderResourceView* views = { nullptr };
+			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
 
 			/* Unbind GBuffer Shader Views */
 			ID3D11ShaderResourceView* nullShaderViews[MAX_GBUFFERS] = { nullptr };
@@ -1121,6 +1163,7 @@ void Renderer::BindSpotLights(ShaderType shaderType)
 		SpotLightBuffer data = {};
 		data.position = spotlightData.transform.GetPosition3f();
 		data.direction = spotlightData.transform.GetForwardDir3f();
+		data.viewProj = spotlightData.viewProj;
 		data.angle = spotlightData.angle;
 		data.intensity = spotlightData.intensity;
 		data.color = spotlightData.color;

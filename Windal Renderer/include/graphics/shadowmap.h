@@ -2,8 +2,8 @@
 #include <vector>
 #include <d3d11.h>
 
-#define SHADOW_MAP_WIDTH 512
-#define	SHADOW_MAP_HEIGHT 512
+#define SHADOW_MAP_WIDTH 1024
+#define	SHADOW_MAP_HEIGHT 1024
 
 class ShadowMap
 {

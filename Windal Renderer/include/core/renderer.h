@@ -26,10 +26,18 @@
 #define POINT_LIGHT_SLOT 1
 #define SPOT_LIGHT_SLOT 2
 
+#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 4
+#define POINT_LIGHT_SHADOW_MAPS_SLOT 5
+#define SPOT_LIGHT_SHADOW_MAPS_SLOT 6
+
 #define DIFFUSE_TEXTURE_SLOT 3
 
 #define DEFERRED_MATERIALS_SLOT 3
-#define GBUFFER_START_SLOT 4
+#define TEXTURE_SAMPLER_SLOT 3
+
+#define GBUFFER_START_SLOT 7
+
+#define SHADOW_MAP_SAMPLER_SLOT 0
 
 enum RenderFlags
 {
@@ -113,6 +121,7 @@ struct PointLightData
 struct SpotLightData
 {
 	Transform transform;
+	DirectX::XMMATRIX viewProj;
 	DirectX::XMFLOAT3 color;
 	float attenuation;
 	float intensity;
@@ -121,6 +130,7 @@ struct SpotLightData
 
 struct SpotLightBuffer
 {
+	DirectX::XMMATRIX viewProj;
 	DirectX::XMFLOAT3 position;
 	float attenuation;
 	DirectX::XMFLOAT3 color;
@@ -252,7 +262,8 @@ private:
 	ShadowMap mDirectionalLightsShadowMap;
 	ShadowMap mSpotLightsShadowMap;
 	D3D11_VIEWPORT mShadowMapViewport;
-	ID3D11InputLayout* mShadowInputLayout;
+	ID3D11InputLayout* mShadowInputLayout = nullptr;
+	ID3D11SamplerState* mShadowMapSampler = nullptr;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;

@@ -24,7 +24,7 @@ cbuffer cbPerObject : register(b2)
     float4x4 worldInvTransposeMatrix;
 };
 
-VertexShaderOutput main(VertexShaderInput input) : SV_POSITION
+VertexShaderOutput main(VertexShaderInput input)
 {
     VertexShaderOutput output;
     
