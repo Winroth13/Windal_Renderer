@@ -339,12 +339,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	/* Create Spot Light Buffers */
 	{
 		D3D11_BUFFER_DESC lightBufferDesc = {};
-		lightBufferDesc.ByteWidth = sizeof(SpotLightBuffer) * MAX_SPOT_LIGHTS;
+		lightBufferDesc.ByteWidth = sizeof(SpotLightData) * MAX_SPOT_LIGHTS;
 		lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		lightBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		lightBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		lightBufferDesc.StructureByteStride = sizeof(SpotLightBuffer);
+		lightBufferDesc.StructureByteStride = sizeof(SpotLightData);
 
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = 0;
@@ -686,18 +686,14 @@ void Renderer::RenderShadowMaps()
 		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
 		Camera camera;
-		camera.SetOrthographicLens(50, 50, 1, 200.0f);
-		camera.transform.SetAngles(
-			DirectX::XMConvertToRadians(60),
-			DirectX::XMConvertToRadians(-100),
-			0
-		); // TODO: don't hardcode this
+		camera.SetOrthographicLens(50, 50, 1, 100.0f);
+		DirectX::XMFLOAT3 direction = dirLight.direction;
+		camera.transform.SetAngles(DirectionToAngles(direction));
 
-		XMFLOAT3 cameraPos = camera.transform.GetForwardDir3f();
-		cameraPos.x *= -100;
-		cameraPos.y *= -100;
-		cameraPos.z *= -100;
-		camera.transform.SetPosition(cameraPos);
+		direction.x *= -50;
+		direction.y *= -50;
+		direction.z *= -50;
+		camera.transform.SetPosition(direction);
 
 		//camera.transform.SetAngles(0, 0, 0);
 		camera.UpdateViewMatrix();
@@ -736,7 +732,10 @@ void Renderer::RenderShadowMaps()
 		/* Update View Buffer */
 		Camera camera;
 		camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
-		camera.transform = spotLight.transform;
+		Transform transform;
+		transform.SetAngles(DirectionToAngles(spotLight.direction));
+		transform.SetPosition(spotLight.position);
+		camera.transform = transform;
 		camera.UpdateViewMatrix();
 
 		spotLight.viewProj = camera.GetViewProj();
@@ -1199,22 +1198,6 @@ void Renderer::BindPointLights(ShaderType shaderType)
 
 void Renderer::BindSpotLights(ShaderType shaderType)
 {
-	std::vector<SpotLightBuffer> spotLightsBufferData;
-	spotLightsBufferData.reserve(mSpotLightsData.size());
-
-	for (auto& spotlightData : mSpotLightsData)
-	{
-		SpotLightBuffer data = {};
-		data.position = spotlightData.transform.GetPosition3f();
-		data.direction = spotlightData.transform.GetForwardDir3f();
-		data.viewProj = spotlightData.viewProj;
-		data.angle = spotlightData.angle;
-		data.intensity = spotlightData.intensity;
-		data.color = spotlightData.color;
-		data.attenuation = spotlightData.attenuation;
-		spotLightsBufferData.emplace_back(data);
-	}
-
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	HRESULT result = mImmediateContext->Map(mSpotLightsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (FAILED(result))
@@ -1223,8 +1206,8 @@ void Renderer::BindSpotLights(ShaderType shaderType)
 		throw std::runtime_error("");
 	}
 
-	size_t numBytes = spotLightsBufferData.size() * sizeof(SpotLightBuffer);
-	memcpy_s(mappedResource.pData, numBytes, spotLightsBufferData.data(), numBytes);
+	size_t numBytes = mSpotLightsData.size() * sizeof(SpotLightData);
+	memcpy_s(mappedResource.pData, numBytes, mSpotLightsData.data(), numBytes);
 	mImmediateContext->Unmap(mSpotLightsBuffer, 0);
 
 	switch (shaderType)
@@ -1287,4 +1270,13 @@ void Renderer::ClearFrameData()
 
 	mGeometryData.clear();
 	mMaterialData.clear();
+}
+
+DirectX::XMFLOAT3 Renderer::DirectionToAngles(DirectX::XMFLOAT3 direction)
+{
+	return DirectX::XMFLOAT3(
+		atan2f(-direction.y, sqrtf(direction.x * direction.x + direction.z * direction.z)),
+		atan2f(direction.x, direction.z),
+		0
+	);
 }

@@ -54,10 +54,11 @@ void RenderServer::PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 
 	mRenderer->PushPointLightData(data);
 }
 
-void RenderServer::PushSpotLight(Transform transform, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation)
+void RenderServer::PushSpotLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation)
 {
 	SpotLightData data = {};
-	data.transform = transform;
+	data.direction = direction;
+	data.position = position;
 	data.color = color;
 	data.angle = angle;
 	data.intensity = intensity;

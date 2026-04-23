@@ -121,16 +121,6 @@ struct PointLightData
 
 struct SpotLightData
 {
-	Transform transform;
-	DirectX::XMMATRIX viewProj;
-	DirectX::XMFLOAT3 color;
-	float attenuation;
-	float intensity;
-	float angle;
-};
-
-struct SpotLightBuffer
-{
 	DirectX::XMMATRIX viewProj;
 	DirectX::XMFLOAT3 position;
 	float attenuation;
@@ -246,6 +236,9 @@ private:
 	void UpdateMaterialIndexBuffer(uint32_t index);
 
 	void ClearFrameData();
+
+	/* Math */
+	DirectX::XMFLOAT3 DirectionToAngles(DirectX::XMFLOAT3 direction);
 
 	std::vector<GeometryData> mGeometryData;
 	std::vector<MaterialData> mMaterialData;

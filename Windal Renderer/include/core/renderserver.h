@@ -32,8 +32,7 @@ public:
 
 	void PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
 	void PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity);
-
-	void PushSpotLight(Transform transform, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation);
+	void PushSpotLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateEnviroment(Enviroment& enviroment);
