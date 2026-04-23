@@ -79,27 +79,14 @@ sampler shadowMapSampler : register(s0);
 #define	SHOW_GBUFFERS 2
 #define	USE_BLINN_PHONG 4
 
-bool isInDirectionalLightShadow(
+#define SHADOW_MAP_BIAS 0.001
+
+float calcShadowFactor(
     float3 fragmentWorldPosition,
     float4x4 lightViewProjMatrix,
-    int index
-)
-{
-    float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
-    float3 NDC = lightClipPos.xyz / lightClipPos.w;
-    float fragmentDepth = NDC.z;
-
-    float uvX = (NDC.x * 0.5) + 0.5;
-    float uvY = (-NDC.y * 0.5) + 0.5;
-    float3 shadowMapUV = float3(uvX, uvY, index);
-    float nearestDepth = directionalLightShadowMaps.SampleLevel(shadowMapSampler, shadowMapUV, 0);
-
-    float bias = 0.001;
-
-    return fragmentDepth > (nearestDepth + bias);
-}
-
-float calcShadowFactor(float3 fragmentWorldPosition, float4x4 lightViewProjMatrix, int index)
+    int index,
+    int samples,
+    const Texture2DArray<float> texArr)
 {
     float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
     float3 NDC = lightClipPos.xyz / lightClipPos.w;
@@ -109,14 +96,22 @@ float calcShadowFactor(float3 fragmentWorldPosition, float4x4 lightViewProjMatri
     
     float factor = 0.0f;
     
-    for (int y = -1; y <= 1; y++)
+    uint width = -1;
+    uint height = -1;
+    uint elements = -1;
+    uint nLevels = -1;
+    texArr.GetDimensions(index, width, height, elements, nLevels);
+    
+    int numSamples = 0;
+    
+    for (int y = -samples; y <= samples; y++)
     {
-        for (int x = -1; x <= 1; x++)
+        for (int x = -samples; x <= samples; x++)
         {
-            float2 offsets = float2(x * 0.002f * 0, y * 0.002f * 0);
-            float3 uvc = float3(uv + offsets, fragmentDepth + 0.00001);
-            float depth = directionalLightShadowMaps.SampleLevel(shadowMapSampler, uvc, 0);
-            if (fragmentDepth > (depth + 0.00001))
+            float2 offsets = float2(x * (1.0f / width), y * (1.0f / height));
+            float3 uvc = float3(uv + offsets, index);
+            float depth = texArr.SampleLevel(shadowMapSampler, uvc, 0);
+            if (fragmentDepth > (depth + SHADOW_MAP_BIAS))
             {
                 factor += 0.0f;
             }
@@ -124,40 +119,11 @@ float calcShadowFactor(float3 fragmentWorldPosition, float4x4 lightViewProjMatri
             {
                 factor += 1.0f;
             }
+            numSamples++;
         }
-
     }
     
-    return (0.5f + (factor / 18.0f));
-    
-    /*if (fragmentDepth > (depth + 0.00001))
-    {
-        return 0.5f;
-    }
-    else
-    {
-        return 1.0f;
-    }*/
-}
-
-bool isInSpotLightShadow(
-    float3 fragmentWorldPosition,
-    float4x4 lightViewProjMatrix,
-    int index
-)
-{
-    float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
-    float3 NDC = lightClipPos.xyz / lightClipPos.w;
-    float fragmentDepth = NDC.z;
-
-    float uvX = (NDC.x * 0.5) + 0.5;
-    float uvY = (-NDC.y * 0.5) + 0.5;
-    float3 shadowMapUV = float3(uvX, uvY, index);
-    float nearestDepth = spotLightShadowMaps.SampleLevel(shadowMapSampler, shadowMapUV, 0);
-
-    float bias = 0.001;
-
-    return fragmentDepth > (nearestDepth + bias);
+    return (factor / numSamples);
 }
 
 float3 CalculateLightColor(
@@ -279,25 +245,30 @@ void main( uint3 DTid : SV_DispatchThreadID)
     /* Directional lights */
     for (int i = 0; i < numDirectionalLights; ++i)
     {
-        float3 color = CalculateLightColor(
-            directionalLights[i].color,
-            directionalLights[i].intensity,
-            1,
-            1,
-            directionalLights[i].direction,
-            worldPosition,
-            worldNormal,
-            texColor.rgb,
-            materialIndex
-        );
-        
         float shadowFactor = calcShadowFactor(
-            worldPosition, 
-            directionalLights[i].viewProjMatrix, 
-            i
+            worldPosition,
+            directionalLights[i].viewProjMatrix,
+            i,
+            3,
+            directionalLightShadowMaps
         );
         
-        totalLight += color * shadowFactor;
+        if (shadowFactor != 0)
+        {
+            float3 color = CalculateLightColor(
+                directionalLights[i].color,
+                directionalLights[i].intensity,
+                1,
+                1,
+                directionalLights[i].direction,
+                worldPosition,
+                worldNormal,
+                texColor.rgb,
+                materialIndex
+            );
+        
+            totalLight += color * shadowFactor;
+        }
     }
     
     /* Point lights */
@@ -323,33 +294,39 @@ void main( uint3 DTid : SV_DispatchThreadID)
         float spotFactor = dot(normalize(lightDir), normalize(spotLights[i].direction));
         float cutoff = cos(spotLights[i].angle);
 
-        if (spotFactor > cutoff &&
-            !isInSpotLightShadow(
+        if (spotFactor > cutoff)
+        {
+            float shadowFactor = calcShadowFactor(
                 worldPosition,
                 spotLights[i].viewProjMatrix,
-                i
-            ))
-        {
-            float3 color = CalculateLightColor(
-                spotLights[i].color,
-                spotLights[i].intensity,
-                spotLights[i].attenuation,
-                length(lightDir),
-                lightDir,
-                worldPosition,
-                worldNormal,
-                texColor.rgb,
-                materialIndex
+                i,
+                3,
+                spotLightShadowMaps
             );
 
-            // Smoothes out the outer 20% of the light
-            // TODO: Add an outer angle to decide what the "outer percent" is
-            float falloffFactor = (1.0 - (1.0 - spotFactor) / (1.0 - cutoff)) * 5;
-            falloffFactor = min(falloffFactor, 1);
+            if (shadowFactor != 0)
+            {
+                float3 color = CalculateLightColor(
+                    spotLights[i].color,
+                    spotLights[i].intensity,
+                    spotLights[i].attenuation,
+                    length(lightDir),
+                    lightDir,
+                    worldPosition,
+                    worldNormal,
+                    texColor.rgb,
+                    materialIndex
+                );
 
-            color = color * falloffFactor;
+                // Smoothes out the outer 20% of the light
+                // TODO: Add an outer angle to decide what the "outer percent" is
+                float falloffFactor = (1.0 - (1.0 - spotFactor) / (1.0 - cutoff)) * 5;
+                falloffFactor = min(falloffFactor, 1);
 
-            totalLight += color;
+                color = color * falloffFactor * shadowFactor;
+
+                totalLight += color;
+            }
         }
     }
     
