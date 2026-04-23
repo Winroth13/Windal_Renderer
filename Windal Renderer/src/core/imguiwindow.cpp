@@ -3,9 +3,18 @@
 #include "core/renderer.h"
 #include "core/logger.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
 #include "imgui/imgui_impl_dx11.h"
+
+#include "imgui/ImGuizmo.h"
+#include "imgui/ImSequencer.h"
+#include "imgui/ImZoomSlider.h"
+#include "imgui/ImCurveEdit.h"
+#include "imgui/GraphEditor.h"
+#include "imgui/ImLightRig.h"
 
 #include <iostream>
 
@@ -127,7 +136,9 @@ void ImguiWindow::BeginRender()
 {
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
+
 	ImGui::NewFrame();
+	ImGuizmo::BeginFrame();
 }
 
 void ImguiWindow::EndRender()

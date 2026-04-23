@@ -12,18 +12,21 @@ public:
 	DirectX::XMFLOAT3 GetPosition3f();
 	void SetPosition(float x, float y, float z);
 	void SetPosition(const DirectX::XMFLOAT3& position);
+	void SetPosition(const DirectX::XMVECTOR position);
 
 	// Get/Set transform world angles
 	DirectX::XMVECTOR GetAngles() const;
 	DirectX::XMFLOAT3 GetAngles3f() const;
 	void SetAngles(float pitch, float yaw, float roll);
 	void SetAngles(const DirectX::XMFLOAT3& angles);
+	void SetAngles(const DirectX::XMVECTOR angles);
 
 	// Get/Set transform world scale
 	DirectX::XMVECTOR GetScale() const;
 	DirectX::XMFLOAT3 GetScale3f() const;
 	void SetScale(float x, float y, float z);
 	void SetScale(const DirectX::XMFLOAT3& scale);
+	void SetScale(const DirectX::XMVECTOR scale);
 
 	// Get transform basis vectors
 	DirectX::XMVECTOR GetRightDir() const;
@@ -50,7 +53,6 @@ public:
 
 	void LookAt(const Transform& target);
 
-	// Get matrix
 	const DirectX::XMMATRIX GetMatrix();
 	const DirectX::XMFLOAT4X4 GetMatrixf();
 

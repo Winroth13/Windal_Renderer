@@ -1,3 +1,5 @@
+Source: https://github.com/jimmiebergmann/Sponza
+
 Sponza
 ===================
 

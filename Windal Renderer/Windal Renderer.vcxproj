@@ -52,6 +52,13 @@
     <ClInclude Include="include\graphics\shaders\vertexshader.h" />
     <ClInclude Include="include\main.h" />
     <ClInclude Include="vendor\console\console.h" />
+    <ClInclude Include="vendor\imgui\GraphEditor.h" />
+    <ClInclude Include="vendor\imgui\ImCurveEdit.h" />
+    <ClInclude Include="vendor\imgui\ImGradient.h" />
+    <ClInclude Include="vendor\imgui\ImGuizmo.h" />
+    <ClInclude Include="vendor\imgui\ImLightRig.h" />
+    <ClInclude Include="vendor\imgui\ImSequencer.h" />
+    <ClInclude Include="vendor\imgui\ImZoomSlider.h" />
     <ClInclude Include="vendor\imgui\imconfig.h" />
     <ClInclude Include="vendor\imgui\imgui.h" />
     <ClInclude Include="vendor\imgui\imgui_impl_dx11.h" />
@@ -94,6 +101,11 @@
     <ClCompile Include="src\graphics\textures\imagetexture2d.cpp" />
     <ClCompile Include="src\graphics\textures\texture2d.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="vendor\imgui\GraphEditor.cpp" />
+    <ClCompile Include="vendor\imgui\ImCurveEdit.cpp" />
+    <ClCompile Include="vendor\imgui\ImGradient.cpp" />
+    <ClCompile Include="vendor\imgui\ImGuizmo.cpp" />
+    <ClCompile Include="vendor\imgui\ImSequencer.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
     <ClCompile Include="vendor\imgui\imgui_impl_dx11.cpp" />

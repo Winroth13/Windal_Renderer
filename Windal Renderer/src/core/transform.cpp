@@ -26,6 +26,12 @@ void Transform::SetPosition(const XMFLOAT3& position)
 	mIsDirty = true;
 }
 
+void Transform::SetPosition(const DirectX::XMVECTOR position)
+{
+	DirectX::XMStoreFloat3(&mPosition, position);
+	mIsDirty = true;
+}
+
 /* Get/Set Angles */
 XMVECTOR Transform::GetAngles() const
 {
@@ -49,6 +55,12 @@ void Transform::SetAngles(const XMFLOAT3& angles)
 	mIsDirty = true;
 }
 
+void Transform::SetAngles(const DirectX::XMVECTOR angles)
+{
+	DirectX::XMStoreFloat3(&mAngles, angles);
+	mIsDirty = true;
+}
+
 /* Get/Set Scale */
 XMVECTOR Transform::GetScale() const
 {
@@ -69,6 +81,12 @@ void Transform::SetScale(float x, float y, float z)
 void Transform::SetScale(const XMFLOAT3& scale)
 {
 	mScale = scale;
+	mIsDirty = true;
+}
+
+void Transform::SetScale(const DirectX::XMVECTOR scale)
+{
+	DirectX::XMStoreFloat3(&mScale, scale);
 	mIsDirty = true;
 }
 
@@ -182,7 +200,6 @@ void Transform::LookAt(const Transform& target)
 	LookAt(GetPosition(), target.GetPosition(), GetUpDir());
 }
 
-// Get matrix
 const DirectX::XMMATRIX Transform::GetMatrix()
 {
 	if (mIsDirty)

@@ -18,6 +18,8 @@
 #include "core/entities/directionallightentity.h"
 #include "core/entities/spotlightentity.h"
 
+#include "imgui/ImGuizmo.h"
+
 #include <memory>
 
 class TestApp : public App
@@ -120,6 +122,12 @@ public:
 				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
 				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
 			}
+
+			/* Toggle Gizmo Operation */
+			if (GetAsyncKeyState('T') & 0x8000)
+				mGizmoOperation = ImGuizmo::TRANSLATE;
+			if (GetAsyncKeyState('R') & 0x8000)
+				mGizmoOperation = ImGuizmo::SCALE;
 
 			previousMousePos = newMousePos;
 		}
@@ -224,6 +232,45 @@ public:
 			if (inspectorEntity != nullptr)
 			{
 				inspectorEntity->get()->RenderImgui();
+
+				/* Draw Gizmos */
+				{
+					ImGuizmo::Enable(true);
+					ImGuizmo::SetRect(0, 0, 1280, 640); // TODO: Do not hardcode screen dimensions
+					ImGuizmo::AllowAxisFlip(true);
+					ImGuizmo::SetOrthographic(true);
+
+					auto& camera = mScene->GetCamera();
+
+					XMFLOAT4X4 view = camera.GetView4x4f();
+					XMFLOAT4X4 proj = camera.GetProj4x4f();
+
+					XMFLOAT4X4 localMat = inspectorEntity->get()->transform.GetMatrixf();
+					Transform& transform = inspectorEntity->get()->transform;
+
+					float translate[3] = { -1, -1, -1 };
+					float rotation[3] = { -1, -1, -1 };
+					float scale[3] = { -1, -1, -1 };
+
+					if (ImGuizmo::Manipulate(*view.m, *proj.m, mGizmoOperation, ImGuizmo::LOCAL, *localMat.m, NULL, NULL))
+					{
+						ImGuizmo::DecomposeMatrixToComponents(*localMat.m, translate, rotation, scale);
+
+						switch (mGizmoOperation)
+						{
+						case ImGuizmo::TRANSLATE:
+							transform.SetPosition(translate[0], translate[1], translate[2]);
+							break;
+
+						case ImGuizmo::SCALE:
+							transform.SetScale(scale[0], scale[1], scale[2]);
+							break;
+
+						default:
+							break;
+						}
+					}
+				}
 			}
 			ImGui::End();
 		}
@@ -239,6 +286,8 @@ public:
 
 private:
 	uint32_t mViewportDebugMode = 0;
+
+	ImGuizmo::OPERATION mGizmoOperation = ImGuizmo::TRANSLATE;
 
 	bool mShowHierarchy = true;
 	bool mShowInspector = true;
