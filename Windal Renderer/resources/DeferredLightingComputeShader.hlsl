@@ -99,6 +99,47 @@ bool isInDirectionalLightShadow(
     return fragmentDepth > (nearestDepth + bias);
 }
 
+float calcShadowFactor(float3 fragmentWorldPosition, float4x4 lightViewProjMatrix, int index)
+{
+    float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
+    float3 NDC = lightClipPos.xyz / lightClipPos.w;
+    float fragmentDepth = NDC.z;
+    
+    float2 uv = float2((NDC.x * 0.5) + 0.5, (-NDC.y * 0.5) + 0.5);
+    
+    float factor = 0.0f;
+    
+    for (int y = -1; y <= 1; y++)
+    {
+        for (int x = -1; x <= 1; x++)
+        {
+            float2 offsets = float2(x * 0.002f * 0, y * 0.002f * 0);
+            float3 uvc = float3(uv + offsets, fragmentDepth + 0.00001);
+            float depth = directionalLightShadowMaps.SampleLevel(shadowMapSampler, uvc, 0);
+            if (fragmentDepth > (depth + 0.00001))
+            {
+                factor += 0.0f;
+            }
+            else
+            {
+                factor += 1.0f;
+            }
+        }
+
+    }
+    
+    return (0.5f + (factor / 18.0f));
+    
+    /*if (fragmentDepth > (depth + 0.00001))
+    {
+        return 0.5f;
+    }
+    else
+    {
+        return 1.0f;
+    }*/
+}
+
 bool isInSpotLightShadow(
     float3 fragmentWorldPosition,
     float4x4 lightViewProjMatrix,
@@ -238,13 +279,7 @@ void main( uint3 DTid : SV_DispatchThreadID)
     /* Directional lights */
     for (int i = 0; i < numDirectionalLights; ++i)
     {
-        if (!isInDirectionalLightShadow(
-                worldPosition,
-                directionalLights[i].viewProjMatrix,
-                i
-            ))
-        {
-            totalLight += CalculateLightColor(
+        float3 color = CalculateLightColor(
             directionalLights[i].color,
             directionalLights[i].intensity,
             1,
@@ -255,7 +290,14 @@ void main( uint3 DTid : SV_DispatchThreadID)
             texColor.rgb,
             materialIndex
         );
-        }
+        
+        float shadowFactor = calcShadowFactor(
+            worldPosition, 
+            directionalLights[i].viewProjMatrix, 
+            i
+        );
+        
+        totalLight += color * shadowFactor;
     }
     
     /* Point lights */
