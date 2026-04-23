@@ -262,7 +262,6 @@ private:
 	std::unique_ptr<VertexShader> mShadowMapVertexShader;
 	ShadowMap mDirectionalLightsShadowMap;
 	ShadowMap mSpotLightsShadowMap;
-	D3D11_VIEWPORT mShadowMapViewport;
 	ID3D11InputLayout* mShadowInputLayout = nullptr;
 	ID3D11SamplerState* mShadowMapSampler = nullptr;
 

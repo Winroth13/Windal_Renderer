@@ -455,26 +455,16 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	{
 		mShadowMapVertexShader = std::make_unique<VertexShader>("resources/ShadowMapVertexShader.cso");
 
-		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS))
+		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS, 2048, 2048))
 		{
 			Logger::Error("Failed to create directional lights shadow map");
 			return false;
 		}
 
-		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS))
+		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS, 512, 512))
 		{
 			Logger::Error("Failed to create spot lights shadow map");
 			return false;
-		}
-
-		/* Update Shadow Viewport */
-		{
-			mShadowMapViewport.TopLeftX = 0;
-			mShadowMapViewport.TopLeftY = 0;
-			mShadowMapViewport.Width = static_cast<float>(SHADOW_MAP_WIDTH);
-			mShadowMapViewport.Height = static_cast<float>(SHADOW_MAP_HEIGHT);
-			mShadowMapViewport.MinDepth = 0;
-			mShadowMapViewport.MaxDepth = 1;
 		}
 
 		/* Create Input Layout */
@@ -679,11 +669,11 @@ void Renderer::RenderShadowMaps()
 	/* Unbind Pixel Shader to make it depth-only pass */
 	UnbindPixelShader();
 
-	/* Set Shadow Map Viewport */
-	mImmediateContext->RSSetViewports(1, &mShadowMapViewport);
-
 	/* Bind Input Layout */
 	mImmediateContext->IASetInputLayout(mShadowInputLayout);
+
+	/* Set Shadow Map Viewport for Directional Lights */
+	mImmediateContext->RSSetViewports(1, &mDirectionalLightsShadowMap.GetViewport());
 
 	/* Directional Lights */
 	for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
@@ -727,6 +717,9 @@ void Renderer::RenderShadowMaps()
 		}
 	}
 
+	/* Set Shadow Map Viewport for Spotlights */
+	mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
+
 	/* Spot Lights */
 	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
 	{
@@ -738,14 +731,11 @@ void Renderer::RenderShadowMaps()
 		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
 		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
+		float aspectRatio = mSpotLightsShadowMap.GetWidth() / (float)mSpotLightsShadowMap.GetHeight();
+
 		/* Update View Buffer */
 		Camera camera;
-		camera.SetPerspectiveLens(
-			spotLight.angle * 2,
-			SHADOW_MAP_WIDTH / SHADOW_MAP_HEIGHT,
-			0.1f,
-			100.0f
-		);
+		camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
 		camera.transform = spotLight.transform;
 		camera.UpdateViewMatrix();
 

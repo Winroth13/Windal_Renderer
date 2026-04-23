@@ -28,14 +28,24 @@ ShadowMap::~ShadowMap()
 	}
 }
 
-bool ShadowMap::Create(size_t maxNumMaps)
+bool ShadowMap::Create(size_t maxNumMaps, size_t textureWidth, size_t textureHeight)
 {
 	mMaxMaps = maxNumMaps;
+	mWidth = textureWidth;
+	mHeight = textureWidth;
+
+	/* Configure Viewport */
+	mViewport.TopLeftX = 0;
+	mViewport.TopLeftY = 0;
+	mViewport.Width = static_cast<float>(textureWidth);
+	mViewport.Height = static_cast<float>(textureHeight);
+	mViewport.MinDepth = 0;
+	mViewport.MaxDepth = 1;
 
 	/* Create Depth Texture Array */
 	D3D11_TEXTURE2D_DESC arrDesc = {};
-	arrDesc.Width = SHADOW_MAP_WIDTH;
-	arrDesc.Height = SHADOW_MAP_HEIGHT;
+	arrDesc.Width = static_cast<UINT>(textureWidth);
+	arrDesc.Height = static_cast<UINT>(textureHeight);
 	arrDesc.MipLevels = 1;
 	arrDesc.ArraySize = static_cast<UINT>(mMaxMaps);
 	arrDesc.Format = DXGI_FORMAT_R32_TYPELESS;

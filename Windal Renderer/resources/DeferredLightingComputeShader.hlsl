@@ -80,12 +80,12 @@ sampler shadowMapSampler : register(s0);
 #define	USE_BLINN_PHONG 4
 
 #define SHADOW_MAP_BIAS 0.001
+#define SHADOW_SAMPLES_DIMENTIONS 3
 
 float calcShadowFactor(
     float3 fragmentWorldPosition,
     float4x4 lightViewProjMatrix,
     int index,
-    int samples,
     const Texture2DArray<float> texArr)
 {
     float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
@@ -104,9 +104,9 @@ float calcShadowFactor(
     
     int numSamples = 0;
     
-    for (int y = -samples; y <= samples; y++)
+    for (int y = -SHADOW_SAMPLES_DIMENTIONS; y <= SHADOW_SAMPLES_DIMENTIONS; y++)
     {
-        for (int x = -samples; x <= samples; x++)
+        for (int x = -SHADOW_SAMPLES_DIMENTIONS; x <= SHADOW_SAMPLES_DIMENTIONS; x++)
         {
             float2 offsets = float2(x * (1.0f / width), y * (1.0f / height));
             float3 uvc = float3(uv + offsets, index);
@@ -249,7 +249,6 @@ void main( uint3 DTid : SV_DispatchThreadID)
             worldPosition,
             directionalLights[i].viewProjMatrix,
             i,
-            3,
             directionalLightShadowMaps
         );
         
@@ -300,7 +299,6 @@ void main( uint3 DTid : SV_DispatchThreadID)
                 worldPosition,
                 spotLights[i].viewProjMatrix,
                 i,
-                3,
                 spotLightShadowMaps
             );
 
@@ -329,6 +327,6 @@ void main( uint3 DTid : SV_DispatchThreadID)
             }
         }
     }
-    
+
     backBufferUAV[screenPos] = float4(totalLight.rgb, 1.0f);
 }

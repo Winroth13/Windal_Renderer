@@ -2,19 +2,20 @@
 #include <vector>
 #include <d3d11.h>
 
-#define SHADOW_MAP_WIDTH 2048
-#define	SHADOW_MAP_HEIGHT 2048
-
 class ShadowMap
 {
 public:
 	ShadowMap();
 	~ShadowMap();
 
-	bool Create(size_t maxNumMaps);
+	bool Create(size_t maxNumMaps, size_t textureWidth, size_t textureHeight);
 
 	ID3D11ShaderResourceView* GetSRV(size_t numMaps);
 	ID3D11DepthStencilView* GetDSV(size_t i) { return mDepthStencilViews[i]; }
+	D3D11_VIEWPORT& GetViewport() { return mViewport; }
+
+	const size_t GetWidth() { return mWidth; }
+	const size_t GetHeight() { return mHeight; }
 
 private:
 	size_t mMaxMaps = 0;
@@ -24,4 +25,8 @@ private:
 
 	ID3D11ShaderResourceView* mSrv = nullptr;
 	D3D11_SHADER_RESOURCE_VIEW_DESC mSrvDesc = {};
+	D3D11_VIEWPORT mViewport = {};
+
+	size_t mWidth = 0;
+	size_t mHeight = 0;
 };
