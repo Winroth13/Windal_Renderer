@@ -4,7 +4,7 @@
 class PointLightEntity : public Entity
 {
 public:
-	PointLightEntity(const std::string& name);
+	PointLightEntity();
 	~PointLightEntity();
 
 	void SetColor(const DirectX::XMFLOAT3 color) { mColor = color; };

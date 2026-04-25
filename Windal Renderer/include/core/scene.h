@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include "core/entities/entity.h"
 #include "core/renderserver.h"
@@ -11,35 +12,46 @@
 class Scene
 {
 public:
-    Scene();
-    ~Scene() {};
+	Scene();
+	~Scene() {};
 
-    void Update(double delta);
-    void Render(RenderServer& renderServer);
-    void Shutdown();
+	void Update(double delta);
+	void Render(RenderServer& renderServer);
+	void Shutdown();
 
-    template<typename T, typename... Args>
-    T& CreateEntity(Args&&... args)
-    {
-        static_assert(std::is_base_of<Entity, T>::value, "T must derive from Entity");
+	template<typename T, typename... Args>
+	T& CreateEntity(Args&&... args)
+	{
+		static_assert(std::is_base_of<Entity, T>::value, "T must derive from Entity");
 
-        auto ptr = std::make_unique<T>(std::forward<Args>(args)...);
+		auto ptr = std::make_unique<T>(std::forward<Args>(args)...);
 
-        ptr->mScene = this;
+		ptr->mScene = this;
 
-        T& reference = *ptr;
-        mEntities.push_back(std::move(ptr));
-        return reference;
-    };
+		if (mEntityNameCount.find(ptr->mName) != mEntityNameCount.end())
+		{
+			mEntityNameCount[ptr->mName]++;
+			ptr->mName += " #" + std::to_string(mEntityNameCount[ptr->mName]);
+		}
+		else
+		{
+			mEntityNameCount[ptr->mName] = 1;
+		}
 
-    std::vector<std::unique_ptr<Entity>>& GetEntities();
+		T& reference = *ptr;
+		mEntities.push_back(std::move(ptr));
+		return reference;
+	};
 
-    Camera& GetCamera() { return mCamera; }
-    Enviroment& GetEnviroment() { return mEnviroment; }
+	std::vector<std::unique_ptr<Entity>>& GetEntities();
+
+	Camera& GetCamera() { return mCamera; }
+	Enviroment& GetEnviroment() { return mEnviroment; }
 
 private:
-    Camera mCamera;
-    Enviroment mEnviroment;
+	Camera mCamera;
+	Enviroment mEnviroment;
 
-    std::vector<std::unique_ptr<Entity>> mEntities;
+	std::unordered_map<std::string, size_t> mEntityNameCount;
+	std::vector<std::unique_ptr<Entity>> mEntities;
 };

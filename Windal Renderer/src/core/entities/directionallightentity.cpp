@@ -3,14 +3,9 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-DirectionalLightEntity::DirectionalLightEntity(const std::string& name)
-	:Entity(name)
-{
-}
+DirectionalLightEntity::DirectionalLightEntity() : Entity("Directional Light") {}
 
-DirectionalLightEntity::~DirectionalLightEntity()
-{
-}
+DirectionalLightEntity::~DirectionalLightEntity() {}
 
 void DirectionalLightEntity::UpdateSelf(double delta)
 {

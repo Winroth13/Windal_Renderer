@@ -21,7 +21,7 @@ cbuffer cbMateralIndex : register(b0)
 };
 
 Texture2D diffuseTexture : register(t3);
-SamplerState samplerState : register(s3);
+SamplerState samplerState : register(s0);
 
 PixelShaderOutput main(PixelShaderInput input)
 {

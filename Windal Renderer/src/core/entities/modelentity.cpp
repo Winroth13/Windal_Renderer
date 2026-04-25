@@ -5,8 +5,8 @@
 
 #include <d3d11.h>
 
-ModelEntity::ModelEntity(const std::string& name, std::shared_ptr<Model> model)
-	: Entity(name), mModel(model)
+ModelEntity::ModelEntity(std::shared_ptr<Model> model)
+	: mModel(model), Entity("Model")
 {
 }
 

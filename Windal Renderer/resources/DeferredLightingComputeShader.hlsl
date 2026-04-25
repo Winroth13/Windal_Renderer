@@ -73,7 +73,7 @@ Texture2DArray<float> directionalLightShadowMaps : register(t4);
 Texture2DArray<float> pointLightShadowMaps : register(t5);
 Texture2DArray<float> spotLightShadowMaps : register(t6);
 
-sampler shadowMapSampler : register(s0);
+sampler shadowMapSampler : register(s1);
 
 #define WIRE_FRAME 1
 #define	SHOW_GBUFFERS 2

@@ -75,7 +75,7 @@ StructuredBuffer<PointLight> pointLights : register(t1);
 StructuredBuffer<SpotLight> spotLights : register(t2);
 
 Texture2D diffuseTexture : register(t3);
-SamplerState samplerState : register(s3);
+SamplerState samplerState : register(s0);
 
 #define WIRE_FRAME 1
 #define	SHOW_GBUFFERS 2

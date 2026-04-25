@@ -4,10 +4,7 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-CameraEntity::CameraEntity(const std::string& name)
-	: Entity(name)
-{	
-}
+CameraEntity::CameraEntity() : Entity("Camera") {}
 
 CameraEntity::~CameraEntity() {}
 

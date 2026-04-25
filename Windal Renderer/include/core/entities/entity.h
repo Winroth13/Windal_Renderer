@@ -13,8 +13,7 @@ class Entity
     friend class Scene;
 
 public:
-    Entity() : mName("Entity") {};
-    Entity(const std::string& name);
+    Entity(std::string name);
 
     virtual ~Entity() = default;
 

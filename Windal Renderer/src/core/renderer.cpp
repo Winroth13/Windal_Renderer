@@ -169,6 +169,28 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		mViewport.MaxDepth = 1;
 	}
 
+	/* Create Default Sampler */
+	{
+		D3D11_SAMPLER_DESC samplerDesc = {};
+		samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		HRESULT hr = Renderer::GetDevice()->CreateSamplerState(&samplerDesc, &mDefaultSampler);
+
+		if (FAILED(hr))
+		{
+			Logger::Error("Failed to create default sampler state");
+			throw std::runtime_error("");
+		}
+	}
+
 	/* Create Constant Buffers */
 	{
 		/* Per Frame */
@@ -567,6 +589,9 @@ void Renderer::Shutdown()
 			mSpotLightsSRV->Release();
 	}
 
+	if (mDefaultSampler != nullptr)
+		mDefaultSampler->Release();
+
 	if (mShadowMapSampler != nullptr)
 		mShadowMapSampler->Release();
 
@@ -785,6 +810,9 @@ void Renderer::RenderDeferred()
 		BindSpotLights(ShaderType::COMPUTE);
 
 		BindPixelShader(mDeferredPixelShader);
+
+
+		mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
 	}
 
 	std::vector<PerMaterial> materials;
@@ -1133,10 +1161,7 @@ void Renderer::BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader)
 
 void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
 {
-	ID3D11SamplerState* sampler = texture2d->GetSamplerState();
 	ID3D11ShaderResourceView* srv = texture2d->GetSRV();
-
-	mImmediateContext->PSSetSamplers(slot, 1, &sampler);
 	mImmediateContext->PSSetShaderResources(slot, 1, &srv);
 }
 

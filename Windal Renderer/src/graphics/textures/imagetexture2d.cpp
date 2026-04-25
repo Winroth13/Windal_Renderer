@@ -28,26 +28,6 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	mHeight = height;
 	mChannels = channels;
 
-	/* Create Sampler */
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	HRESULT hr = Renderer::GetDevice()->CreateSamplerState(&samplerDesc, &mSamplerState);
-
-	if (FAILED(hr))
-	{
-		Logger::Error("DirectX failed to create sampler state for texture: " + path);
-		throw std::runtime_error("");
-	}
-
 	/* Create Texture */
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
@@ -62,7 +42,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-	hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture);
+	HRESULT hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture);
 
 	if (FAILED(hr))
 	{
@@ -86,15 +66,24 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 
 	if (FAILED(hr))
 	{
-		Logger::Error("DirectX failed to shader resource view for texture:" + path);
+		Logger::Error("DirectX failed to shader resource view for texture: " + path);
 		throw std::runtime_error("");
 	}
 
 	Renderer::GetContext()->GenerateMips(mShaderResourceView);
+
+	/* Create Render Target View */
+	hr = Renderer::GetDevice()->CreateRenderTargetView(mTexture, nullptr, &mRenderTargetView);
+	if (FAILED(hr))
+	{
+		Logger::Error("Failed to create render target view for texture: " + path);
+		throw std::runtime_error("");
+	}
 }
 
 ImageTexture2D::~ImageTexture2D()
 {
+	mRenderTargetView->Release();
 }
 
 void ImageTexture2D::RenderImgui(const uint32_t width, const uint32_t height)

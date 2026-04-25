@@ -3,14 +3,9 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-PointLightEntity::PointLightEntity(const std::string& name)
-	:Entity(name)
-{
-}
+PointLightEntity::PointLightEntity() : Entity("Point Light") {}
 
-PointLightEntity::~PointLightEntity()
-{
-}
+PointLightEntity::~PointLightEntity() {}
 
 void PointLightEntity::UpdateSelf(double delta)
 {

@@ -14,8 +14,8 @@ public:
 	ID3D11DepthStencilView* GetDSV(size_t i) { return mDepthStencilViews[i]; }
 	D3D11_VIEWPORT& GetViewport() { return mViewport; }
 
-	const size_t GetWidth() { return mWidth; }
-	const size_t GetHeight() { return mHeight; }
+	const size_t GetWidth() const { return mWidth; }
+	const size_t GetHeight() const { return mHeight; }
 
 private:
 	size_t mMaxMaps = 0;

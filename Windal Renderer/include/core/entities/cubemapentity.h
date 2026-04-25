@@ -1,14 +1,19 @@
 #pragma once
 #include "core/entities/entity.h"
 
-class CameraEntity : public Entity
+class CubemapTexture;
+
+class CubemapEntity : public Entity
 {
 public:
-	CameraEntity();
-	~CameraEntity();
+	CubemapEntity(uint32_t dimensions);
+	~CubemapEntity() override;
 
 protected:
 	virtual void UpdateSelf(double delta) override;
 	virtual void RenderSelf(RenderServer& renderServer) override;
 	virtual void RenderImguiSelf() override;
+
+private:
+	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;
 };

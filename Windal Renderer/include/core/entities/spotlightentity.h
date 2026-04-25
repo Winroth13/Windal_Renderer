@@ -4,7 +4,7 @@
 class SpotLightEntity : public Entity
 {
 public:
-	SpotLightEntity(const std::string& name);
+	SpotLightEntity();
 	~SpotLightEntity();
 
 	void SetColor(const DirectX::XMFLOAT3 color) { mColor = color; };

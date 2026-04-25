@@ -6,10 +6,7 @@ class Model;
 class ModelEntity : public Entity
 {
 public:
-	ModelEntity(
-		const std::string& name,
-		std::shared_ptr<Model> model
-	);
+	ModelEntity(std::shared_ptr<Model> model);
 	~ModelEntity();
 
 protected:

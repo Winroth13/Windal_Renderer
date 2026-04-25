@@ -20,7 +20,6 @@ public:
 	);
 
 	ID3D11ShaderResourceView* GetSRV() { return mShaderResourceView; }
-	ID3D11SamplerState* GetSamplerState() { return mSamplerState; }
 
 	virtual void RenderImgui(const uint32_t width, const uint32_t height) = 0;
 
@@ -29,6 +28,5 @@ public:
 
 protected:
 	ID3D11Texture2D* mTexture = nullptr;
-	ID3D11SamplerState* mSamplerState = nullptr;
 	ID3D11ShaderResourceView* mShaderResourceView = nullptr;
 };

@@ -4,7 +4,7 @@
 class DirectionalLightEntity : public Entity
 {
 public:
-	DirectionalLightEntity(const std::string& name);
+	DirectionalLightEntity();
 	~DirectionalLightEntity();
 
 	void SetColor(const DirectX::XMFLOAT3 color) { mColor = color; };

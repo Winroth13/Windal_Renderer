@@ -5,6 +5,8 @@
 #include "core/logger.h"
 
 #include "graphics/textures/imagetexture2d.h"
+#include "graphics/textures/cubemaptexture.h"
+
 #include "graphics/models/objmodel.h"
 
 #include "graphics/shaders/vertexshader.h"
@@ -17,10 +19,12 @@
 #include "core/entities/pointlightentity.h"
 #include "core/entities/directionallightentity.h"
 #include "core/entities/spotlightentity.h"
+#include "core/entities/cubemapentity.h"
 
 #include "imgui/ImGuizmo.h"
 
 #include <memory>
+#include <array>
 
 class TestApp : public App
 {
@@ -31,41 +35,59 @@ public:
 
 	void Initialize() override
 	{
+		auto skyCubemapTexture = std::make_shared<CubemapTexture>(
+			std::array<std::string, 6>
+			{
+				"assets/skybox/posx.jpg",
+				"assets/skybox/negx.jpg",
+				"assets/skybox/posy.jpg",
+				"assets/skybox/negy.jpg",
+				"assets/skybox/posz.jpg",
+				"assets/skybox/negz.jpg"
+			}
+		);
+
+		auto cubemapTexture = std::make_shared<CubemapTexture>(512, 512);
+
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, true);
 
-		auto& entity = mScene->CreateEntity<ModelEntity>("Sponza", sponza);
+		auto& entity = mScene->CreateEntity<ModelEntity>(sponza);
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
 
-		cameraEntity = &mScene->CreateEntity<CameraEntity>("Camera");
+		cameraEntity = &mScene->CreateEntity<CameraEntity>();
 		cameraEntity->transform.SetPosition(0, 1, 0);
 
-		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>("Enviroment");
-		enviromentEntity.SetAmbientColor(108.f / 255, 150.f / 255, 177.f / 255);
+		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>();
+		int ambientDivisor = 2;
+		enviromentEntity.SetAmbientColor(108.f / (255 * ambientDivisor), 150.f / (255 * ambientDivisor), 177.f / (255 * ambientDivisor));
 
-		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>("Point Light 1");
+		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>();
 		pointLightEntity1.SetColor({ 0, 1, 0 });
 		pointLightEntity1.SetVisble(false);
 
-		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>("Sun");
+		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>();
 		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
 		sunEntity.SetIntensity(0.75f);
 		sunEntity.SetVisble(true);
 
-		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>("Spot Light 1");
+		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
 		spotEntity.transform.SetPosition(0, 2, 0);
 		spotEntity.transform.SetAngles(0, (float)3.14 / 2, 0);
 		spotEntity.SetIntensity(32);
 		spotEntity.SetVisble(false);
 
-		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>("Spot Light 2");
+		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity2.SetColor({ 0.0, 1.0, 0.0 });
 		spotEntity2.transform.SetPosition(0, 2, 0);
 		spotEntity2.transform.SetAngles(0, 0, 0);
 		spotEntity2.SetIntensity(32);
 		spotEntity2.SetVisble(false);
+
+		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
+		cubemapEntity.transform.SetPosition(0, 2, 0);
 	};
 
 	void Shutdown() override

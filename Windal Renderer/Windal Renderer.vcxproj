@@ -22,6 +22,7 @@
     <ClInclude Include="include\core\app.h" />
     <ClInclude Include="include\core\engine.h" />
     <ClInclude Include="include\core\entities\cameraentity.h" />
+    <ClInclude Include="include\core\entities\cubemapentity.h" />
     <ClInclude Include="include\core\entities\directionallightentity.h" />
     <ClInclude Include="include\core\entities\entity.h" />
     <ClInclude Include="include\core\entities\enviromententity.h" />
@@ -47,6 +48,7 @@
     <ClInclude Include="include\graphics\shaders\pixelshader.h" />
     <ClInclude Include="include\graphics\shaders\shader.h" />
     <ClInclude Include="include\graphics\shadowmap.h" />
+    <ClInclude Include="include\graphics\textures\cubemaptexture.h" />
     <ClInclude Include="include\graphics\textures\imagetexture2d.h" />
     <ClInclude Include="include\graphics\textures\texture2d.h" />
     <ClInclude Include="include\graphics\shaders\vertexshader.h" />
@@ -73,6 +75,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
+    <ClCompile Include="src\core\entities\cubemapentity.cpp" />
     <ClCompile Include="src\core\entities\directionallightentity.cpp" />
     <ClCompile Include="src\core\entities\entity.cpp" />
     <ClCompile Include="src\core\entities\enviromententity.cpp" />
@@ -98,6 +101,7 @@
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\shaders\vertexshader.cpp" />
     <ClCompile Include="src\graphics\shadowmap.cpp" />
+    <ClCompile Include="src\graphics\textures\cubemaptexture.cpp" />
     <ClCompile Include="src\graphics\textures\imagetexture2d.cpp" />
     <ClCompile Include="src\graphics\textures\texture2d.cpp" />
     <ClCompile Include="src\main.cpp" />

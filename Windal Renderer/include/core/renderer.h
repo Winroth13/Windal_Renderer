@@ -37,7 +37,8 @@
 
 #define GBUFFER_START_SLOT 7
 
-#define SHADOW_MAP_SAMPLER_SLOT 0
+#define DEFAULT_SAMPLER_SLOT 0
+#define SHADOW_MAP_SAMPLER_SLOT 1
 
 enum RenderFlags
 {
@@ -281,6 +282,8 @@ private:
 	std::vector<ID3D11Texture2D*> mGBufferTextures;
 	std::vector<ID3D11ShaderResourceView*> mGBufferResourceViews;
 	std::vector<ID3D11RenderTargetView*> mGBufferRenderTargetViews;
+
+	ID3D11SamplerState* mDefaultSampler;
 
 	ID3D11Buffer* mPerFrameBuffer;
 	ID3D11Buffer* mPerViewBuffer;
