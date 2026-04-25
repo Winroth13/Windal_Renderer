@@ -100,6 +100,12 @@ void Material::SetPhongExponent(const float phongExponent)
 	mIsDirty = true;
 }
 
+void Material::SetReflectiveness(const float reflectiveness)
+{
+	mReflectiveness = reflectiveness;
+	mIsDirty = true;
+}
+
 void Material::UpdateBuffer(ID3D11DeviceContext* context)
 {
 	PerMaterial buffer = {};
@@ -155,6 +161,12 @@ void Material::RenderImgui()
 		{
 			mIsDirty = true;
 		}
+
+		if (ImGui::DragFloat("Reflectiveness", &mReflectiveness, 0.02f, 0.0, 1.0f))
+		{
+			mIsDirty = true;
+		}
+
 		ImGui::TreePop();
 	}
 

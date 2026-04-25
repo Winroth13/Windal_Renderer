@@ -67,18 +67,22 @@ void Engine::Render()
 {
 	mRenderer.BeginRender();
 
-	mApp->Render(mRenderer.GetRenderServer());
-	mScene.Render(mRenderer.GetRenderServer());
+	/* Scene */
+	{
+		mApp->Render(mRenderer.GetRenderServer());
+		mScene.Render(mRenderer.GetRenderServer());
+		mRenderer.Render();
+	}
 
-	mRenderer.RenderShadowMaps();
-	mRenderer.RenderDeferred();
-
-	mRenderer.BeginForward();
-	mRenderer.RenderForward();
-	mWindow.BeginImguiRender();
-	mApp->ImguiRender(mRenderer.GetRenderServer());
-	mWindow.EndImguiRender();
-	mRenderer.EndForward();
+	/* Imgui */
+	{
+		mRenderer.BeginForward();
+		mRenderer.RenderForward();
+		mWindow.BeginImguiRender();
+		mApp->ImguiRender(mRenderer.GetRenderServer());
+		mWindow.EndImguiRender();
+		mRenderer.EndForward();
+	}
 
 	mRenderer.PresentRender();
 }

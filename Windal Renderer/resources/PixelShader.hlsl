@@ -63,11 +63,11 @@ cbuffer cbPerObject : register(b2)
 cbuffer cbPerMaterial : register(b3)
 {
     float3 ambientCoefficient;
-    float pad7;
-    float3 diffuseCoefficient;
-    float pad8;
-    float3 specularCoefficient;
     float phongExponent;
+    float3 diffuseCoefficient;
+    float reflectiveness;
+    float3 specularCoefficient;
+    float pad7;
 }
 
 StructuredBuffer<DirectionalLight> directionalLights : register(t0);

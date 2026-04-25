@@ -10,6 +10,7 @@
 #include "graphics/shaders/pixelshader.h"
 #include "graphics/shaders/computeshader.h"
 #include "graphics/shadowmap.h"
+#include "graphics/gbuffers.h"
 #include "core/transform.h"
 
 #include <DirectXMath.h>
@@ -22,37 +23,42 @@
 
 #define MAX_MATERIALS 64
 
+/* Constant Buffers */
+#define PER_FRAME 0
+#define PER_VIEW 1
+#define PER_OBJECT 2
+#define PER_MATERIAL 3
+#define MATERIAL_INDEX 4
+
+/* Light Structured Buffers */
 #define DIRECTIONAL_LIGHT_SLOT 0
 #define POINT_LIGHT_SLOT 1
 #define SPOT_LIGHT_SLOT 2
 
-#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 4
-#define POINT_LIGHT_SHADOW_MAPS_SLOT 5
-#define SPOT_LIGHT_SHADOW_MAPS_SLOT 6
+/* Shadow Maps */
+#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 5
+#define POINT_LIGHT_SHADOW_MAPS_SLOT 6
+#define SPOT_LIGHT_SHADOW_MAPS_SLOT 7
 
-#define DIFFUSE_TEXTURE_SLOT 3
-
+/* Materials */
 #define DEFERRED_MATERIALS_SLOT 3
-#define TEXTURE_SAMPLER_SLOT 3
 
-#define GBUFFER_START_SLOT 7
+/* GBuffers */
+#define GBUFFER_START_SLOT 8
 
+/* Samplers */
 #define DEFAULT_SAMPLER_SLOT 0
 #define SHADOW_MAP_SAMPLER_SLOT 1
+
+/* Texture Slots */
+#define DIFFUSE_TEXTURE_SLOT 3
+#define CUBEMAP_TEXTURE_SLOT 4
 
 enum RenderFlags
 {
 	WIRE_FRAME = 1,
 	SHOW_GBUFFERS = 2,
 	USE_BLINN_PHONG = 4
-};
-
-enum GBuffer
-{
-	GBUFFER_POSITION,
-	GBUFFER_NORMAL,
-	GBUFFER_COLOR,
-	MAX_GBUFFERS
 };
 
 enum class ShaderType
@@ -90,11 +96,11 @@ struct PerObject
 struct PerMaterial
 {
 	DirectX::XMFLOAT3 ambientCoefficient;
-	float pad0;
-	DirectX::XMFLOAT3 diffuseCoefficient;
-	float pad1;
-	DirectX::XMFLOAT3 specularCoefficient;
 	float phongExponent;
+	DirectX::XMFLOAT3 diffuseCoefficient;
+	float reflectiveness;
+	DirectX::XMFLOAT3 specularCoefficient;
+	float pad0;
 };
 
 struct MaterialIndexBuffer
@@ -154,6 +160,12 @@ struct CameraData
 	DirectX::XMFLOAT3 pos;
 };
 
+struct CubemapData
+{
+	std::shared_ptr<CubemapTexture> cubemapTexture;
+	DirectX::XMFLOAT3 position;
+};
+
 class Renderer
 {
 public:
@@ -164,9 +176,7 @@ public:
 	void Shutdown();
 
 	void BeginRender();
-
-	void RenderShadowMaps();
-	void RenderDeferred();
+	void Render();
 
 	void BeginForward();
 	void RenderForward();
@@ -194,6 +204,8 @@ public:
 	void PushPointLightData(const PointLightData& pointLightData);
 	void PushSpotLightData(const SpotLightData& spotLightData);
 
+	void PushCubemapData(const CubemapData& cubemapData);
+
 	void SetEnviromentData(const EnviromentData& enviromentData);
 	void SetSceneCamera(const CameraData& cameraData);
 
@@ -201,17 +213,23 @@ public:
 	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
 
 private:
+	void RenderShadowMaps();
+	void RenderCubeMaps();
+	void RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera);
+
 	void UpdatePerViewBuffer(const CameraData& cameraData);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
+	void UpdatePerMaterialBuffer(std::shared_ptr<Material> material);
 
 	/* Bind Functions*/
-	void BindGBuffers();
+	void BindGBuffers(GBuffers& buffers);
 	void UnbindGBuffers();
 
 	void BindPerFrameBuffer(ShaderType shaderType);
 	void BindPerViewBuffer(ShaderType shaderType);
+	void BindPerMaterialBuffer(ShaderType shaderType);
 
-	void BindMaterial(std::shared_ptr<Material> material, uint32_t index);
+	void BindMaterialSRV(std::shared_ptr<Material> material, uint32_t index);
 	void BindMesh(std::shared_ptr<Mesh> mesh);
 
 	void BindVertexShader(std::shared_ptr<VertexShader> vertexShader);
@@ -247,6 +265,9 @@ private:
 	EnviromentData mEnviromentData;
 	CameraData mSceneCamera; // TODO: Maybe this should have a better name...
 
+	/* GBuffers */
+	GBuffers mGBuffers;
+
 	/* Lights */
 	std::vector<DirectionalLightData> mDirectionalLightsData;
 	std::vector<PointLightData> mPointLightsData;
@@ -258,6 +279,9 @@ private:
 	ShadowMap mSpotLightsShadowMap;
 	ID3D11InputLayout* mShadowInputLayout = nullptr;
 	ID3D11SamplerState* mShadowMapSampler = nullptr;
+
+	/* Cubemaps */
+	std::vector<CubemapData> mCubemapsData;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;
@@ -272,16 +296,7 @@ private:
 	ID3D11RenderTargetView* mBackBufferRenderTargetView;
 	ID3D11UnorderedAccessView* mBackBufferUAV;
 
-	ID3D11Texture2D* mDepthStencilTexture;
-	ID3D11DepthStencilView* mDepthStencilView;
-
-	D3D11_VIEWPORT mViewport;
-
 	RenderServer mRenderServer;
-
-	std::vector<ID3D11Texture2D*> mGBufferTextures;
-	std::vector<ID3D11ShaderResourceView*> mGBufferResourceViews;
-	std::vector<ID3D11RenderTargetView*> mGBufferRenderTargetViews;
 
 	ID3D11SamplerState* mDefaultSampler;
 
@@ -302,6 +317,9 @@ private:
 
 	ID3D11Buffer* mMaterialsBuffer;
 	ID3D11ShaderResourceView* mMaterialsSRV;
+
+	ID3D11Buffer* mPerMaterialBuffer;
+	ID3D11ShaderResourceView* mPerMaterialSRV;
 
 	uint16_t mFlags = 0;
 	uint16_t mNewFlags = 0;

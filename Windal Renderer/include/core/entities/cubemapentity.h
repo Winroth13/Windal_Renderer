@@ -9,6 +9,8 @@ public:
 	CubemapEntity(uint32_t dimensions);
 	~CubemapEntity() override;
 
+	std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
+
 protected:
 	virtual void UpdateSelf(double delta) override;
 	virtual void RenderSelf(RenderServer& renderServer) override;

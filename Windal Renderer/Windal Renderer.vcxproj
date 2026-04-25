@@ -39,6 +39,7 @@
     <ClInclude Include="include\core\window.h" />
     <ClInclude Include="include\graphics\camera.h" />
     <ClInclude Include="include\graphics\enviroment.h" />
+    <ClInclude Include="include\graphics\gbuffers.h" />
     <ClInclude Include="include\graphics\materials\material.h" />
     <ClInclude Include="include\graphics\meshes\mesh.h" />
     <ClInclude Include="include\graphics\meshes\quadmesh.h" />
@@ -73,6 +74,7 @@
     <ClInclude Include="vendor\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\gbuffers.cpp" />
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
     <ClCompile Include="src\core\entities\cubemapentity.cpp" />

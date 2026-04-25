@@ -25,6 +25,7 @@ public:
 
 	virtual uint32_t GetWidth() = 0;
 	virtual uint32_t GetHeight() = 0;
+	float GetAspect();
 
 protected:
 	ID3D11Texture2D* mTexture = nullptr;

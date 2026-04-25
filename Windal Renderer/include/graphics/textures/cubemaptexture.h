@@ -1,5 +1,6 @@
 #pragma once
 #include "graphics/textures/texture2d.h"
+#include "graphics/gbuffers.h"
 #include <string>
 
 class CubemapTexture : public Texture2D
@@ -15,18 +16,22 @@ public:
 	uint32_t GetHeight() override { return mHeight; }
 	inline const std::string& GetPath() const { return mPath; }
 
-	ID3D11RenderTargetView* GetRTV(size_t i) { return mRenderTargetViews[i]; }
+	ID3D11UnorderedAccessView* GetUAV(size_t i) { return mUnorderedAccessViews[i]; }
+	GBuffers& GetGBuffers() { return mGBuffers; }
 
 protected:
 	bool CreateSRV();
 	bool CreateTexture(char** data);
-	bool CreateRTVs();
+	bool CreateUAVs();
+	bool CreateGBuffers();
 
 private:
 	std::string mPath;
 	uint32_t mWidth = 0;
 	uint32_t mHeight = 0;
 	uint32_t mChannels = 0;
-	ID3D11RenderTargetView** mRenderTargetViews;
+
+	ID3D11UnorderedAccessView** mUnorderedAccessViews;
 	D3D11_VIEWPORT mViewport;
+	GBuffers mGBuffers;
 };

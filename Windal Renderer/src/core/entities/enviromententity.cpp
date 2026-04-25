@@ -4,7 +4,7 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-EnviromentEntity::EnviromentEntity()  : Entity("Enviorment") {}
+EnviromentEntity::EnviromentEntity()  : Entity("Enviroment") {}
 
 EnviromentEntity::~EnviromentEntity() {}
 

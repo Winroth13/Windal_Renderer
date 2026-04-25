@@ -28,3 +28,8 @@ char* Texture2D::LoadImageData(
         desiredChannels
     );
 }
+
+float Texture2D::GetAspect()
+{
+    return (float)GetWidth() / GetHeight();
+}

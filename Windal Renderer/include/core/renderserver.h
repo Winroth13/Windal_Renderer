@@ -8,6 +8,7 @@ class Transform;
 class Mesh;
 class Material;
 class Enviroment;
+class CubemapTexture;
 
 struct ID3D11DeviceContext;
 
@@ -33,6 +34,8 @@ public:
 	void PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
 	void PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity);
 	void PushSpotLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation);
+
+	void PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<CubemapTexture> cubemapTexture);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateEnviroment(Enviroment& enviroment);

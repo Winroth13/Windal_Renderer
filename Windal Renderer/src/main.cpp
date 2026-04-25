@@ -37,22 +37,21 @@ public:
 	{
 		auto skyCubemapTexture = std::make_shared<CubemapTexture>(
 			std::array<std::string, 6>
-			{
-				"assets/skybox/posx.jpg",
+		{
+			"assets/skybox/posx.jpg",
 				"assets/skybox/negx.jpg",
 				"assets/skybox/posy.jpg",
 				"assets/skybox/negy.jpg",
 				"assets/skybox/posz.jpg",
 				"assets/skybox/negz.jpg"
-			}
+		}
 		);
-
-		auto cubemapTexture = std::make_shared<CubemapTexture>(512, 512);
 
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza.obj", vShader, true);
 
 		auto& entity = mScene->CreateEntity<ModelEntity>(sponza);
+		entity.SetName("Sponza");
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
 
@@ -60,7 +59,7 @@ public:
 		cameraEntity->transform.SetPosition(0, 1, 0);
 
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>();
-		int ambientDivisor = 2;
+		int ambientDivisor = 1;
 		enviromentEntity.SetAmbientColor(108.f / (255 * ambientDivisor), 150.f / (255 * ambientDivisor), 177.f / (255 * ambientDivisor));
 
 		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>();
@@ -87,7 +86,25 @@ public:
 		spotEntity2.SetVisble(false);
 
 		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
-		cubemapEntity.transform.SetPosition(0, 2, 0);
+
+		auto cube = std::make_shared<OBJModel>("assets/cube/cube.obj", vShader, true);
+		cube->GetMaterial(0)->SetCubemapTexture(cubemapEntity.GetCubemapTexture());
+
+		auto sphere = std::make_shared<OBJModel>("assets/sphere/sphere.obj", vShader, true);
+		sphere->GetMaterial(0)->SetCubemapTexture(cubemapEntity.GetCubemapTexture());
+		sphere->GetMaterial(0)->SetReflectiveness(1);
+
+		auto& cubeEntity = mScene->CreateEntity<ModelEntity>(cube);
+		cubeEntity.SetName("Cube");
+		cubeEntity.transform.SetPosition(1, 2, 0);
+		cubeEntity.transform.SetScale(0.5f, 0.5f, 0.5f);
+
+		auto& sphereEntity = mScene->CreateEntity<ModelEntity>(sphere);
+		sphereEntity.SetName("Sphere");
+		sphereEntity.transform.SetPosition(-1, 2, 0);
+
+		cubemapEntity.Attach(&sphereEntity);
+		cubeEntity.Attach(&sphereEntity);
 	};
 
 	void Shutdown() override
@@ -150,6 +167,11 @@ public:
 				mGizmoOperation = ImGuizmo::TRANSLATE;
 			if (GetAsyncKeyState('R') & 0x8000)
 				mGizmoOperation = ImGuizmo::SCALE;
+
+			if ((GetAsyncKeyState(VK_BACK) & 0x8000) || (GetAsyncKeyState(VK_ESCAPE) & 0x8000))
+			{
+				inspectorEntity = nullptr;
+			}
 
 			previousMousePos = newMousePos;
 		}

@@ -17,8 +17,10 @@ void CubemapEntity::UpdateSelf(double delta)
 
 void CubemapEntity::RenderSelf(RenderServer& renderServer)
 {
+	renderServer.PushCubemap(GetGlobalPosition(), mCubemapTexture);
 }
 
 void CubemapEntity::RenderImguiSelf()
 {
+	mCubemapTexture->RenderImgui(256, 256);
 }

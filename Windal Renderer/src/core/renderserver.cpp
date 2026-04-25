@@ -66,6 +66,14 @@ void RenderServer::PushSpotLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 
 	mRenderer->PushSpotLightData(data);
 }
 
+void RenderServer::PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<CubemapTexture> cubemapTexture)
+{
+	CubemapData data = {};
+	data.position = position;
+	data.cubemapTexture = cubemapTexture;
+	mRenderer->PushCubemapData(data);
+}
+
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
 {
 	CameraData data = {};

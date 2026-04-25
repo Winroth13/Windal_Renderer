@@ -1,8 +1,8 @@
-RWTexture2D<unorm float4> backBufferUAV;
+RWTexture2DArray<unorm float4> backBufferUAV;
 
-Texture2D<float4> positionGBuffer : register(t7);
-Texture2D<float4> normalGBuffer : register(t8);
-Texture2D<float4> colorGBuffer : register(t9);
+Texture2D<float4> positionGBuffer : register(t8);
+Texture2D<float4> normalGBuffer : register(t9);
+Texture2D<float4> colorGBuffer : register(t10);
 
 // Lights
 struct DirectionalLight
@@ -37,11 +37,11 @@ struct SpotLight
 struct Material
 {
     float3 ambientCoefficient;
-    float pad0;
-    float3 diffuseCoefficient;
-    float pad1;
-    float3 specularCoefficient;
     float phongExponent;
+    float3 diffuseCoefficient;
+    float reflectiveness;
+    float3 specularCoefficient;
+    float pad0;
 };
 
 // Constant buffers
@@ -59,7 +59,7 @@ cbuffer cbPerFrame : register(b0)
 
 cbuffer cbPerView : register(b1)
 {
-    float4x4 pad2;
+    float4x4 viewProj;
     float3 cameraPos;
     float pad3;
 };
@@ -67,11 +67,12 @@ cbuffer cbPerView : register(b1)
 StructuredBuffer<DirectionalLight> directionalLights : register(t0);
 StructuredBuffer<PointLight> pointLights : register(t1);
 StructuredBuffer<SpotLight> spotLights : register(t2);
+
 StructuredBuffer<Material> materials : register(t3);
 
-Texture2DArray<float> directionalLightShadowMaps : register(t4);
-Texture2DArray<float> pointLightShadowMaps : register(t5);
-Texture2DArray<float> spotLightShadowMaps : register(t6);
+Texture2DArray<float> directionalLightShadowMaps : register(t5);
+Texture2DArray<float> pointLightShadowMaps : register(t6);
+Texture2DArray<float> spotLightShadowMaps : register(t7);
 
 sampler shadowMapSampler : register(s1);
 
@@ -200,23 +201,23 @@ void main( uint3 DTid : SV_DispatchThreadID)
             // Top left
             if (screenUV.x < 0.5)
             {
-                backBufferUAV[screenPos] = float4(positionGBuffer[uint2(leftX, topY) * 2].rgb, 1.0f);
+                backBufferUAV[uint3(screenPos, 0)] = float4(positionGBuffer[uint2(leftX, topY) * 2].rgb, 1.0f);
                 return;
             }
             // Top right
             isSomething = positionGBuffer[uint2(rightX, topY) * 2].w;
             if (!isSomething)
             {
-                backBufferUAV[screenPos] = float4(0.0f, 0.0f, 0.0f, 1.0f);
+                backBufferUAV[uint3(screenPos, 0)] = float4(0.0f, 0.0f, 0.0f, 1.0f);
                 return;
             }
-            backBufferUAV[screenPos] = float4(normalGBuffer[uint2(rightX, topY) * 2].xyz, 1.0f);
+            backBufferUAV[uint3(screenPos, 0)] = float4(normalGBuffer[uint2(rightX, topY) * 2].xyz, 1.0f);
             return;
         }
         else if (screenUV.x < 0.5)
         {
             // Bottom left
-            backBufferUAV[screenPos] = float4(colorGBuffer[uint2(leftX, bottomY) * 2].rgb, 1.0f);
+            backBufferUAV[uint3(screenPos, 0)] = float4(colorGBuffer[uint2(leftX, bottomY) * 2].rgb, 1.0f);
             return;
         }
         // Bottom right
@@ -328,5 +329,5 @@ void main( uint3 DTid : SV_DispatchThreadID)
         }
     }
 
-    backBufferUAV[screenPos] = float4(totalLight.rgb, 1.0f);
+    backBufferUAV[uint3(screenPos, 0)] = float4(totalLight.rgb, 1.0f);
 }

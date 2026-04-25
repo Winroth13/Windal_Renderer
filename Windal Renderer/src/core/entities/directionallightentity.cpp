@@ -13,18 +13,19 @@ void DirectionalLightEntity::UpdateSelf(double delta)
 
 void DirectionalLightEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.PushDirectionalLight(transform.GetForwardDir3f(), mColor, mIntensity);
+    renderServer.PushDirectionalLight(transform.GetForwardDir3f(), mColor, mIntensity);
 }
 
 void DirectionalLightEntity::RenderImguiSelf()
 {
-	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
-	{
-		ImGui::ColorEdit3("Color", &mColor.x);
-		ImGui::DragFloat("Intensity", &mIntensity);
+    if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
+    {
+        ImGui::ColorEdit3("Color", &mColor.x);
+        ImGui::DragFloat("Intensity", &mIntensity, 0.2f);
 
-		DirectX::XMFLOAT3 dir = transform.GetForwardDir3f();
-		ImGui::Text("Direction: (%.3f, %.3f, %.3f)", dir.x, dir.y, dir.z);
-		ImGui::TreePop();
-	}
+        // Directiona light always uses its local coordinates
+        DirectX::XMFLOAT3 dir = transform.GetForwardDir3f();
+        ImGui::Text("Direction: (%.3f, %.3f, %.3f)", dir.x, dir.y, dir.z);
+        ImGui::TreePop();
+    }
 }

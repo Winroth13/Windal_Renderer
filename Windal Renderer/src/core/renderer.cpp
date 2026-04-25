@@ -5,19 +5,17 @@
 #include <DirectXMath.h>
 #include <unordered_map>
 
+#include "graphics/textures/cubemaptexture.h"
 #include "graphics/camera.h"
 
 Renderer::Renderer() :
 	mSwapChain(nullptr),
 	mBackBufferRenderTargetView(nullptr),
-	mDepthStencilTexture(nullptr),
-	mDepthStencilView(nullptr),
 	mWindow(nullptr),
 	mClearColor({ 0,0,0,255 }),
 	mPerFrameBuffer(nullptr),
 	mPerObjectBuffer(nullptr),
-	mPerViewBuffer(nullptr),
-	mViewport({})
+	mPerViewBuffer(nullptr)
 {
 }
 
@@ -116,57 +114,19 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			return false;
 		}
 
-		hr = sDevice->CreateUnorderedAccessView(backBuffer, nullptr, &mBackBufferUAV);
+		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+		uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		uavDesc.Texture2DArray.MipSlice = 0;
+		uavDesc.Texture2DArray.ArraySize = 1;
+
+		hr = sDevice->CreateUnorderedAccessView(backBuffer, &uavDesc, &mBackBufferUAV);
 		backBuffer->Release();
 		if (FAILED(hr))
 		{
 			Logger::Error("Failed to create unordered access view for the back buffer");
 			return false;
 		}
-	}
-
-	/* Create Depth Stencil	*/
-	{
-		D3D11_TEXTURE2D_DESC textureDesc;
-		textureDesc.Width = window->Width();
-		textureDesc.Height = window->Height();
-		textureDesc.MipLevels = 1;
-		textureDesc.ArraySize = 1;
-		textureDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		textureDesc.SampleDesc.Count = 1;
-		textureDesc.SampleDesc.Quality = 0;
-		textureDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		textureDesc.CPUAccessFlags = 0;
-		textureDesc.MiscFlags = 0;
-
-		if (FAILED(sDevice->CreateTexture2D(&textureDesc, nullptr, &mDepthStencilTexture)))
-		{
-			Logger::Error("Failed to create depth stencil");
-			return false;
-		}
-
-		HRESULT hr = sDevice->CreateDepthStencilView(
-			mDepthStencilTexture,
-			nullptr,
-			&mDepthStencilView
-		);
-
-		if (FAILED(hr))
-		{
-			Logger::Error("Failed to create depth stencil view");
-			return false;
-		}
-	}
-
-	/* Set Viewport */
-	{
-		mViewport.TopLeftX = 0;
-		mViewport.TopLeftY = 0;
-		mViewport.Width = static_cast<float>(window->Width());
-		mViewport.Height = static_cast<float>(window->Height());
-		mViewport.MinDepth = 0;
-		mViewport.MaxDepth = 1;
 	}
 
 	/* Create Default Sampler */
@@ -396,80 +356,69 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 	/* Create GBuffers */
 	{
-		D3D11_TEXTURE2D_DESC textureDesc = {};
-		textureDesc.Width = window->Width();
-		textureDesc.Height = window->Height();
-		textureDesc.MipLevels = 1;
-		textureDesc.ArraySize = 1;
-		textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		textureDesc.SampleDesc.Count = 1;
-		textureDesc.SampleDesc.Quality = 0;
-		textureDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		textureDesc.CPUAccessFlags = 0;
-		textureDesc.MiscFlags = 0;
-
-		for (size_t gBufferIndex = 0; gBufferIndex < MAX_GBUFFERS; ++gBufferIndex)
+		if (!mGBuffers.Create(mWindow->Width(), mWindow->Height()))
 		{
-			mGBufferTextures.push_back(nullptr);
-			mGBufferResourceViews.push_back(nullptr);
-			mGBufferRenderTargetViews.push_back(nullptr);
-
-			auto& texture = mGBufferTextures[gBufferIndex];
-			auto& srv = mGBufferResourceViews[gBufferIndex];
-			auto& rtv = mGBufferRenderTargetViews[gBufferIndex];
-
-			if (FAILED(Renderer::GetDevice()->CreateTexture2D(&textureDesc, nullptr, &texture)))
-			{
-				Logger::Error("Failed to create gbuffer texture: " + std::to_string(gBufferIndex));
-				return false;
-			}
-
-			if (FAILED(Renderer::GetDevice()->CreateShaderResourceView(texture, nullptr, &srv)))
-			{
-				Logger::Error("Failed to create gbuffer shader resource view: " + std::to_string(gBufferIndex));
-				return false;
-			}
-
-			if (FAILED(Renderer::GetDevice()->CreateRenderTargetView(texture, nullptr, &rtv)))
-			{
-				Logger::Error("Failed to create gbuffer render target view: " + std::to_string(gBufferIndex));
-				return false;
-			}
+			Logger::Error("Failed to create gbuffers");
+			return false;
 		}
 	}
 
 	/* Create Materials Structured Buffer */
 	{
-		D3D11_BUFFER_DESC perMaterialBufferDesc = {};
-		perMaterialBufferDesc.ByteWidth = sizeof(PerMaterial) * MAX_MATERIALS;
-		perMaterialBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-		perMaterialBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		perMaterialBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		perMaterialBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		perMaterialBufferDesc.StructureByteStride = sizeof(PerMaterial);
-
-		D3D11_SUBRESOURCE_DATA data;
-		data.pSysMem = 0;
-		data.SysMemPitch = 0;
-		data.SysMemSlicePitch = 0;
-
-		if (FAILED(sDevice->CreateBuffer(&perMaterialBufferDesc, NULL, &mMaterialsBuffer)))
+		/* Per Material Buffer */
 		{
-			Logger::Error("Failed to create materials structured buffer");
-			return false;
+			D3D11_BUFFER_DESC perMaterialBufferDesc = {};
+			perMaterialBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+			perMaterialBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+			perMaterialBufferDesc.CPUAccessFlags = 0;
+			perMaterialBufferDesc.MiscFlags = 0;
+			perMaterialBufferDesc.ByteWidth = sizeof(PerMaterial);
+			perMaterialBufferDesc.StructureByteStride = 0;
+
+			D3D11_SUBRESOURCE_DATA data = {};
+			data.pSysMem = &perMaterialBufferDesc;
+
+			HRESULT hr = sDevice->CreateBuffer(&perMaterialBufferDesc, &data, &mPerMaterialBuffer);
+
+			if (FAILED(hr))
+			{
+				Logger::Error("Failed to create per material buffer");
+				return false;
+			}
 		}
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-		srvDesc.Buffer.FirstElement = 0;
-		srvDesc.Buffer.NumElements = MAX_MATERIALS;
-
-		if (FAILED(sDevice->CreateShaderResourceView(mMaterialsBuffer, &srvDesc, &mMaterialsSRV)))
+		/* Materials Structured Buffer */
 		{
-			Logger::Error("Failed to create materials shader resource view");
-			return false;
+			D3D11_BUFFER_DESC perMaterialBufferDesc = {};
+			perMaterialBufferDesc.ByteWidth = sizeof(PerMaterial) * MAX_MATERIALS;
+			perMaterialBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+			perMaterialBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			perMaterialBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			perMaterialBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+			perMaterialBufferDesc.StructureByteStride = sizeof(PerMaterial);
+
+			D3D11_SUBRESOURCE_DATA data;
+			data.pSysMem = 0;
+			data.SysMemPitch = 0;
+			data.SysMemSlicePitch = 0;
+
+			if (FAILED(sDevice->CreateBuffer(&perMaterialBufferDesc, NULL, &mMaterialsBuffer)))
+			{
+				Logger::Error("Failed to create materials structured buffer");
+				return false;
+			}
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+			srvDesc.Buffer.FirstElement = 0;
+			srvDesc.Buffer.NumElements = MAX_MATERIALS;
+
+			if (FAILED(sDevice->CreateShaderResourceView(mMaterialsBuffer, &srvDesc, &mMaterialsSRV)))
+			{
+				Logger::Error("Failed to create materials shader resource view");
+				return false;
+			}
 		}
 	}
 
@@ -552,22 +501,6 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 void Renderer::Shutdown()
 {
-	/* Release GBuffers */
-	{
-		for (size_t gBufferIndex = 0; gBufferIndex < MAX_GBUFFERS; ++gBufferIndex)
-		{
-			auto& texture = mGBufferTextures[gBufferIndex];
-			auto& srv = mGBufferResourceViews[gBufferIndex];
-			auto& rtv = mGBufferRenderTargetViews[gBufferIndex];
-			if (texture)
-				texture->Release();
-			if (srv)
-				srv->Release();
-			if (rtv)
-				rtv->Release();
-		}
-	}
-
 	/* Release Light Buffers */
 	{
 		if (mDirectionalLightsBuffer != nullptr)
@@ -613,14 +546,11 @@ void Renderer::Shutdown()
 	if (mPerFrameBuffer != nullptr)
 		mPerFrameBuffer->Release();
 
+	if (mPerMaterialBuffer != nullptr)
+		mPerMaterialBuffer->Release();
+
 	if (mMaterialIndexBuffer != nullptr)
 		mMaterialIndexBuffer->Release();
-
-	if (mDepthStencilView != nullptr)
-		mDepthStencilView->Release();
-
-	if (mDepthStencilTexture != nullptr)
-		mDepthStencilTexture->Release();
 
 	if (mBackBufferRenderTargetView != nullptr)
 		mBackBufferRenderTargetView->Release();
@@ -640,303 +570,51 @@ void Renderer::Shutdown()
 
 void Renderer::BeginRender()
 {
-	if (mNewFlags != mFlags)
+	if ((mFlags & WIRE_FRAME) == WIRE_FRAME)
 	{
-		if ((mNewFlags & WIRE_FRAME) != (mFlags & WIRE_FRAME))
-		{
-			ID3D11RasterizerState* state;
-			D3D11_RASTERIZER_DESC desc = {};
-			desc.FillMode = ((mNewFlags & WIRE_FRAME) == WIRE_FRAME) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-			desc.CullMode = D3D11_CULL_BACK;
+		ID3D11RasterizerState* state;
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.FillMode = D3D11_FILL_SOLID;
+		desc.CullMode = D3D11_CULL_BACK;
 
-			sDevice->CreateRasterizerState(&desc, &state);
-			mImmediateContext->RSSetState(state);
-			state->Release();
-		}
-
-		mFlags = mNewFlags;
+		sDevice->CreateRasterizerState(&desc, &state);
+		mImmediateContext->RSSetState(state);
+		state->Release();
 	}
 
-	mImmediateContext->ClearRenderTargetView(
-		mGBufferRenderTargetViews[GBUFFER_COLOR],
-		&mClearColor.x
-	);
-
-	DirectX::XMFLOAT4 noObject = { 0.0f, 0.0f, 0.0f, 0.0f };
-	mImmediateContext->ClearRenderTargetView(
-		mGBufferRenderTargetViews[GBUFFER_POSITION],
-		&noObject.x
-	);
-
-	mImmediateContext->ClearRenderTargetView(
-		mBackBufferRenderTargetView,
-		&mClearColor.x
-	);
-
-	mImmediateContext->ClearDepthStencilView(
-		mDepthStencilView,
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1,
-		0
-	);
-
-	mImmediateContext->RSSetViewports(1, &mViewport);
+	mFlags = mNewFlags;
 
 	BindPerFrameBuffer(ShaderType::VERTEX);
+
 	BindPerViewBuffer(ShaderType::VERTEX);
+	BindPerViewBuffer(ShaderType::PIXEL);
+
+	BindPerMaterialBuffer(ShaderType::PIXEL);
 }
 
-void Renderer::RenderShadowMaps()
+void Renderer::Render()
 {
-	/* Bind Shadow Map Vertex Shader */
-	BindVertexShader(mShadowMapVertexShader);
+	RenderShadowMaps();
+	RenderCubeMaps();
 
-	/* Unbind Pixel Shader to make it depth-only pass */
-	UnbindPixelShader();
-
-	/* Bind Input Layout */
-	mImmediateContext->IASetInputLayout(mShadowInputLayout);
-
-	/* Set Shadow Map Viewport for Directional Lights */
-	mImmediateContext->RSSetViewports(1, &mDirectionalLightsShadowMap.GetViewport());
-
-	/* Directional Lights */
-	for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
+	if ((mNewFlags & WIRE_FRAME) == WIRE_FRAME)
 	{
-		DirectionalLightData& dirLight = mDirectionalLightsData[i];
+		ID3D11RasterizerState* state;
+		D3D11_RASTERIZER_DESC desc = {};
+		desc.FillMode = D3D11_FILL_WIREFRAME;
+		desc.CullMode = D3D11_CULL_BACK;
 
-		/* Bind Shadow Map Depth Stencil */
-		ID3D11DepthStencilView* dsv = mDirectionalLightsShadowMap.GetDSV(i);
-		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
-		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
-
-		Camera camera;
-		camera.SetOrthographicLens(50, 50, 1, 100.0f);
-		DirectX::XMFLOAT3 direction = dirLight.direction;
-		camera.transform.SetAngles(DirectionToAngles(direction));
-
-		direction.x *= -50;
-		direction.y *= -50;
-		direction.z *= -50;
-		camera.transform.SetPosition(direction);
-
-		//camera.transform.SetAngles(0, 0, 0);
-		camera.UpdateViewMatrix();
-
-		dirLight.viewProj = camera.GetViewProj();
-
-		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
-
-		/* Draw to depth stencil */
-		for (size_t j = 0; j < mGeometryData.size(); ++j)
-		{
-			auto& mesh = mGeometryData[j].mesh;
-			BindMesh(mesh);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
-		}
+		sDevice->CreateRasterizerState(&desc, &state);
+		mImmediateContext->RSSetState(state);
+		state->Release();
 	}
 
-	/* Set Shadow Map Viewport for Spotlights */
-	mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
-
-	/* Spot Lights */
-	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
-	{
-		SpotLightData& spotLight = mSpotLightsData[i];
-
-		/* Bind Shadow Map Depth Stencil */
-		ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
-
-		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
-		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
-
-		float aspectRatio = mSpotLightsShadowMap.GetWidth() / (float)mSpotLightsShadowMap.GetHeight();
-
-		/* Update View Buffer */
-		Camera camera;
-		camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
-		Transform transform;
-		transform.SetAngles(DirectionToAngles(spotLight.direction));
-		transform.SetPosition(spotLight.position);
-		camera.transform = transform;
-		camera.UpdateViewMatrix();
-
-		spotLight.viewProj = camera.GetViewProj();
-
-		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
-
-		/* Draw to depth stencil */
-		for (size_t j = 0; j < mGeometryData.size(); ++j)
-		{
-			auto& mesh = mGeometryData[j].mesh;
-			BindMesh(mesh);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
-		}
-	}
-
-	UnbindVertexShader();
-	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mDepthStencilView);
-	mImmediateContext->RSSetViewports(1, &mViewport);
-	mImmediateContext->IASetInputLayout(nullptr);
-}
-
-void Renderer::RenderDeferred()
-{
-	/* Setup */
-	{
-		BindGBuffers();
-
-		UpdatePerFrameBuffer(
-			mEnviromentData.ambientColor,
-			(uint32_t)mDirectionalLightsData.size(),
-			(uint32_t)mPointLightsData.size(),
-			(uint32_t)mSpotLightsData.size(),
-			mFlags,
-			{
-				(uint32_t)mWindow->Width(),
-				(uint32_t)mWindow->Height()
-			}
-		);
-
-		BindPerFrameBuffer(ShaderType::COMPUTE);
-		BindPerViewBuffer(ShaderType::COMPUTE);
-
-		BindDirectionalLights(ShaderType::COMPUTE);
-		BindPointLights(ShaderType::COMPUTE);
-		BindSpotLights(ShaderType::COMPUTE);
-
-		BindPixelShader(mDeferredPixelShader);
-
-
-		mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
-	}
-
-	std::vector<PerMaterial> materials;
-
-	/* Draw */
-	{
-		// Draw using scene camera
-		UpdatePerViewBuffer(mSceneCamera);
-
-		materials.reserve(MAX_MATERIALS);
-		std::unordered_map<std::shared_ptr<Material>, uint32_t> materialsMap;
-
-		/* Draw each mesh and material pair	*/
-		for (size_t i = 0; i < mGeometryData.size(); ++i)
-		{
-			auto& mesh = mGeometryData[i].mesh;
-			auto& mat = mMaterialData[i].material;
-
-			/* When we encounter a new material, add it! */
-			if (materialsMap.find(mat) == materialsMap.end())
-			{
-				materialsMap[mat] = (uint32_t)materials.size();
-
-				PerMaterial data = {};
-				data.ambientCoefficient = mat->GetAmbientCoefficient3f();
-				data.diffuseCoefficient = mat->GetDiffuseCoefficient3f();
-				data.specularCoefficient = mat->GetSpecularCoefficient3f();
-				data.phongExponent = mat->GetPhongExponent();
-
-				if (materials.size() < MAX_MATERIALS)
-					materials.emplace_back(data);
-				else
-					Logger::Warn("Materials cannot exceed " + MAX_MATERIALS);
-			}
-
-			uint32_t matIndex = materialsMap[mat];
-
-			BindMesh(mesh);
-			BindMaterial(mat, matIndex);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
-		}
-
-		/* Fill materials buffer */
-		{
-			D3D11_MAPPED_SUBRESOURCE mappedResource;
-			HRESULT result = mImmediateContext->Map(mMaterialsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-			if (FAILED(result))
-			{
-				Logger::Error("Failed to map materials buffer");
-				throw std::runtime_error("");
-			}
-
-			size_t numBytes = materials.size() * sizeof(PerMaterial);
-			memcpy_s(mappedResource.pData, numBytes, materials.data(), numBytes);
-			mImmediateContext->Unmap(mMaterialsBuffer, 0);
-		}
-	}
-
-	/* End */
-	{
-		UnbindGBuffers();
-
-		/* Compute Deferred Lighting */
-		{
-			mImmediateContext->CSSetShader(mLightingComputeShader->GetShader(), nullptr, 0);
-
-			/* Bind GBuffer Shader Views */
-			mImmediateContext->CSSetShaderResources(GBUFFER_START_SLOT, MAX_GBUFFERS, mGBufferResourceViews.data());
-
-			/* Bind Render Target */
-			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &mBackBufferUAV, nullptr);
-
-			/* Bind Materials Shader Views */
-			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, &mMaterialsSRV);
-
-			/* Bind Shadow Sampler */
-			mImmediateContext->CSSetSamplers(SHADOW_MAP_SAMPLER_SLOT, 1, &mShadowMapSampler);
-
-			/* Bind Directional Light Shadow Maps */
-			size_t nDirLights = mDirectionalLightsData.size();
-			if (nDirLights > 0)
-			{
-				ID3D11ShaderResourceView* dirLightsSRV = mDirectionalLightsShadowMap.GetSRV(nDirLights);
-				mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &dirLightsSRV);
-			}
-
-			/* Bind Spot Light Shadow Maps */
-			size_t nSpotlights = mSpotLightsData.size();
-			if (nSpotlights > 0)
-			{
-				ID3D11ShaderResourceView* spotLightsSRV = mSpotLightsShadowMap.GetSRV(nSpotlights);
-				mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &spotLightsSRV);
-			}
-
-			/* Dispatch Compute Shader */
-			UINT threadGroupCountX = mWindow->Width() / 8;
-			UINT threadGroupCountY = mWindow->Height() / 8;
-			mImmediateContext->Dispatch(threadGroupCountX, threadGroupCountY, 1);
-
-			/* Unbind Light Shadow Maps */
-			ID3D11ShaderResourceView* views = { nullptr };
-			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
-			mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
-
-			/* Unbind GBuffer Shader Views */
-			ID3D11ShaderResourceView* nullShaderViews[MAX_GBUFFERS] = { nullptr };
-			mImmediateContext->CSSetShaderResources(GBUFFER_START_SLOT, MAX_GBUFFERS, nullShaderViews);
-
-			/* Unbind Render Target */
-			ID3D11UnorderedAccessView* nullUAView{};
-			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &nullUAView, nullptr);
-
-			/* Unbind Materials Shader Views */
-			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, nullShaderViews);
-		}
-	}
+	RenderDeferred(mBackBufferUAV, mGBuffers, mFlags, mSceneCamera);
 }
 
 void Renderer::BeginForward()
 {
-	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mDepthStencilView);
+	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mGBuffers.GetDSV());
 }
 
 void Renderer::RenderForward()
@@ -947,7 +625,7 @@ void Renderer::RenderForward()
 void Renderer::EndForward()
 {
 	ID3D11RenderTargetView* nullView{};
-	mImmediateContext->OMSetRenderTargets(1, &nullView, mDepthStencilView);
+	mImmediateContext->OMSetRenderTargets(1, &nullView, mGBuffers.GetDSV());
 }
 
 void Renderer::PresentRender()
@@ -1022,6 +700,11 @@ void Renderer::PushSpotLightData(const SpotLightData& spotLightData)
 	}
 }
 
+void Renderer::PushCubemapData(const CubemapData& cubemapData)
+{
+	mCubemapsData.push_back(cubemapData);
+}
+
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 {
 	mEnviromentData = enviromentData;
@@ -1030,6 +713,338 @@ void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 void Renderer::SetSceneCamera(const CameraData& cameraData)
 {
 	mSceneCamera = cameraData;
+}
+
+void Renderer::RenderShadowMaps()
+{
+	/* Bind Shadow Map Vertex Shader */
+	BindVertexShader(mShadowMapVertexShader);
+
+	/* Unbind Pixel Shader to make it depth-only pass */
+	UnbindPixelShader();
+
+	/* Bind Input Layout */
+	mImmediateContext->IASetInputLayout(mShadowInputLayout);
+
+	/* Set Shadow Map Viewport for Directional Lights */
+	mImmediateContext->RSSetViewports(1, &mDirectionalLightsShadowMap.GetViewport());
+
+	/* Directional Lights */
+	for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
+	{
+		DirectionalLightData& dirLight = mDirectionalLightsData[i];
+
+		/* Bind Shadow Map Depth Stencil */
+		ID3D11DepthStencilView* dsv = mDirectionalLightsShadowMap.GetDSV(i);
+		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+		Camera camera;
+		camera.SetOrthographicLens(50, 50, 1, 100.0f); // TODO: experimentation got us these values, idk!
+		DirectX::XMFLOAT3 direction = dirLight.direction;
+		camera.transform.SetAngles(DirectionToAngles(direction));
+
+		direction.x *= -50;
+		direction.y *= -50;
+		direction.z *= -50;
+		camera.transform.SetPosition(direction);
+
+		camera.UpdateViewMatrix();
+
+		dirLight.viewProj = camera.GetViewProj();
+
+		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
+
+		/* Draw to depth stencil */
+		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		{
+			auto& mesh = mGeometryData[j].mesh;
+			BindMesh(mesh);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		}
+	}
+
+	/* Set Shadow Map Viewport for Spotlights */
+	mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
+
+	/* Spot Lights */
+	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
+	{
+		SpotLightData& spotLight = mSpotLightsData[i];
+
+		/* Bind Shadow Map Depth Stencil */
+		ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
+
+		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+		float aspectRatio = mSpotLightsShadowMap.GetWidth() / (float)mSpotLightsShadowMap.GetHeight();
+
+		/* Update View Buffer */
+		Camera camera;
+		camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
+		Transform transform;
+		transform.SetAngles(DirectionToAngles(spotLight.direction));
+		transform.SetPosition(spotLight.position);
+		camera.transform = transform;
+		camera.UpdateViewMatrix();
+
+		spotLight.viewProj = camera.GetViewProj();
+
+		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
+
+		/* Draw to depth stencil */
+		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		{
+			auto& mesh = mGeometryData[j].mesh;
+			BindMesh(mesh);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+		}
+	}
+
+	UnbindVertexShader();
+	mImmediateContext->IASetInputLayout(nullptr);
+}
+
+void Renderer::RenderCubeMaps()
+{
+	BindPerViewBuffer(ShaderType::VERTEX);
+	BindPerViewBuffer(ShaderType::PIXEL);
+
+	constexpr DirectX::XMFLOAT3 CAMERA_CUBEMAP_ANGLES[] =
+	{
+		{0, DirectX::XM_PI / 2, 0},					// Pos X
+		{0, -DirectX::XM_PI / 2, 0},				// Neg X
+		{-DirectX::XM_PI / 2, 0, 0},				// Pos Y
+		{DirectX::XM_PI / 2, 0, 0},					// Neg Y
+		{0, 0, 0},									// Pos Z
+		{0, DirectX::XM_PI, 0},						// Neg Z
+	};
+
+	Camera camera;
+
+	/* Render to all cubemaps */
+	for (size_t i = 0; i < mCubemapsData.size(); ++i)
+	{
+		auto& cubemapData = mCubemapsData[i];
+		camera.SetPerspectiveLens(
+			DirectX::XM_PI / 2,
+			cubemapData.cubemapTexture->GetAspect(),
+			0.1f,
+			1000.0f
+		);
+
+		/* Render to each side */
+		for (size_t j = 0; j < 6; ++j)
+		{
+			uint16_t cubemapFlags = mFlags;
+			cubemapFlags = (cubemapFlags &= ~WIRE_FRAME);
+			cubemapFlags = (cubemapFlags &= ~SHOW_GBUFFERS);
+
+			Transform transform;
+			transform.SetPosition(cubemapData.position);
+			transform.SetAngles(CAMERA_CUBEMAP_ANGLES[j]);
+
+			camera.transform = transform;
+			camera.UpdateViewMatrix();
+
+			CameraData cameraData = {};
+			cameraData.pos = camera.transform.GetPosition3f();
+			cameraData.viewProj = camera.GetViewProj();
+
+			RenderDeferred(
+				cubemapData.cubemapTexture->GetUAV(j),
+				cubemapData.cubemapTexture->GetGBuffers(),
+				cubemapFlags,
+				cameraData
+			);
+		}
+	}
+}
+
+void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera)
+{
+	mImmediateContext->ClearUnorderedAccessViewFloat(
+		backBuffer,
+		&mClearColor.x
+	);
+
+	mImmediateContext->ClearRenderTargetView(
+		buffers.GetRTV(GBufferType::COLOR),
+		&mClearColor.x
+	);
+
+	DirectX::XMFLOAT4 noObject = { 0.0f, 0.0f, 0.0f, 0.0f };
+	mImmediateContext->ClearRenderTargetView(
+		buffers.GetRTV(GBufferType::POSITION),
+		&noObject.x
+	);
+
+	mImmediateContext->ClearDepthStencilView(buffers.GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+	mImmediateContext->RSSetViewports(1, &buffers.GetViewport());
+
+	/* Setup */
+	{
+		BindGBuffers(buffers);
+
+		UpdatePerFrameBuffer(
+			mEnviromentData.ambientColor,
+			(uint32_t)mDirectionalLightsData.size(),
+			(uint32_t)mPointLightsData.size(),
+			(uint32_t)mSpotLightsData.size(),
+			flags,
+			{
+				(uint32_t)mWindow->Width(),
+				(uint32_t)mWindow->Height()
+			}
+		);
+
+		BindPerFrameBuffer(ShaderType::COMPUTE);
+		BindPerViewBuffer(ShaderType::COMPUTE);
+
+		BindDirectionalLights(ShaderType::COMPUTE);
+		BindPointLights(ShaderType::COMPUTE);
+		BindSpotLights(ShaderType::COMPUTE);
+
+		BindPixelShader(mDeferredPixelShader);
+
+		mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
+	}
+
+	std::vector<PerMaterial> materials;
+
+	/* Draw */
+	{
+		UpdatePerViewBuffer(camera);
+
+		materials.reserve(MAX_MATERIALS);
+		std::unordered_map<std::shared_ptr<Material>, uint32_t> materialsMap;
+
+		/* Draw each mesh and material pair	*/
+		for (size_t i = 0; i < mGeometryData.size(); ++i)
+		{
+			auto& mesh = mGeometryData[i].mesh;
+			auto& mat = mMaterialData[i].material;
+
+			/* When we encounter a new material, add it! */
+			if (materialsMap.find(mat) == materialsMap.end())
+			{
+				materialsMap[mat] = (uint32_t)materials.size();
+
+				PerMaterial data = {};
+				data.ambientCoefficient = mat->GetAmbientCoefficient3f();
+				data.diffuseCoefficient = mat->GetDiffuseCoefficient3f();
+				data.specularCoefficient = mat->GetSpecularCoefficient3f();
+				data.phongExponent = mat->GetPhongExponent();
+				data.reflectiveness = mat->GetReflectiveness();
+
+				if (materials.size() < MAX_MATERIALS)
+					materials.emplace_back(data);
+				else
+					Logger::Warn("Materials cannot exceed " + MAX_MATERIALS);
+			}
+
+			uint32_t matIndex = materialsMap[mat];
+
+			BindMesh(mesh);
+			BindMaterialSRV(mat, matIndex);
+
+			UpdatePerObjectBuffer(mGeometryData[i].transform);
+			UpdatePerMaterialBuffer(mat);
+
+			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+
+			ID3D11ShaderResourceView* views[] = { nullptr };
+			mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
+		}
+
+		/* Fill materials buffer */
+		{
+			D3D11_MAPPED_SUBRESOURCE mappedResource;
+			HRESULT result = mImmediateContext->Map(mMaterialsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			if (FAILED(result))
+			{
+				Logger::Error("Failed to map materials buffer");
+				throw std::runtime_error("");
+			}
+
+			size_t numBytes = materials.size() * sizeof(PerMaterial);
+			memcpy_s(mappedResource.pData, numBytes, materials.data(), numBytes);
+			mImmediateContext->Unmap(mMaterialsBuffer, 0);
+		}
+	}
+
+	/* End */
+	{
+		UnbindGBuffers();
+
+		/* Compute Deferred Lighting */
+		{
+			mImmediateContext->CSSetShader(mLightingComputeShader->GetShader(), nullptr, 0);
+
+			/* Bind GBuffer Shader Views */
+			mImmediateContext->CSSetShaderResources(
+				GBUFFER_START_SLOT,
+				static_cast<UINT>(GBufferType::MAX),
+				buffers.GetSRVs().data()
+			);
+
+			/* Bind Render Target */
+			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &backBuffer, nullptr);
+
+			/* Bind Materials Shader Views */
+			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, &mMaterialsSRV);
+
+			/* Bind Shadow Sampler */
+			mImmediateContext->CSSetSamplers(SHADOW_MAP_SAMPLER_SLOT, 1, &mShadowMapSampler);
+
+			/* Bind Directional Light Shadow Maps */
+			size_t nDirLights = mDirectionalLightsData.size();
+			if (nDirLights > 0)
+			{
+				ID3D11ShaderResourceView* dirLightsSRV = mDirectionalLightsShadowMap.GetSRV(nDirLights);
+				mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &dirLightsSRV);
+			}
+
+			/* Bind Spot Light Shadow Maps */
+			size_t nSpotlights = mSpotLightsData.size();
+			if (nSpotlights > 0)
+			{
+				ID3D11ShaderResourceView* spotLightsSRV = mSpotLightsShadowMap.GetSRV(nSpotlights);
+				mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &spotLightsSRV);
+			}
+
+			/* Dispatch Compute Shader */
+			UINT threadGroupCountX = static_cast<UINT>(buffers.GetWidth()) / 8;
+			UINT threadGroupCountY = static_cast<UINT>(buffers.GetHeight()) / 8;
+			mImmediateContext->Dispatch(threadGroupCountX, threadGroupCountY, 1);
+
+			/* Unbind Light Shadow Maps */
+			ID3D11ShaderResourceView* views = { nullptr };
+			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
+			mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
+
+			/* Unbind GBuffer Shader Views */
+			ID3D11ShaderResourceView* nullShaderViews[static_cast<UINT>(GBufferType::MAX)] = { nullptr };
+
+			mImmediateContext->CSSetShaderResources(
+				GBUFFER_START_SLOT,
+				static_cast<UINT>(GBufferType::MAX),
+				nullShaderViews
+			);
+
+			/* Unbind Render Target */
+			ID3D11UnorderedAccessView* nullUAView{};
+			mImmediateContext->CSSetUnorderedAccessViews(0, 1, &nullUAView, nullptr);
+
+			/* Unbind Materials Shader Views */
+			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, nullShaderViews);
+		}
+	}
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
@@ -1051,9 +1066,24 @@ void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
 	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 }
 
-void Renderer::BindGBuffers()
+void Renderer::UpdatePerMaterialBuffer(std::shared_ptr<Material> material)
 {
-	mImmediateContext->OMSetRenderTargets(MAX_GBUFFERS, mGBufferRenderTargetViews.data(), mDepthStencilView);
+	PerMaterial perMatBuffer = {};
+	perMatBuffer.ambientCoefficient = material->GetAmbientCoefficient3f();
+	perMatBuffer.diffuseCoefficient = material->GetDiffuseCoefficient3f();
+	perMatBuffer.specularCoefficient = material->GetSpecularCoefficient3f();
+	perMatBuffer.phongExponent = material->GetPhongExponent();
+	perMatBuffer.reflectiveness = material->GetReflectiveness();
+	mImmediateContext->UpdateSubresource(mPerMaterialBuffer, 0, NULL, &perMatBuffer, 0, 0);
+}
+
+void Renderer::BindGBuffers(GBuffers& buffers)
+{
+	mImmediateContext->OMSetRenderTargets(
+		static_cast<UINT>(GBufferType::MAX),
+		buffers.GetRTVs().data(),
+		buffers.GetDSV()
+	);
 }
 
 void Renderer::UnbindGBuffers()
@@ -1066,13 +1096,13 @@ void Renderer::BindPerFrameBuffer(ShaderType shaderType)
 	switch (shaderType)
 	{
 	case ShaderType::VERTEX:
-		mImmediateContext->VSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		mImmediateContext->VSSetConstantBuffers(PER_FRAME, 1, &mPerFrameBuffer);
 		break;
 	case ShaderType::PIXEL:
-		mImmediateContext->PSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		mImmediateContext->PSSetConstantBuffers(PER_FRAME, 1, &mPerFrameBuffer);
 		break;
 	case ShaderType::COMPUTE:
-		mImmediateContext->CSSetConstantBuffers(0, 1, &mPerFrameBuffer);
+		mImmediateContext->CSSetConstantBuffers(PER_FRAME, 1, &mPerFrameBuffer);
 		break;
 	default:
 		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
@@ -1085,13 +1115,13 @@ void Renderer::BindPerViewBuffer(ShaderType shaderType)
 	switch (shaderType)
 	{
 	case ShaderType::VERTEX:
-		mImmediateContext->VSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		mImmediateContext->VSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
 		break;
 	case ShaderType::PIXEL:
-		mImmediateContext->PSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		mImmediateContext->PSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
 		break;
 	case ShaderType::COMPUTE:
-		mImmediateContext->CSSetConstantBuffers(1, 1, &mPerViewBuffer);
+		mImmediateContext->CSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
 		break;
 	default:
 		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
@@ -1099,15 +1129,35 @@ void Renderer::BindPerViewBuffer(ShaderType shaderType)
 	}
 }
 
-void Renderer::BindMaterial(std::shared_ptr<Material> material, uint32_t index)
+void Renderer::BindPerMaterialBuffer(ShaderType shaderType)
+{
+	switch (shaderType)
+	{
+	case ShaderType::VERTEX:
+		mImmediateContext->VSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);
+		break;
+	case ShaderType::PIXEL:
+		mImmediateContext->PSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);
+		break;
+	case ShaderType::COMPUTE:
+		mImmediateContext->CSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);
+		break;
+	default:
+		Logger::Warn("Trying to bind per material buffer to an invalid shader type");
+		break;
+	}
+}
+
+void Renderer::BindMaterialSRV(std::shared_ptr<Material> material, uint32_t index)
 {
 	BindVertexShader(material->GetVertexShader());
-	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT);
+	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT); // Diffuse
+	BindTexture2D(material->GetCubemapTexture(), CUBEMAP_TEXTURE_SLOT); // Cubemap
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 
 	UpdateMaterialIndexBuffer(index);
-	mImmediateContext->PSSetConstantBuffers(1, 1, &mMaterialIndexBuffer);
+	mImmediateContext->PSSetConstantBuffers(MATERIAL_INDEX, 1, &mMaterialIndexBuffer);
 }
 
 void Renderer::BindMesh(std::shared_ptr<Mesh> mesh)
@@ -1161,8 +1211,16 @@ void Renderer::BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader)
 
 void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
 {
-	ID3D11ShaderResourceView* srv = texture2d->GetSRV();
-	mImmediateContext->PSSetShaderResources(slot, 1, &srv);
+	if (texture2d)
+	{
+		ID3D11ShaderResourceView* srv = texture2d->GetSRV();
+		mImmediateContext->PSSetShaderResources(slot, 1, &srv);
+	}
+	else
+	{
+		ID3D11ShaderResourceView* views[] = { nullptr };
+		mImmediateContext->PSSetShaderResources(slot, 1, views);
+	}
 }
 
 void Renderer::BindDirectionalLights(ShaderType shaderType)
@@ -1291,6 +1349,11 @@ void Renderer::ClearFrameData()
 		mDirectionalLightsData.clear();
 		mSpotLightsData.clear();
 		mPointLightsData.clear();
+	}
+
+	/* Cubemaps */
+	{
+		mCubemapsData.clear();
 	}
 
 	mGeometryData.clear();

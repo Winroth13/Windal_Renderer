@@ -18,7 +18,9 @@ public:
 
 	inline std::shared_ptr<VertexShader> GetVertexShader() { return mVertexShader; }
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
+
 	inline std::shared_ptr<Texture2D> GetTexture() { return mTexture; }
+	inline std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
 
 	ID3D11Buffer* GetBuffer(ID3D11DeviceContext* context);
 
@@ -26,6 +28,9 @@ public:
 	void SetDiffuseCoefficient(const float r, const float g, const float b);
 	void SetSpecularCoefficient(const float r, const float g, const float b);
 	void SetPhongExponent(const float phongExponent);
+	void SetReflectiveness(const float reflectiveness);
+
+	void SetCubemapTexture(std::shared_ptr<CubemapTexture> cubemapTexture) { mCubemapTexture = cubemapTexture; }
 
 	void UpdateBuffer(ID3D11DeviceContext* context);
 
@@ -40,6 +45,7 @@ public:
 	inline DirectX::XMFLOAT3& GetSpecularCoefficient3f() { return mSpecularCoefficient; }
 
 	inline float& GetPhongExponent() { return mPhongExponent; }
+	inline float& GetReflectiveness() { return mReflectiveness; }
 
 	void SetName(const std::string& name) { mName = name; }
 	const std::string& GetName() { return mName; }
@@ -47,6 +53,7 @@ public:
 private:
 	bool mIsDirty = true;
 	float mPhongExponent = 8;
+	float mReflectiveness = 0;
 
 	std::string mName;
 
@@ -56,6 +63,7 @@ private:
 
 	std::shared_ptr<VertexShader> mVertexShader;
 	std::shared_ptr<Texture2D> mTexture;
+	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;
 
 	ID3D11InputLayout* mInputLayout = nullptr;
 	ID3D11Buffer* mBuffer = nullptr;

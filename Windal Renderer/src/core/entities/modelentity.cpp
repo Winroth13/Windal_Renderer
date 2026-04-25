@@ -25,7 +25,7 @@ void ModelEntity::RenderSelf(RenderServer& renderServer)
 	{
 		if (mModel->IsMeshVisible(meshIndex))
 		{
-			renderServer.PushMesh(mModel->GetMesh(meshIndex), transform.GetMatrix());
+			renderServer.PushMesh(mModel->GetMesh(meshIndex), GetGlobalTransform());
 			renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
 		}
 	}

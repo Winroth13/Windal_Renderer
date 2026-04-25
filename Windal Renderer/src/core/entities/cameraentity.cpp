@@ -10,9 +10,9 @@ CameraEntity::~CameraEntity() {}
 
 void CameraEntity::UpdateSelf(double delta)
 {
-	GetScene().GetCamera().transform.SetPosition(transform.GetPosition3f());
-	GetScene().GetCamera().transform.SetAngles(transform.GetAngles3f());
-	GetScene().GetCamera().transform.SetScale(transform.GetScale3f());
+	GetScene().GetCamera().transform.SetPosition(GetGlobalPosition());
+	GetScene().GetCamera().transform.SetAngles(GetGlobalAngles());
+	GetScene().GetCamera().transform.SetScale(GetGlobalScale());
 }
 
 void CameraEntity::RenderSelf(RenderServer& renderServer)

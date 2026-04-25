@@ -28,6 +28,10 @@ public:
     void SetVisble(const bool visible) { mVisible = visible; }
 
     DirectX::XMMATRIX GetGlobalTransform();
+    DirectX::XMFLOAT3 GetGlobalPosition();
+    DirectX::XMFLOAT3 GetGlobalAngles();
+    DirectX::XMFLOAT3 GetGlobalScale();
+    DirectX::XMFLOAT3 GetGlobalForwardDir();
 
     void Attach(Entity* entity) { mAttach = entity; }
 

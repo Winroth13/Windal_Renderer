@@ -14,8 +14,8 @@ void SpotLightEntity::UpdateSelf(double delta)
 void SpotLightEntity::RenderSelf(RenderServer& renderServer)
 {
 	renderServer.PushSpotLight(
-		transform.GetForwardDir3f(),
-		transform.GetPosition3f(),
+		GetGlobalForwardDir(),
+		GetGlobalPosition(),
 		mColor,
 		mAngle,
 		mIntensity,
