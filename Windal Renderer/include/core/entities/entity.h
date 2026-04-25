@@ -26,7 +26,6 @@ public:
 
     bool IsVisible();
     void SetVisble(const bool visible) { mVisible = visible; }
-
     DirectX::XMMATRIX GetGlobalTransform();
     DirectX::XMFLOAT3 GetGlobalPosition();
     DirectX::XMFLOAT3 GetGlobalAngles();
@@ -34,6 +33,8 @@ public:
     DirectX::XMFLOAT3 GetGlobalForwardDir();
 
     void Attach(Entity* entity) { mAttach = entity; }
+    Entity* GetAttachEntity() { return mAttach; }
+    const bool HasAttach() { return mAttach != nullptr; }
 
 public:
     Transform transform;

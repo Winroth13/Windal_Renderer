@@ -285,11 +285,22 @@ public:
 					ImGuizmo::SetOrthographic(true);
 
 					auto& camera = mScene->GetCamera();
+					Entity* attachEnt = inspectorEntity->get()->GetAttachEntity();
 
 					XMFLOAT4X4 view = camera.GetView4x4f();
 					XMFLOAT4X4 proj = camera.GetProj4x4f();
 
-					XMFLOAT4X4 localMat = inspectorEntity->get()->transform.GetMatrixf();
+					Transform localTransform = inspectorEntity->get()->transform;
+
+					if (inspectorEntity->get()->HasAttach())
+					{
+						localTransform.Translate(attachEnt->GetGlobalPosition());
+						localTransform.Rotate(attachEnt->GetGlobalAngles());
+						localTransform.Scale(attachEnt->GetGlobalScale());
+					}
+
+					XMFLOAT4X4 localMat = localTransform.GetMatrixf();
+
 					Transform& transform = inspectorEntity->get()->transform;
 
 					float translate[3] = { -1, -1, -1 };
@@ -303,10 +314,31 @@ public:
 						switch (mGizmoOperation)
 						{
 						case ImGuizmo::TRANSLATE:
+							if (inspectorEntity->get()->HasAttach())
+							{
+								XMFLOAT3 invAttachPos = attachEnt->GetGlobalPosition();
+								invAttachPos.x = -invAttachPos.x;
+								invAttachPos.y = -invAttachPos.y;
+								invAttachPos.z = -invAttachPos.z;
+								translate[0] += invAttachPos.x;
+								translate[1] += invAttachPos.y;
+								translate[2] += invAttachPos.z;
+							}
+
 							transform.SetPosition(translate[0], translate[1], translate[2]);
 							break;
 
 						case ImGuizmo::SCALE:
+							if (inspectorEntity->get()->HasAttach())
+							{
+								XMFLOAT3 invAttachScale = attachEnt->GetGlobalScale();
+								invAttachScale.x = -invAttachScale.x;
+								invAttachScale.y = -invAttachScale.y;
+								invAttachScale.z = -invAttachScale.z;
+								scale[0] += invAttachScale.x;
+								scale[1] += invAttachScale.y;
+								scale[2] += invAttachScale.z;
+							}
 							transform.SetScale(scale[0], scale[1], scale[2]);
 							break;
 

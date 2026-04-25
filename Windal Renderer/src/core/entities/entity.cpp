@@ -130,15 +130,14 @@ DirectX::XMFLOAT3 Entity::GetGlobalScale()
 DirectX::XMFLOAT3 Entity::GetGlobalForwardDir()
 {
 	Transform globalTransform = transform;
-	DirectX::XMFLOAT3 localAngles = transform.GetAngles3f();
 
 	if (mAttach != nullptr)
 	{
 		DirectX::XMFLOAT3 attachAngles = mAttach->GetGlobalAngles();
-		globalTransform.SetAngles(
-			localAngles.x + attachAngles.x,
-			localAngles.y + attachAngles.y,
-			localAngles.z + attachAngles.z
+		globalTransform.Rotate(
+			attachAngles.x,
+			attachAngles.y,
+			attachAngles.z
 		);
 	}
 

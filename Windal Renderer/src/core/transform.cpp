@@ -14,7 +14,7 @@ XMFLOAT3 Transform::GetPosition3f()
 	return mPosition;
 }
 
-void Transform::SetPosition(float x, float y, float z)
+void Transform::SetPosition(const float x, const float y, const float z)
 {
 	mPosition = DirectX::XMFLOAT3(x, y, z);
 	mIsDirty = true;
@@ -32,6 +32,29 @@ void Transform::SetPosition(const DirectX::XMVECTOR position)
 	mIsDirty = true;
 }
 
+void Transform::Translate(const float x, const float y, const float z)
+{
+	mPosition.x += x;
+	mPosition.y += y;
+	mPosition.z += z;
+	mIsDirty = true;
+}
+
+void Transform::Translate(const DirectX::XMFLOAT3 position)
+{
+	mPosition.x += position.x;
+	mPosition.y += position.y;
+	mPosition.z += position.z;
+	mIsDirty = true;
+}
+
+void Transform::Translate(const DirectX::XMVECTOR position)
+{
+	XMFLOAT3 positionf = { 0, 0, 0 };
+	DirectX::XMStoreFloat3(&positionf, position);
+	Translate(positionf);
+}
+
 /* Get/Set Angles */
 XMVECTOR Transform::GetAngles() const
 {
@@ -43,7 +66,7 @@ XMFLOAT3 Transform::GetAngles3f() const
 	return mAngles;
 }
 
-void Transform::SetAngles(float pitch, float yaw, float roll)
+void Transform::SetAngles(const float pitch, const float yaw, const float roll)
 {
 	mAngles = XMFLOAT3(pitch, yaw, roll);
 	mIsDirty = true;
@@ -61,6 +84,29 @@ void Transform::SetAngles(const DirectX::XMVECTOR angles)
 	mIsDirty = true;
 }
 
+void Transform::Rotate(const float pitch, const float yaw, const float roll)
+{
+	mAngles.x += pitch;
+	mAngles.y += yaw;
+	mAngles.z += roll;
+	mIsDirty = true;
+}
+
+void Transform::Rotate(const DirectX::XMFLOAT3 angles)
+{
+	mAngles.x += angles.x;
+	mAngles.y += angles.y;
+	mAngles.z += angles.z;
+	mIsDirty = true;
+}
+
+void Transform::Rotate(const DirectX::XMVECTOR angles)
+{
+	XMFLOAT3 anglesf = { 0, 0, 0 };
+	DirectX::XMStoreFloat3(&anglesf, angles);
+	Translate(anglesf);
+}
+
 /* Get/Set Scale */
 XMVECTOR Transform::GetScale() const
 {
@@ -72,7 +118,7 @@ XMFLOAT3 Transform::GetScale3f() const
 	return mScale;
 }
 
-void Transform::SetScale(float x, float y, float z)
+void Transform::SetScale(const float x, const float y, const float z)
 {
 	mScale = XMFLOAT3(x, y, z);
 	mIsDirty = true;
@@ -88,6 +134,29 @@ void Transform::SetScale(const DirectX::XMVECTOR scale)
 {
 	DirectX::XMStoreFloat3(&mScale, scale);
 	mIsDirty = true;
+}
+
+void Transform::Scale(const float x, const float y, const float z)
+{
+	mScale.x += x;
+	mScale.y += y;
+	mScale.z += z;
+	mIsDirty = true;
+}
+
+void Transform::Scale(const DirectX::XMFLOAT3 scale)
+{
+	mScale.x += scale.x;
+	mScale.y += scale.y;
+	mScale.z += scale.z;
+	mIsDirty = true;
+}
+
+void Transform::Scale(const DirectX::XMVECTOR scale)
+{
+	XMFLOAT3 scalef = { 0, 0, 0 };
+	DirectX::XMStoreFloat3(&scalef, scale);
+	Translate(scalef);
 }
 
 /* Get Directions */

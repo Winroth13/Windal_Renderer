@@ -10,23 +10,35 @@ public:
 	// Get/Set tranmsform world position
 	DirectX::XMVECTOR GetPosition() const;
 	DirectX::XMFLOAT3 GetPosition3f();
-	void SetPosition(float x, float y, float z);
+	void SetPosition(const float x, const float y, const float z);
 	void SetPosition(const DirectX::XMFLOAT3& position);
 	void SetPosition(const DirectX::XMVECTOR position);
+
+	void Translate(const float x, const float y, const float z);
+	void Translate(const DirectX::XMFLOAT3 position);
+	void Translate(const DirectX::XMVECTOR position);
 
 	// Get/Set transform world angles
 	DirectX::XMVECTOR GetAngles() const;
 	DirectX::XMFLOAT3 GetAngles3f() const;
-	void SetAngles(float pitch, float yaw, float roll);
+	void SetAngles(const float pitch, const float yaw, const float roll);
 	void SetAngles(const DirectX::XMFLOAT3& angles);
 	void SetAngles(const DirectX::XMVECTOR angles);
+
+	void Rotate(const float pitch, const float yaw, const float roll);
+	void Rotate(const DirectX::XMFLOAT3 angles);
+	void Rotate(const DirectX::XMVECTOR angles);
 
 	// Get/Set transform world scale
 	DirectX::XMVECTOR GetScale() const;
 	DirectX::XMFLOAT3 GetScale3f() const;
-	void SetScale(float x, float y, float z);
+	void SetScale(const float x, const float y, const float z);
 	void SetScale(const DirectX::XMFLOAT3& scale);
 	void SetScale(const DirectX::XMVECTOR scale);
+
+	void Scale(const float x, const float y, const float z);
+	void Scale(const DirectX::XMFLOAT3 scale);
+	void Scale(const DirectX::XMVECTOR scale);
 
 	// Get transform basis vectors
 	DirectX::XMVECTOR GetRightDir() const;
