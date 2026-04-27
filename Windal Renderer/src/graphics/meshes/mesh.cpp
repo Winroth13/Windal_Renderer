@@ -6,6 +6,23 @@
 #include "core/imguiflags.h"
 #include "imgui/imgui.h"
 
+bool operator== (const Vertex& v1, const Vertex& v2)
+{
+	return
+		(
+			v1.mPosition.x == v2.mPosition.x &&
+			v1.mPosition.y == v2.mPosition.y &&
+			v1.mPosition.z == v2.mPosition.z &&
+
+			v1.mNormal.x == v2.mNormal.x &&
+			v1.mNormal.y == v2.mNormal.y &&
+			v1.mNormal.z == v2.mNormal.z &&
+
+			v1.mUV.x == v2.mUV.x &&
+			v1.mUV.y == v2.mUV.y
+		);
+}
+
 Mesh::Mesh()
 {
 }

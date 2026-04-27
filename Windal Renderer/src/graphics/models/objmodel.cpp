@@ -7,6 +7,7 @@
 #include "core/logger.h"
 
 #include <filesystem>
+#include <unordered_map>
 
 #include "tinyobjloader/tiny_obj_loader.h"
 
@@ -16,6 +17,7 @@ OBJModel::OBJModel(
 	const bool isLeftHanded
 )
 {
+	std::unordered_map<Vertex, size_t> uniqueVertices = {};
 	std::vector<size_t> meshesIndicies;
 
 	std::vector<std::vector<Vertex>> vertices;
@@ -48,6 +50,8 @@ OBJModel::OBJModel(
 
 	for (size_t shapeIndex = 0; shapeIndex < shapes.size(); ++shapeIndex)
 	{
+		Logger::Info("New shape");
+		//uniqueVertices.clear();
 		vertices.emplace_back(std::vector<Vertex>());
 		indicies.emplace_back(std::vector<uint32_t>());
 
@@ -97,19 +101,96 @@ OBJModel::OBJModel(
 					ty = 1 - ty;
 				}
 
-				vertices[shapeIndex].push_back(
-					{
-						{x, y, z},
-						{nx, ny, nz},
-						{tx, ty}
-					}
-				);
+				Vertex vertex =
+				{
+					{x, y, z},
+					{nx, ny, nz},
+					{tx, ty}
+				};
 
-				indicies[shapeIndex].push_back(
-					static_cast<uint32_t>(vertices[shapeIndex].size() - 1)
-				);
+				if (uniqueVertices.count(vertex) == 0)
+				{
+					vertices[shapeIndex].push_back(vertex);
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices[shapeIndex].size() - 1);
+				}
+
+				indicies[shapeIndex].push_back(static_cast<uint32_t>(uniqueVertices[vertex]));
 			}
 			indexOffset += nVerticesInFace;
+		}
+	}
+
+	/* Calculate tangent */
+	for (size_t i = 0; i < indicies.size(); ++i)
+	{
+		auto& meshIndicies = indicies[i];
+		auto& meshVertices = vertices[i];
+
+		for (size_t j = 0; j < meshIndicies.size(); j += 3)
+		{
+			Vertex& v0 = meshVertices[meshIndicies[j]];
+			Vertex& v1 = meshVertices[meshIndicies[j + 1]];
+			Vertex& v2 = meshVertices[meshIndicies[j + 2]];
+
+			DirectX::XMVECTOR pos0 = DirectX::XMLoadFloat3(&v0.mPosition);
+			DirectX::XMVECTOR pos1 = DirectX::XMLoadFloat3(&v1.mPosition);
+			DirectX::XMVECTOR pos2 = DirectX::XMLoadFloat3(&v2.mPosition);
+
+			DirectX::XMVECTOR uv0 = DirectX::XMLoadFloat2(&v0.mUV);
+			DirectX::XMVECTOR uv1 = DirectX::XMLoadFloat2(&v1.mUV);
+			DirectX::XMVECTOR uv2 = DirectX::XMLoadFloat2(&v2.mUV);
+
+			DirectX::XMVECTOR edge0 = DirectX::XMVectorSubtract(pos1, pos0);
+			DirectX::XMVECTOR edge1 = DirectX::XMVectorSubtract(pos2, pos0);
+
+			DirectX::XMVECTOR deltaUV0 = DirectX::XMVectorSubtract(uv1, uv0);
+			DirectX::XMVECTOR deltaUV1 = DirectX::XMVectorSubtract(uv2, uv1);
+
+			DirectX::XMFLOAT3 edge0f;
+			DirectX::XMFLOAT3 edge1f;
+
+			DirectX::XMFLOAT2 deltaUV0f;
+			DirectX::XMFLOAT2 deltaUV1f;
+
+			DirectX::XMStoreFloat3(&edge0f, edge0);
+			DirectX::XMStoreFloat3(&edge1f, edge1);
+
+			DirectX::XMStoreFloat2(&deltaUV0f, deltaUV0);
+			DirectX::XMStoreFloat2(&deltaUV1f, deltaUV1);
+
+			float f = 1.0f / (deltaUV0f.x * deltaUV1f.y - deltaUV1f.x * deltaUV0f.y);
+			DirectX::XMFLOAT3 tangent;
+			DirectX::XMFLOAT3 bitangent;
+			tangent.x = f * (deltaUV1f.y * edge0f.x - deltaUV0f.y * edge1f.x);
+			tangent.y = f * (deltaUV1f.y * edge0f.y - deltaUV0f.y * edge1f.y);
+			tangent.z = f * (deltaUV1f.y * edge0f.z - deltaUV0f.y * edge1f.z);
+			bitangent.x = f * (-deltaUV1f.x * edge0f.x + deltaUV0f.x * edge1f.x);
+			bitangent.y = f * (-deltaUV1f.x * edge0f.y + deltaUV0f.x * edge1f.y);
+			bitangent.z = f * (-deltaUV1f.x * edge0f.z + deltaUV0f.x * edge1f.z);
+
+			v0.mTangent.x += tangent.x;
+			v0.mTangent.y += tangent.y;
+			v0.mTangent.z += tangent.z;
+
+			v1.mTangent.x += tangent.x;
+			v1.mTangent.y += tangent.y;
+			v1.mTangent.z += tangent.z;
+
+			v2.mTangent.x += tangent.x;
+			v2.mTangent.y += tangent.y;
+			v2.mTangent.z += tangent.z;
+
+			v0.mBitangent.x += bitangent.x;
+			v0.mBitangent.y += bitangent.y;
+			v0.mBitangent.z += bitangent.z;
+
+			v1.mBitangent.x += bitangent.x;
+			v1.mBitangent.y += bitangent.y;
+			v1.mBitangent.z += bitangent.z;
+
+			v2.mBitangent.x += bitangent.x;
+			v2.mBitangent.y += bitangent.y;
+			v2.mBitangent.z += bitangent.z;
 		}
 	}
 
@@ -155,7 +236,7 @@ OBJModel::OBJModel(
 	}
 
 	Logger::Info(
-		"Loaded obj model with " + std::to_string(meshCount) + 
+		"Loaded obj model with " + std::to_string(meshCount) +
 		" meshes and " + std::to_string(materialCount) + " materials: " + path
 	);
 }

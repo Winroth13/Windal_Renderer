@@ -12,6 +12,8 @@ struct Vertex
 	DirectX::XMFLOAT3 mPosition;
 	DirectX::XMFLOAT3 mNormal;
 	DirectX::XMFLOAT2 mUV;
+	DirectX::XMFLOAT3 mTangent = { 0, 0, 0 };
+	DirectX::XMFLOAT3 mBitangent = { 0, 0, 0 };
 
 	Vertex(
 		const DirectX::XMFLOAT3 position,
@@ -21,6 +23,38 @@ struct Vertex
 	{
 	}
 };
+
+bool operator== (const Vertex& v1, const Vertex& v2);
+
+//
+namespace std {
+	template <>
+	struct hash<Vertex>
+	{
+		size_t operator()(const Vertex& v) const
+		{
+			size_t seed = 0;
+			std::hash<float> hasher;
+			auto combine = [&](float f)
+				{
+					seed ^= hasher(f) + (seed << 6) + (seed >> 2) + 0x9e3779b9;
+				};
+
+			combine(v.mPosition.x);
+			combine(v.mPosition.y);
+			combine(v.mPosition.z);
+
+			combine(v.mNormal.x);
+			combine(v.mNormal.y);
+			combine(v.mNormal.z);
+
+			combine(v.mUV.x);
+			combine(v.mUV.y);
+
+			return seed;
+		}
+	};
+}
 
 class Mesh
 {
