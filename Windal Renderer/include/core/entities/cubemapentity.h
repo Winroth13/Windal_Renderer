@@ -9,6 +9,7 @@ public:
 	CubemapEntity(uint32_t dimensions);
 	~CubemapEntity() override;
 
+	void SetDynamic(bool isDynamic) { mIsDynamic = true; }
 	std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
 
 protected:
@@ -17,5 +18,7 @@ protected:
 	virtual void RenderImguiSelf() override;
 
 private:
+	bool mIsDynamic = false;
+	bool mShouldCapture = true;
 	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;
 };

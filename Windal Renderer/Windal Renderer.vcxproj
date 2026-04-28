@@ -36,7 +36,8 @@
     <ClInclude Include="include\core\renderer\renderer.h" />
     <ClInclude Include="include\core\renderer\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
-    <ClInclude Include="include\core\transform.h" />
+    <ClInclude Include="include\math\mathfunctions.h" />
+    <ClInclude Include="include\math\transform.h" />
     <ClInclude Include="include\core\window.h" />
     <ClInclude Include="include\graphics\camera.h" />
     <ClInclude Include="include\graphics\enviroment.h" />
@@ -91,7 +92,8 @@
     <ClCompile Include="src\core\renderer\renderer.cpp" />
     <ClCompile Include="src\core\renderer\renderserver.cpp" />
     <ClCompile Include="src\core\scene.cpp" />
-    <ClCompile Include="src\core\transform.cpp" />
+    <ClCompile Include="src\math\mathfunctions.cpp" />
+    <ClCompile Include="src\math\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
     <ClCompile Include="src\graphics\camera.cpp" />
     <ClCompile Include="src\graphics\enviroment.cpp" />

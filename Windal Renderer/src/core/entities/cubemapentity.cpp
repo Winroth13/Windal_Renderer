@@ -1,6 +1,9 @@
 #include "core/entities/cubemapentity.h"
 #include "graphics/textures/cubemaptexture.h"
 
+#include "imgui/imgui.h"
+#include "core/imguiflags.h"
+
 CubemapEntity::CubemapEntity(uint32_t dimensions)
 	: Entity("Cubemap")
 {
@@ -17,16 +20,26 @@ void CubemapEntity::UpdateSelf(double delta)
 
 void CubemapEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.PushCubemap(GetGlobalPosition(), mCubemapTexture);
-
-	// TODO: Makes the cubemap only render once, remove before handing in!
-	if (mVisible)
+	if (mIsDynamic || mShouldCapture)
 	{
-		mVisible = false;
+		renderServer.PushCubemap(GetGlobalPosition(), mCubemapTexture);
+		mShouldCapture = false;
 	}
 }
 
 void CubemapEntity::RenderImguiSelf()
 {
-	mCubemapTexture->RenderImgui(256, 256);
+	if (ImGui::TreeNodeEx("Cubemap", TREE_NODE_FLAGS))
+	{
+		ImGui::Checkbox("Dynamic", &mIsDynamic);
+
+		if (!mIsDynamic)
+		{
+			if (ImGui::Button("Capture"))
+			{
+				mShouldCapture = true;
+			}
+		}
+		ImGui::TreePop();
+	}
 }

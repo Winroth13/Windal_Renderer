@@ -3,6 +3,7 @@
 
 #include "core/window.h"
 #include "core/renderer/renderserver.h"
+#include "core/renderer/aabbrenderer.h"
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
@@ -11,9 +12,8 @@
 #include "graphics/shaders/computeshader.h"
 #include "graphics/shadowmap.h"
 #include "graphics/gbuffers.h"
-#include "core/transform.h"
 
-#include "core/renderer/aabbrenderer.h"
+#include "math/transform.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -263,9 +263,6 @@ private:
 
 	/* Renderers */
 	AABBRenderer mAABBRenderer;
-
-	/* Math */
-	DirectX::XMFLOAT3 DirectionToAngles(DirectX::XMFLOAT3 direction);
 
 	std::vector<GeometryData> mGeometryData;
 	std::vector<MaterialData> mMaterialData;

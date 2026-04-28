@@ -160,6 +160,16 @@ public:
 
 				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
 				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
+
+				/* Clamp pitch */
+				if (cameraEntity->transform.GetAngles3f().x > DirectX::XM_PIDIV2)
+				{
+					cameraEntity->transform.SetPitch(DirectX::XM_PIDIV2);
+				}
+				else if (cameraEntity->transform.GetAngles3f().x < -DirectX::XM_PIDIV2)
+				{
+					cameraEntity->transform.SetPitch(-DirectX::XM_PIDIV2);
+				}
 			}
 
 			/* Toggle Gizmo Operation */

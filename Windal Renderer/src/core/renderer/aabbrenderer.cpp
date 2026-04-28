@@ -188,4 +188,7 @@ void AABBRenderer::Render(ID3D11DeviceContext* ctx, const std::vector<AABBData>&
 	/* Unbind shaders */
 	ctx->VSSetShader(nullptr, nullptr, 0);
 	ctx->PSSetShader(nullptr, nullptr, 0);
+
+	/* Reset topology */
+	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

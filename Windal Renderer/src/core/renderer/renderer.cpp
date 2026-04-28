@@ -7,6 +7,7 @@
 
 #include "graphics/textures/cubemaptexture.h"
 #include "graphics/camera.h"
+#include "math/mathfunctions.h"
 
 Renderer::Renderer() :
 	mSwapChain(nullptr),
@@ -774,13 +775,11 @@ void Renderer::RenderShadowMaps()
 		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
 
 		/* Draw to depth stencil */
-		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		for (auto& data : mGeometryData)
 		{
-			auto& mesh = mGeometryData[j].mesh;
-			BindMesh(mesh);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+			BindMesh(data.mesh);
+			UpdatePerObjectBuffer(data.transform);
+			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
 		}
 	}
 
@@ -814,13 +813,11 @@ void Renderer::RenderShadowMaps()
 		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
 
 		/* Draw to depth stencil */
-		for (size_t j = 0; j < mGeometryData.size(); ++j)
+		for (auto& data : mGeometryData)
 		{
-			auto& mesh = mGeometryData[j].mesh;
-			BindMesh(mesh);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+			BindMesh(data.mesh);
+			UpdatePerObjectBuffer(data.transform);
+			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
 		}
 	}
 
@@ -1383,13 +1380,4 @@ void Renderer::ClearFrameData()
 
 	mGeometryData.clear();
 	mMaterialData.clear();
-}
-
-DirectX::XMFLOAT3 Renderer::DirectionToAngles(DirectX::XMFLOAT3 direction)
-{
-	return DirectX::XMFLOAT3(
-		atan2f(-direction.y, sqrtf(direction.x * direction.x + direction.z * direction.z)),
-		atan2f(direction.x, direction.z),
-		0
-	);
 }

@@ -1,4 +1,4 @@
-#include "core/transform.h"
+#include "math/transform.h"
 #include "core/logger.h"
 
 using namespace DirectX;
@@ -81,6 +81,24 @@ void Transform::SetAngles(const XMFLOAT3& angles)
 void Transform::SetAngles(const DirectX::XMVECTOR angles)
 {
 	DirectX::XMStoreFloat3(&mAngles, angles);
+	mIsDirty = true;
+}
+
+void Transform::SetPitch(const float angle)
+{
+	mAngles.x = angle;
+	mIsDirty = true;
+}
+
+void Transform::SetYaw(const float angle)
+{
+	mAngles.y = angle;
+	mIsDirty = true;
+}
+
+void Transform::SetRoll(const float angle)
+{
+	mAngles.z = angle;
 	mIsDirty = true;
 }
 

@@ -25,6 +25,10 @@ public:
 	void SetAngles(const DirectX::XMFLOAT3& angles);
 	void SetAngles(const DirectX::XMVECTOR angles);
 
+	void SetPitch(const float angle);
+	void SetYaw(const float angle);
+	void SetRoll(const float angle);
+
 	void Rotate(const float pitch, const float yaw, const float roll);
 	void Rotate(const DirectX::XMFLOAT3 angles);
 	void Rotate(const DirectX::XMVECTOR angles);
