@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <string>
-
 #include "core/renderer/renderserver.h"
+#include "math/aabb.h"
 
 struct ID3D11Buffer;
 struct D3D11_INPUT_ELEMENT_DESC;
@@ -71,6 +71,8 @@ public:
 	const size_t GetNumIndicies() { return mNumIndicies; }
 	const size_t GetNumVertices() { return mNumVertices; }
 
+	const AABB& GetBounds() { return mBounds; }
+
 	ID3D11Buffer* GetVertexBuffer() { return mVertexBuffer; }
 	ID3D11Buffer* GetIndexBuffer() { return mIndexBuffer; }
 
@@ -80,6 +82,7 @@ public:
 private:
 	size_t mNumVertices = 0;
 	size_t mNumIndicies = 0;
+	AABB mBounds;
 
 	std::string mName;
 

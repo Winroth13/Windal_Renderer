@@ -17,8 +17,8 @@ public:
 	void AddMesh(std::shared_ptr<Mesh> mesh, size_t materialIndex = 0);
 	void AddMaterial(std::shared_ptr<Material> material);
 
-	std::vector<std::shared_ptr<Mesh>> GetMeshes() { return mMeshes; }
-	std::vector<std::shared_ptr<Material>> GetMaterials() { return mMaterials; }
+	std::vector<std::shared_ptr<Mesh>>& GetMeshes() { return mMeshes; }
+	std::vector<std::shared_ptr<Material>>& GetMaterials() { return mMaterials; }
 
 	std::shared_ptr<Mesh> GetMesh(size_t index) { return mMeshes[index]; }
 	std::shared_ptr<Material> GetMaterial(size_t index) { return mMaterials[mMaterialIndicies[index]]; }

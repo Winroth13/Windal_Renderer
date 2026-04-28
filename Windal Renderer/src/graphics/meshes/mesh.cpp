@@ -96,6 +96,13 @@ bool Mesh::Create(
 	mNumVertices = vertices.size();
 	mNumIndicies = indicies.size();
 
+	mBounds.mMin = vertices[0].mPosition;
+	mBounds.mMax = mBounds.mMin;
+	for (int i = 1; i < vertices.size(); ++i)
+	{
+		mBounds.Expand(vertices[i].mPosition);
+	}
+
 	return true;
 }
 

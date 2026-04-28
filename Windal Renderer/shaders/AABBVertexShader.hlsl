@@ -2,7 +2,6 @@
 struct VertexShaderInput
 {
     float3 position : POSITION;
-    float3 color : COLOR;
 };
 
 // Output
@@ -11,6 +10,13 @@ struct VertexShaderOutput
     float4 clipPosition : SV_POSITION;
     float3 color : COLOR;
 };
+
+cbuffer cbAabb : register(b0)
+{
+    float4x4 worldMatrix;
+    float3 color;
+    float pad0;
+}
 
 cbuffer cbPerView : register(b1)
 {
@@ -22,8 +28,11 @@ cbuffer cbPerView : register(b1)
 VertexShaderOutput main(VertexShaderInput input)
 {
     VertexShaderOutput output;
-    output.clipPosition = mul(viewProjMatrix, float4(input.position, 1.0f));
-    output.color = input.color;
+    float4 worldPos = mul(worldMatrix, float4(input.position.xyz, 1.0f));
+    float4 clipPos = mul(viewProjMatrix, worldPos);
+
+    output.clipPosition = clipPos;
+    output.color = color;
     
     return output;
 }

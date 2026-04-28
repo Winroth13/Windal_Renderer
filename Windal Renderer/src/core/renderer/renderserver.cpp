@@ -75,11 +75,12 @@ void RenderServer::PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<Cubem
 	mRenderer->PushCubemapData(data);
 }
 
-void RenderServer::PushAABB(DirectX::XMFLOAT3 origin, DirectX::XMFLOAT3 size, DirectX::XMFLOAT3 color)
+void RenderServer::PushAABB(AABB aabb, DirectX::XMFLOAT3 color)
 {
+	DirectX::BoundingBox bounds = aabb.ToBoundingBox();
 	AABBData data = {};
-	data.origin = origin;
-	data.size = size;
+	data.origin = bounds.Center;
+	data.size = bounds.Extents;
 	data.color = color;
 	mRenderer->PushAABBData(data);
 }

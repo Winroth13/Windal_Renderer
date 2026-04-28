@@ -54,6 +54,7 @@ public:
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
+		entity.SetVisible(false);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>();
 		cameraEntity->transform.SetPosition(0, 1, 0);
@@ -64,26 +65,26 @@ public:
 
 		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>();
 		pointLightEntity1.SetColor({ 0, 1, 0 });
-		pointLightEntity1.SetVisble(false);
+		pointLightEntity1.SetVisible(false);
 
 		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>();
 		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
 		sunEntity.SetIntensity(0.75f);
-		sunEntity.SetVisble(true);
+		sunEntity.SetVisible(true);
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
 		spotEntity.transform.SetPosition(0, 2, 0);
 		spotEntity.transform.SetAngles(0, (float)3.14 / 2, 0);
 		spotEntity.SetIntensity(32);
-		spotEntity.SetVisble(false);
+		spotEntity.SetVisible(false);
 
 		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity2.SetColor({ 0.0, 1.0, 0.0 });
 		spotEntity2.transform.SetPosition(0, 2, 0);
 		spotEntity2.transform.SetAngles(0, 0, 0);
 		spotEntity2.SetIntensity(32);
-		spotEntity2.SetVisble(false);
+		spotEntity2.SetVisible(false);
 
 		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
 
@@ -96,15 +97,16 @@ public:
 
 		auto& cubeEntity = mScene->CreateEntity<ModelEntity>(cube);
 		cubeEntity.SetName("Cube");
-		cubeEntity.transform.SetPosition(1, 2, 0);
-		cubeEntity.transform.SetScale(0.5f, 0.5f, 0.5f);
+		cubeEntity.transform.SetPosition(0, 0, 0);
+		cubeEntity.transform.SetScale(1, 1, 1);
 
 		auto& sphereEntity = mScene->CreateEntity<ModelEntity>(sphere);
 		sphereEntity.SetName("Sphere");
 		sphereEntity.transform.SetPosition(-1, 2, 0);
+		sphereEntity.SetVisible(false);
 
-		cubemapEntity.Attach(&sphereEntity);
-		cubeEntity.Attach(&sphereEntity);
+		//cubemapEntity.Attach(&sphereEntity);
+		//cubeEntity.Attach(&sphereEntity);
 	};
 
 	void Shutdown() override

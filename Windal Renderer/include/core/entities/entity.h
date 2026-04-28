@@ -25,7 +25,7 @@ public:
 	void SetName(const std::string& name) { mName = name; }
 
 	bool IsVisible();
-	void SetVisble(const bool visible) { mVisible = visible; }
+	void SetVisible(const bool visible) { mVisible = visible; }
 	DirectX::XMMATRIX GetGlobalTransform();
 	DirectX::XMFLOAT3 GetGlobalPosition();
 	DirectX::XMFLOAT3 GetGlobalAngles();
