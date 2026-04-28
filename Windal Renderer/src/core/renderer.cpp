@@ -1074,6 +1074,7 @@ void Renderer::UpdatePerMaterialBuffer(std::shared_ptr<Material> material)
 	perMatBuffer.specularCoefficient = material->GetSpecularCoefficient3f();
 	perMatBuffer.phongExponent = material->GetPhongExponent();
 	perMatBuffer.reflectiveness = material->GetReflectiveness();
+	perMatBuffer.materialFlags = material->GetFlags();
 	mImmediateContext->UpdateSubresource(mPerMaterialBuffer, 0, NULL, &perMatBuffer, 0, 0);
 }
 
@@ -1151,8 +1152,9 @@ void Renderer::BindPerMaterialBuffer(ShaderType shaderType)
 void Renderer::BindMaterialSRV(std::shared_ptr<Material> material, uint32_t index)
 {
 	BindVertexShader(material->GetVertexShader());
-	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT); // Diffuse
-	BindTexture2D(material->GetCubemapTexture(), CUBEMAP_TEXTURE_SLOT); // Cubemap
+	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT);
+	BindTexture2D(material->GetCubemapTexture(), CUBEMAP_TEXTURE_SLOT);
+	BindTexture2D(material->GetNormalMap(), NORMALMAP_TEXTURE_SLOT);
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 

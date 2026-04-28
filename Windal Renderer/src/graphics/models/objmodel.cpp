@@ -50,7 +50,6 @@ OBJModel::OBJModel(
 
 	for (size_t shapeIndex = 0; shapeIndex < shapes.size(); ++shapeIndex)
 	{
-		Logger::Info("New shape");
 		//uniqueVertices.clear();
 		vertices.emplace_back(std::vector<Vertex>());
 		indicies.emplace_back(std::vector<uint32_t>());
@@ -108,6 +107,7 @@ OBJModel::OBJModel(
 					{tx, ty}
 				};
 
+				/* Vertex deduplication */
 				if (uniqueVertices.count(vertex) == 0)
 				{
 					vertices[shapeIndex].push_back(vertex);
@@ -160,13 +160,9 @@ OBJModel::OBJModel(
 
 			float f = 1.0f / (deltaUV0f.x * deltaUV1f.y - deltaUV1f.x * deltaUV0f.y);
 			DirectX::XMFLOAT3 tangent;
-			DirectX::XMFLOAT3 bitangent;
 			tangent.x = f * (deltaUV1f.y * edge0f.x - deltaUV0f.y * edge1f.x);
 			tangent.y = f * (deltaUV1f.y * edge0f.y - deltaUV0f.y * edge1f.y);
 			tangent.z = f * (deltaUV1f.y * edge0f.z - deltaUV0f.y * edge1f.z);
-			bitangent.x = f * (-deltaUV1f.x * edge0f.x + deltaUV0f.x * edge1f.x);
-			bitangent.y = f * (-deltaUV1f.x * edge0f.y + deltaUV0f.x * edge1f.y);
-			bitangent.z = f * (-deltaUV1f.x * edge0f.z + deltaUV0f.x * edge1f.z);
 
 			v0.mTangent.x += tangent.x;
 			v0.mTangent.y += tangent.y;
@@ -179,18 +175,17 @@ OBJModel::OBJModel(
 			v2.mTangent.x += tangent.x;
 			v2.mTangent.y += tangent.y;
 			v2.mTangent.z += tangent.z;
+		}
+	}
 
-			v0.mBitangent.x += bitangent.x;
-			v0.mBitangent.y += bitangent.y;
-			v0.mBitangent.z += bitangent.z;
-
-			v1.mBitangent.x += bitangent.x;
-			v1.mBitangent.y += bitangent.y;
-			v1.mBitangent.z += bitangent.z;
-
-			v2.mBitangent.x += bitangent.x;
-			v2.mBitangent.y += bitangent.y;
-			v2.mBitangent.z += bitangent.z;
+	/* Normalize tangents */
+	for (auto& vertexArr : vertices)
+	{
+		for (auto& vertex : vertexArr)
+		{
+			DirectX::XMVECTOR tangent = DirectX::XMLoadFloat3(&vertex.mTangent);
+			tangent = DirectX::XMVector3Normalize(tangent);
+			DirectX::XMStoreFloat3(&vertex.mTangent, tangent);
 		}
 	}
 
@@ -199,15 +194,30 @@ OBJModel::OBJModel(
 	{
 		auto& objMaterial = objMaterials[materialIndex];
 
+		std::shared_ptr<ImageTexture2D> diffuseTexture = nullptr;
+		std::shared_ptr<ImageTexture2D> normalTexture = nullptr;
+
 		std::string dir = std::filesystem::path(path)
 			.parent_path()
 			.string();
 
-		std::string texturePath = dir + "/" + objMaterial.diffuse_texname;
+		/* Load Diffuse Texture	*/
+		{
+			std::string texturePath = dir + "/" + objMaterial.diffuse_texname;
+			diffuseTexture = std::make_shared<ImageTexture2D>(texturePath);
+		}
 
-		std::shared_ptr<ImageTexture2D> texture = std::make_shared<ImageTexture2D>(texturePath);
+		std::shared_ptr<Material> material = std::make_shared<Material>(vertexShader, diffuseTexture);
 
-		std::shared_ptr<Material> material = std::make_shared<Material>(vertexShader, texture);
+		/* Load Normal Texture	*/
+		{
+			if (objMaterial.normal_texname.length() > 0)
+			{
+				std::string texturePath = dir + "/" + objMaterial.normal_texname;
+				normalTexture = std::make_shared<ImageTexture2D>(texturePath);
+				material->SetNormalMap(normalTexture);
+			}
+		}
 
 		material->SetAmbientCoefficient(objMaterial.ambient[0], objMaterial.ambient[1], objMaterial.ambient[2]);
 		material->SetDiffuseCoefficient(objMaterial.diffuse[0], objMaterial.diffuse[1], objMaterial.diffuse[2]);

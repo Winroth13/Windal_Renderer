@@ -13,7 +13,6 @@ struct Vertex
 	DirectX::XMFLOAT3 mNormal;
 	DirectX::XMFLOAT2 mUV;
 	DirectX::XMFLOAT3 mTangent = { 0, 0, 0 };
-	DirectX::XMFLOAT3 mBitangent = { 0, 0, 0 };
 
 	Vertex(
 		const DirectX::XMFLOAT3 position,

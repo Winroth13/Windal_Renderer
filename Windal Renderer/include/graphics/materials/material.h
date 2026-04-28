@@ -7,6 +7,11 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 
+enum class MaterialFlags
+{
+	HAS_NORMAL_MAP = 1
+};
+
 class Material
 {
 public:
@@ -20,10 +25,9 @@ public:
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
 
 	inline std::shared_ptr<Texture2D> GetTexture() { return mTexture; }
+    inline std::shared_ptr<Texture2D> GetNormalMap() { return mNormalMap; }
 	inline std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
-
-	ID3D11Buffer* GetBuffer(ID3D11DeviceContext* context);
-
+	
 	void SetAmbientCoefficient(const float r, const float g, const float b);
 	void SetDiffuseCoefficient(const float r, const float g, const float b);
 	void SetSpecularCoefficient(const float r, const float g, const float b);
@@ -31,8 +35,7 @@ public:
 	void SetReflectiveness(const float reflectiveness);
 
 	void SetCubemapTexture(std::shared_ptr<CubemapTexture> cubemapTexture) { mCubemapTexture = cubemapTexture; }
-
-	void UpdateBuffer(ID3D11DeviceContext* context);
+	void SetNormalMap(std::shared_ptr<Texture2D> normalMap);
 
 	void RenderImgui();
 
@@ -46,6 +49,7 @@ public:
 
 	inline float& GetPhongExponent() { return mPhongExponent; }
 	inline float& GetReflectiveness() { return mReflectiveness; }
+	inline uint32_t GetFlags() { return mFlags; }
 
 	void SetName(const std::string& name) { mName = name; }
 	const std::string& GetName() { return mName; }
@@ -61,10 +65,12 @@ private:
 	DirectX::XMFLOAT3 mDiffuseCoefficient = { 1, 1, 1 };
 	DirectX::XMFLOAT3 mSpecularCoefficient = { 1, 1, 1 };
 
-	std::shared_ptr<VertexShader> mVertexShader;
-	std::shared_ptr<Texture2D> mTexture;
+	std::shared_ptr<VertexShader> mVertexShader = nullptr;
+	std::shared_ptr<Texture2D> mTexture = nullptr;
 	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;
+	std::shared_ptr<Texture2D> mNormalMap = nullptr;
+
+	uint32_t mFlags = 0;
 
 	ID3D11InputLayout* mInputLayout = nullptr;
-	ID3D11Buffer* mBuffer = nullptr;
 };

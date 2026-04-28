@@ -53,6 +53,7 @@
 /* Texture Slots */
 #define DIFFUSE_TEXTURE_SLOT 3
 #define CUBEMAP_TEXTURE_SLOT 4
+#define NORMALMAP_TEXTURE_SLOT 5
 
 enum RenderFlags
 {
@@ -100,7 +101,7 @@ struct PerMaterial
 	DirectX::XMFLOAT3 diffuseCoefficient;
 	float reflectiveness;
 	DirectX::XMFLOAT3 specularCoefficient;
-	float pad0;
+	uint32_t materialFlags;
 };
 
 struct MaterialIndexBuffer

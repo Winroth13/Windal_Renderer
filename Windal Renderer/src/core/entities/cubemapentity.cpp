@@ -18,6 +18,12 @@ void CubemapEntity::UpdateSelf(double delta)
 void CubemapEntity::RenderSelf(RenderServer& renderServer)
 {
 	renderServer.PushCubemap(GetGlobalPosition(), mCubemapTexture);
+
+	// TODO: Makes the cubemap only render once, remove before handing in!
+	if (mVisible)
+	{
+		mVisible = false;
+	}
 }
 
 void CubemapEntity::RenderImguiSelf()

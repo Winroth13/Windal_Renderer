@@ -13,16 +13,17 @@ Material::Material(
 	std::shared_ptr<Texture2D> texture2D
 ) : mVertexShader(vertexShader), mTexture(texture2D)
 {
-	D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
+	D3D11_INPUT_ELEMENT_DESC inputDesc[4] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	HRESULT hr = Renderer::GetDevice()->CreateInputLayout(
 		inputDesc,
-		3,
+		4,
 		vertexShader->GetByteCode().c_str(),
 		vertexShader->GetByteCode().length(),
 		&mInputLayout
@@ -33,47 +34,12 @@ Material::Material(
 		Logger::Error("Failed to create input layout");
 		throw std::runtime_error("");
 	}
-
-	PerMaterial perMaterialBuffer = {};
-	D3D11_BUFFER_DESC perMaterialBufferDesc = {};
-	perMaterialBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	perMaterialBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	perMaterialBufferDesc.CPUAccessFlags = 0;
-	perMaterialBufferDesc.MiscFlags = 0;
-	perMaterialBufferDesc.ByteWidth = sizeof(perMaterialBuffer);
-	perMaterialBufferDesc.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA data = {};
-	data.pSysMem = &perMaterialBuffer;
-
-	hr = Renderer::GetDevice()->CreateBuffer(
-		&perMaterialBufferDesc,
-		&data,
-		&mBuffer
-	);
-
-	if (FAILED(hr))
-	{
-		Logger::Error("Failed to create material constant buffer");
-		throw std::runtime_error("");
-	}
 }
 
 Material::~Material()
 {
 	mInputLayout->Release();
-	mBuffer->Release();
 	Logger::Info("Material destructor!");
-}
-
-ID3D11Buffer* Material::GetBuffer(ID3D11DeviceContext* context)
-{
-	if (mIsDirty)
-	{
-		UpdateBuffer(context);
-		mIsDirty = false;
-	}
-	return mBuffer;
 }
 
 void Material::SetAmbientCoefficient(const float r, const float g, const float b)
@@ -106,32 +72,17 @@ void Material::SetReflectiveness(const float reflectiveness)
 	mIsDirty = true;
 }
 
-void Material::UpdateBuffer(ID3D11DeviceContext* context)
+void Material::SetNormalMap(std::shared_ptr<Texture2D> normalMap)
 {
-	PerMaterial buffer = {};
-	buffer.phongExponent = mPhongExponent;
-
-	buffer.ambientCoefficient = {
-		mAmbientCoefficient.x,
-		mAmbientCoefficient.y ,
-		mAmbientCoefficient.z
-	};
-
-	buffer.diffuseCoefficient = {
-		mDiffuseCoefficient.x,
-		mDiffuseCoefficient.y ,
-		mDiffuseCoefficient.z
-	};
-
-	buffer.specularCoefficient = {
-		mSpecularCoefficient.x,
-		mSpecularCoefficient.y,
-		mSpecularCoefficient.z
-	};
-
-	context->UpdateSubresource(
-		mBuffer, 0, NULL, &buffer, 0, 0
-	);
+	mNormalMap = normalMap;
+	if (mNormalMap)
+	{
+		mFlags |= static_cast<uint32_t>(MaterialFlags::HAS_NORMAL_MAP);
+	}
+	else
+	{
+		mFlags &= ~static_cast<uint32_t>(MaterialFlags::HAS_NORMAL_MAP);
+	}
 }
 
 void Material::RenderImgui()
@@ -173,6 +124,15 @@ void Material::RenderImgui()
 	if (ImGui::TreeNodeEx("Diffuse Texture", TREE_NODE_FLAGS))
 	{
 		mTexture->RenderImgui(TEXTURE_SIZE, TEXTURE_SIZE);
+		ImGui::TreePop();
+	}
+
+	if (ImGui::TreeNodeEx("Normal Texture", TREE_NODE_FLAGS))
+	{
+		if (mNormalMap != nullptr)
+		{
+			mNormalMap->RenderImgui(TEXTURE_SIZE, TEXTURE_SIZE);
+		}
 		ImGui::TreePop();
 	}
 }
