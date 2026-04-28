@@ -1,5 +1,5 @@
 #include "graphics/meshes/mesh.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 #include <d3d11.h>
@@ -20,7 +20,7 @@ bool operator== (const Vertex& v1, const Vertex& v2)
 
 			v1.mUV.x == v2.mUV.x &&
 			v1.mUV.y == v2.mUV.y
-		);
+			);
 }
 
 Mesh::Mesh()

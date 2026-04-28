@@ -1,5 +1,5 @@
 #include "graphics/shaders/computeshader.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 ComputeShader::ComputeShader(const std::string& path)

@@ -29,19 +29,19 @@ void Engine::Shutdown()
 
 bool Engine::Initialize(const std::string& title, const int width, const int height)
 {
-	if (mWindow.Create(title, width, height) == false)
+	if (!mWindow.Create(title, width, height))
 	{
 		Logger::Error("Failed to create window");
 		return false;
 	}
 
-	if (mRenderer.Create({ 0.082f, 0.769f, 0.996f, 0.0f }, &mWindow) == false)
+	if (!mRenderer.Create({ 0.082f, 0.769f, 0.996f, 0.0f }, &mWindow))
 	{
 		Logger::Error("Failed to create renderer");
 		return false;
 	}
 
-	if (mWindow.CreateImguiWindow(&mRenderer) == false)
+	if (!mWindow.CreateImguiWindow(&mRenderer))
 	{
 		Logger::Error("Failed to imgui window");
 		return false;

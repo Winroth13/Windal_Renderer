@@ -2,7 +2,7 @@
 #include <d3d11.h>
 
 #include "graphics/shaders/shader.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 class ComputeShader : public Shader
 {

@@ -1,6 +1,6 @@
 #include "graphics/textures/cubemaptexture.h"
 #include "graphics/gbuffers.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 #include <d3d11.h>

@@ -1,5 +1,5 @@
 #include "graphics/shaders/pixelshader.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 PixelShader::PixelShader(const std::string& path)

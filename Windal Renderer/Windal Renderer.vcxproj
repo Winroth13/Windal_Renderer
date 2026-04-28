@@ -32,8 +32,9 @@
     <ClInclude Include="include\core\imguiflags.h" />
     <ClInclude Include="include\core\imguiwindow.h" />
     <ClInclude Include="include\core\logger.h" />
-    <ClInclude Include="include\core\renderer.h" />
-    <ClInclude Include="include\core\renderserver.h" />
+    <ClInclude Include="include\core\renderer\aabbrenderer.h" />
+    <ClInclude Include="include\core\renderer\renderer.h" />
+    <ClInclude Include="include\core\renderer\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\transform.h" />
     <ClInclude Include="include\core\window.h" />
@@ -74,6 +75,7 @@
     <ClInclude Include="vendor\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\renderer\aabbrenderer.cpp" />
     <ClCompile Include="src\graphics\gbuffers.cpp" />
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
@@ -86,8 +88,8 @@
     <ClCompile Include="src\core\entities\spotlightentity.cpp" />
     <ClCompile Include="src\core\imguiwindow.cpp" />
     <ClCompile Include="src\core\logger.cpp" />
-    <ClCompile Include="src\core\renderer.cpp" />
-    <ClCompile Include="src\core\renderserver.cpp" />
+    <ClCompile Include="src\core\renderer\renderer.cpp" />
+    <ClCompile Include="src\core\renderer\renderserver.cpp" />
     <ClCompile Include="src\core\scene.cpp" />
     <ClCompile Include="src\core\transform.cpp" />
     <ClCompile Include="src\core\window.cpp" />
@@ -125,7 +127,19 @@
     <Image Include="resources\fallback.png" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="resources\DeferredLightingComputeShader.hlsl">
+    <FxCompile Include="shaders\AABBPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\AABBVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\DeferredLightingComputeShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
@@ -135,25 +149,25 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="resources\DeferredPixelShader.hlsl">
+    <FxCompile Include="shaders\DeferredPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="resources\PixelShader.hlsl">
+    <FxCompile Include="shaders\PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="resources\ShadowMapVertexShader.hlsl">
+    <FxCompile Include="shaders\ShadowMapVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="resources\VertexShader.hlsl">
+    <FxCompile Include="shaders\VertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

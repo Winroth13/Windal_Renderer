@@ -2,7 +2,7 @@
 #include <d3d11.h>
 
 #include "core/window.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
@@ -12,6 +12,8 @@
 #include "graphics/shadowmap.h"
 #include "graphics/gbuffers.h"
 #include "core/transform.h"
+
+#include "core/renderer/aabbrenderer.h"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -207,6 +209,8 @@ public:
 
 	void PushCubemapData(const CubemapData& cubemapData);
 
+	void PushAABBData(const AABBData& aabbData);
+
 	void SetEnviromentData(const EnviromentData& enviromentData);
 	void SetSceneCamera(const CameraData& cameraData);
 
@@ -257,6 +261,9 @@ private:
 
 	void ClearFrameData();
 
+	/* Renderers */
+	AABBRenderer mAABBRenderer;
+
 	/* Math */
 	DirectX::XMFLOAT3 DirectionToAngles(DirectX::XMFLOAT3 direction);
 
@@ -283,6 +290,9 @@ private:
 
 	/* Cubemaps */
 	std::vector<CubemapData> mCubemapsData;
+
+	/* Debug Drawing */
+	std::vector<AABBData> mAABBData;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;

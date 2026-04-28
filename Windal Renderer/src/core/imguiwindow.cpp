@@ -1,6 +1,6 @@
 #include "core/imguiwindow.h"
 #include "core/window.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS

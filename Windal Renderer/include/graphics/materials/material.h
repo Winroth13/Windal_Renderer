@@ -1,5 +1,5 @@
 #pragma once
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/textures/texture2d.h"

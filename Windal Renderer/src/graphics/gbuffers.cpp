@@ -1,6 +1,6 @@
 #include "graphics/gbuffers.h"
 #include "core/logger.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 
 #include <string>
 

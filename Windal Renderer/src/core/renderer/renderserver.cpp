@@ -1,6 +1,6 @@
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 #include "core/logger.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include <iostream>
 #include <d3d11.h>
 
@@ -72,6 +72,15 @@ void RenderServer::PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<Cubem
 	data.position = position;
 	data.cubemapTexture = cubemapTexture;
 	mRenderer->PushCubemapData(data);
+}
+
+void RenderServer::PushAABB(DirectX::XMFLOAT3 origin, DirectX::XMFLOAT3 size, DirectX::XMFLOAT3 color)
+{
+	AABBData data = {};
+	data.origin = origin;
+	data.size = size;
+	data.color = color;
+	mRenderer->PushAABBData(data);
 }
 
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)

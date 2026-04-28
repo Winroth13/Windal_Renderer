@@ -1,5 +1,5 @@
 #include "graphics/materials/material.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 #include <iostream>

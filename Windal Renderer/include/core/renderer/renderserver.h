@@ -37,6 +37,8 @@ public:
 
 	void PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<CubemapTexture> cubemapTexture);
 
+	void PushAABB(DirectX::XMFLOAT3 origin, DirectX::XMFLOAT3 size, DirectX::XMFLOAT3 color);
+
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateEnviroment(Enviroment& enviroment);
 

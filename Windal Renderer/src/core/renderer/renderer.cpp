@@ -1,4 +1,4 @@
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include <iostream>
 #include "core/logger.h"
 
@@ -496,6 +496,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		mDeferredPixelShader = std::make_unique<PixelShader>("resources/DeferredPixelShader.cso");
 	}
 
+	if (!mAABBRenderer.Create())
+	{
+		Logger::Error("Failed to create AABBRenderer");
+		return false;
+	}
+
 	return true;
 }
 
@@ -619,6 +625,13 @@ void Renderer::BeginForward()
 
 void Renderer::RenderForward()
 {
+	AABBData aabbData;
+	aabbData.origin = XMFLOAT3(0, 2, 0);
+	aabbData.size = XMFLOAT3(2, 2, 2);
+	aabbData.color = XMFLOAT3(0, 0, 255);
+	mAABBData.push_back(aabbData);
+	mAABBRenderer.Render(mImmediateContext, mAABBData);
+
 	// Here you can do transparency :)
 }
 
@@ -703,6 +716,11 @@ void Renderer::PushSpotLightData(const SpotLightData& spotLightData)
 void Renderer::PushCubemapData(const CubemapData& cubemapData)
 {
 	mCubemapsData.push_back(cubemapData);
+}
+
+void Renderer::PushAABBData(const AABBData& aabbData)
+{
+	mAABBData.push_back(aabbData);
 }
 
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
@@ -1356,6 +1374,11 @@ void Renderer::ClearFrameData()
 	/* Cubemaps */
 	{
 		mCubemapsData.clear();
+	}
+
+	/* Debug Drawing */
+	{
+		mAABBData.clear();
 	}
 
 	mGeometryData.clear();

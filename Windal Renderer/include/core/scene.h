@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "core/entities/entity.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 #include "graphics/enviroment.h"
 #include "graphics/camera.h"

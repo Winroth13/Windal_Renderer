@@ -1,7 +1,7 @@
 #include <d3d11.h>
 
 #include "graphics/shaders/vertexshader.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/logger.h"
 
 VertexShader::VertexShader(const std::string& path)

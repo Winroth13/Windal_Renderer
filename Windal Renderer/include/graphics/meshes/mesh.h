@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 struct ID3D11Buffer;
 struct D3D11_INPUT_ELEMENT_DESC;

@@ -1,7 +1,7 @@
 #pragma once
 #include "app.h"
 #include "core/window.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "core/scene.h"
 
 #include <chrono>
@@ -26,6 +26,6 @@ private:
 
 	App* mApp = nullptr;
 
-	std::chrono::steady_clock::time_point mLastTime = 
+	std::chrono::steady_clock::time_point mLastTime =
 		std::chrono::steady_clock::now();
 };

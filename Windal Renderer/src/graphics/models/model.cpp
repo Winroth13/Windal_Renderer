@@ -1,5 +1,5 @@
 #include "graphics/models/model.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 #include "graphics/meshes/mesh.h"
 #include "graphics/materials/material.h"
 #include "core/logger.h"
@@ -20,7 +20,6 @@ Model::Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
 
 Model::~Model()
 {
-	
 }
 
 void Model::AddMesh(std::shared_ptr<Mesh> mesh, size_t materialIndex)

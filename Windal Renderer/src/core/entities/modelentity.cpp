@@ -1,6 +1,6 @@
 #include "core/entities/modelentity.h"
 #include "graphics/models/model.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 #include "core/logger.h"
 
 #include <d3d11.h>

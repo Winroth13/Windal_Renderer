@@ -4,53 +4,53 @@
 #include <DirectXMath.h>
 
 #include "core/transform.h"
-#include "core/renderserver.h"
+#include "core/renderer/renderserver.h"
 
 class Scene;
 
 class Entity
 {
-    friend class Scene;
+	friend class Scene;
 
 public:
-    Entity(std::string name);
+	Entity(std::string name);
 
-    virtual ~Entity() = default;
+	virtual ~Entity() = default;
 
-    void Update(double delta);
-    void Render(RenderServer& renderServer);
-    void RenderImgui();
+	void Update(double delta);
+	void Render(RenderServer& renderServer);
+	void RenderImgui();
 
-    std::string& GetName() { return mName; }
-    void SetName(const std::string& name) { mName = name; }
+	std::string& GetName() { return mName; }
+	void SetName(const std::string& name) { mName = name; }
 
-    bool IsVisible();
-    void SetVisble(const bool visible) { mVisible = visible; }
-    DirectX::XMMATRIX GetGlobalTransform();
-    DirectX::XMFLOAT3 GetGlobalPosition();
-    DirectX::XMFLOAT3 GetGlobalAngles();
-    DirectX::XMFLOAT3 GetGlobalScale();
-    DirectX::XMFLOAT3 GetGlobalForwardDir();
+	bool IsVisible();
+	void SetVisble(const bool visible) { mVisible = visible; }
+	DirectX::XMMATRIX GetGlobalTransform();
+	DirectX::XMFLOAT3 GetGlobalPosition();
+	DirectX::XMFLOAT3 GetGlobalAngles();
+	DirectX::XMFLOAT3 GetGlobalScale();
+	DirectX::XMFLOAT3 GetGlobalForwardDir();
 
-    void Attach(Entity* entity) { mAttach = entity; }
-    Entity* GetAttachEntity() { return mAttach; }
-    const bool HasAttach() { return mAttach != nullptr; }
+	void Attach(Entity* entity) { mAttach = entity; }
+	Entity* GetAttachEntity() { return mAttach; }
+	const bool HasAttach() { return mAttach != nullptr; }
 
 public:
-    Transform transform;
+	Transform transform;
 
 protected:
-    Scene& GetScene() { return *mScene; }
+	Scene& GetScene() { return *mScene; }
 
-    virtual void UpdateSelf(double delta) {};
-    virtual void RenderSelf(RenderServer& renderServer) {};
-    virtual void RenderImguiSelf() {};
+	virtual void UpdateSelf(double delta) {};
+	virtual void RenderSelf(RenderServer& renderServer) {};
+	virtual void RenderImguiSelf() {};
 
-    std::string mName;
-    bool mVisible = true;
+	std::string mName;
+	bool mVisible = true;
 
-    Entity* mAttach = nullptr;
+	Entity* mAttach = nullptr;
 
 private:
-    Scene* mScene;
+	Scene* mScene;
 };

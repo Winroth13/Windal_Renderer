@@ -1,5 +1,5 @@
 #include "core/logger.h"
-#include "core/renderer.h"
+#include "core/renderer/renderer.h"
 #include "graphics/textures/imagetexture2d.h"
 
 #include "stbImage/stb_image.h"
