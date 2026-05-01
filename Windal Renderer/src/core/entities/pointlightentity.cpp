@@ -13,16 +13,16 @@ void PointLightEntity::UpdateSelf(double delta)
 
 void PointLightEntity::RenderSelf(RenderServer& renderServer)
 {
-    renderServer.PushPointLight(GetGlobalPosition(), mColor, mAttenuation, mIntensity);
+	renderServer.PushPointLight(GetGlobalPosition(), mColor, mAttenuation, mIntensity);
 }
 
 void PointLightEntity::RenderImguiSelf()
 {
-    if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
-    {
-        ImGui::ColorEdit3("Color", &mColor.x);
-        ImGui::DragFloat("Attenuation", &mAttenuation, 0.02f, 0.01f, 20.0f);
-        ImGui::DragFloat("Intensity", &mIntensity);
-        ImGui::TreePop();
-    }
+	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
+	{
+		ImGui::ColorEdit3("Color", &mColor.x);
+		ImGui::DragFloat("Attenuation", &mAttenuation, 0.02f, 0.01f, 20.0f);
+		ImGui::DragFloat("Intensity", &mIntensity, 0.05f);
+		ImGui::TreePop();
+	}
 }

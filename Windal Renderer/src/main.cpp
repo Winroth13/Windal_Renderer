@@ -54,7 +54,6 @@ public:
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
-		entity.SetVisible(false);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>();
 		cameraEntity->transform.SetPosition(0, 1, 0);
@@ -97,16 +96,15 @@ public:
 
 		auto& cubeEntity = mScene->CreateEntity<ModelEntity>(cube);
 		cubeEntity.SetName("Cube");
-		cubeEntity.transform.SetPosition(0, 0, 0);
-		cubeEntity.transform.SetScale(1, 1, 1);
+		cubeEntity.transform.SetPosition(2, 0, 0);
+		cubeEntity.transform.SetScale(0.5, 0.5, 0.5);
 
 		auto& sphereEntity = mScene->CreateEntity<ModelEntity>(sphere);
 		sphereEntity.SetName("Sphere");
 		sphereEntity.transform.SetPosition(-1, 2, 0);
-		sphereEntity.SetVisible(false);
 
-		//cubemapEntity.Attach(&sphereEntity);
-		//cubeEntity.Attach(&sphereEntity);
+		cubemapEntity.Attach(&sphereEntity);
+		cubeEntity.Attach(&sphereEntity);
 	};
 
 	void Shutdown() override
