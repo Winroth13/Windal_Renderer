@@ -26,6 +26,8 @@
 #include <memory>
 #include <array>
 
+#include "core/quadtree.h"
+
 class TestApp : public App
 {
 public:
@@ -35,6 +37,8 @@ public:
 
 	void Initialize() override
 	{
+		QuadTree<int> tree;
+
 		auto skyCubemapTexture = std::make_shared<CubemapTexture>(
 			std::array<std::string, 6>
 		{

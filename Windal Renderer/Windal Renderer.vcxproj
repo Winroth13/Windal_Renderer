@@ -37,6 +37,7 @@
     <ClInclude Include="include\core\renderer\renderer.h" />
     <ClInclude Include="include\core\renderer\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
+    <ClInclude Include="include\core\quadtree.h" />
     <ClInclude Include="include\math\aabb.h" />
     <ClInclude Include="include\math\mathfunctions.h" />
     <ClInclude Include="include\math\transform.h" />
