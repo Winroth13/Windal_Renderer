@@ -183,7 +183,7 @@ bool AABBRenderer::Create()
 
 		if (FAILED(hr))
 		{
-			Logger::Error("Failed to create AABB constant buffer buffer");
+			Logger::Error("Failed to create AABB constant buffer");
 			return false;
 		}
 	}

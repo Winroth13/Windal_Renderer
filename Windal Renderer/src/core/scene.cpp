@@ -23,6 +23,13 @@ void Scene::Render(RenderServer& renderServer)
 		mCamera.transform.GetPosition3f()
 	);
 
+	if (!mIsFrustumLocked)
+	{
+		renderServer.UpdateFrustum(
+			mCamera.GetBoundingFrustum()
+		);
+	}
+
 	for (std::unique_ptr<Entity>& e : mEntities)
 	{
 		e->Render(renderServer);

@@ -52,7 +52,7 @@ AABB AABB::Transform(const XMMATRIX matrix)
 	return result;
 }
 
-BoundingBox AABB::ToBoundingBox()
+BoundingBox AABB::ToBoundingBox() const
 {
 	BoundingBox boundingBox = {};
 

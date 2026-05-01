@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <DirectXMath.h>
+#include <DirectXCollision.h>
 
 class Renderer;
 class Model;
@@ -9,9 +10,9 @@ class Mesh;
 class Material;
 class Enviroment;
 class CubemapTexture;
+class Camera;
 
 struct ID3D11DeviceContext;
-
 struct AABB;
 
 enum ConstantBufferType
@@ -40,12 +41,15 @@ public:
 	void PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<CubemapTexture> cubemapTexture);
 
 	void PushAABB(AABB aabb, DirectX::XMFLOAT3 color);
+	void PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, DirectX::XMFLOAT3 color);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
+	void UpdateFrustum(DirectX::BoundingFrustum frustum);
 	void UpdateEnviroment(Enviroment& enviroment);
 
 	void SetWireframe(bool value);
 	void SetShowGBuffer(bool value);
+	void SetShowBoundingBoxes(bool value);
 
 private:
 	Renderer* mRenderer = nullptr;

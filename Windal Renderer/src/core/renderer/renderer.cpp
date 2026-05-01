@@ -499,7 +499,13 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 	if (!mAABBRenderer.Create())
 	{
-		Logger::Error("Failed to create AABBRenderer");
+		Logger::Error("Failed to create AABB Renderer");
+		return false;
+	}
+
+	if (!mLineRenderer.Create())
+	{
+		Logger::Error("Failed to create Line Renderer");
 		return false;
 	}
 
@@ -616,7 +622,12 @@ void Renderer::Render()
 		state->Release();
 	}
 
-	RenderDeferred(mBackBufferUAV, mGBuffers, mFlags, mSceneCamera);
+	if ((mNewFlags & SHOW_BOUNDING_BOXES) == SHOW_BOUNDING_BOXES)
+	{
+		RenderBB();
+	}
+
+	RenderDeferred(mBackBufferUAV, mGBuffers, mFlags, mSceneCamera, mSceneFrustum);
 }
 
 void Renderer::BeginForward()
@@ -627,6 +638,7 @@ void Renderer::BeginForward()
 void Renderer::RenderForward()
 {
 	mAABBRenderer.Render(mImmediateContext, mAABBData);
+	mLineRenderer.Render(mImmediateContext, mLineData);
 
 	// Here you can do transparency :)
 }
@@ -719,6 +731,11 @@ void Renderer::PushAABBData(const AABBData& aabbData)
 	mAABBData.push_back(aabbData);
 }
 
+void Renderer::PushLineData(const LineData& lineData)
+{
+	mLineData.push_back(lineData);
+}
+
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 {
 	mEnviromentData = enviromentData;
@@ -727,6 +744,11 @@ void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 void Renderer::SetSceneCamera(const CameraData& cameraData)
 {
 	mSceneCamera = cameraData;
+}
+
+void Renderer::SetCullingFrustum(const FrustumData& frustum)
+{
+	mSceneFrustum = frustum;
 }
 
 void Renderer::RenderShadowMaps()
@@ -866,17 +888,21 @@ void Renderer::RenderCubeMaps()
 			cameraData.pos = camera.transform.GetPosition3f();
 			cameraData.viewProj = camera.GetViewProj();
 
+			FrustumData frustumData = {};
+			frustumData.frustum = camera.GetBoundingFrustum();
+
 			RenderDeferred(
 				cubemapData.cubemapTexture->GetUAV(j),
 				cubemapData.cubemapTexture->GetGBuffers(),
 				cubemapFlags,
-				cameraData
+				cameraData,
+				frustumData
 			);
 		}
 	}
 }
 
-void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera)
+void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera, FrustumData frustum)
 {
 	mImmediateContext->ClearUnorderedAccessViewFloat(
 		backBuffer,
@@ -939,6 +965,18 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 		{
 			auto& mesh = mGeometryData[i].mesh;
 			auto& mat = mMaterialData[i].material;
+			auto& transform = mGeometryData[i].transform;
+
+			/* Cull meshes outside camera frustum */
+			AABB aabb = mesh->GetBounds();
+			aabb = aabb.Transform(transform);
+
+			DirectX::BoundingBox boundingBox = aabb.ToBoundingBox();
+
+			if (!frustum.frustum.Intersects(boundingBox))
+			{
+				continue;
+			}
 
 			/* When we encounter a new material, add it! */
 			if (materialsMap.find(mat) == materialsMap.end())
@@ -1055,6 +1093,59 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 			mImmediateContext->CSSetShaderResources(DEFERRED_MATERIALS_SLOT, 1, nullShaderViews);
 		}
 	}
+}
+
+void Renderer::RenderBB()
+{
+	/* Draw Bounding Boxes */
+	constexpr DirectX::XMFLOAT3 RENDERED_MESH_BOUNDING_BOX_COLOR = { 0.0f, 1.0f, 0.0f };
+	constexpr DirectX::XMFLOAT3 HIDDEN_MESH_BOUNDING_BOX_COLOR = { 1.0f, 0.0f, 0.0f };
+	constexpr DirectX::XMFLOAT3 FRUSTUM_BOUNDING_BOX_COLOR = { 0.0f, 0.0f, 1.0f };
+
+	/* Draw Geometry Bounding Boxes	*/
+	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	{
+		auto& mesh = mGeometryData[i].mesh;
+		auto& transform = mGeometryData[i].transform;
+
+		AABB localBounds = mesh->GetBounds();
+		AABB bounds = localBounds.Transform(transform);
+
+		DirectX::BoundingBox boundingBox = bounds.ToBoundingBox();
+		DirectX::BoundingFrustum frustum = mSceneFrustum.frustum;
+
+		DirectX::XMFLOAT3 color = RENDERED_MESH_BOUNDING_BOX_COLOR;
+		if (!frustum.Intersects(boundingBox))
+		{
+			color = HIDDEN_MESH_BOUNDING_BOX_COLOR;
+		}
+
+		mRenderServer.PushAABB(bounds, color);
+	}
+
+	/* Draw Camera Frustum */
+	DirectX::XMFLOAT3 corners[8];
+	DirectX::BoundingFrustum visibleFrustrum = mSceneFrustum.frustum;
+	visibleFrustrum.Far = visibleFrustrum.Far / 2; // This is for some reason the threshold for the far plane to be visible.
+	visibleFrustrum.GetCorners(corners);
+
+	// Near plane
+	mRenderServer.PushLine(corners[0], corners[1], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[1], corners[2], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[2], corners[3], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[3], corners[0], FRUSTUM_BOUNDING_BOX_COLOR);
+
+	// Far plane
+	mRenderServer.PushLine(corners[4], corners[5], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[5], corners[6], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[6], corners[7], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[7], corners[4], FRUSTUM_BOUNDING_BOX_COLOR);
+
+	// Between planes
+	mRenderServer.PushLine(corners[0], corners[4], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[1], corners[5], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[2], corners[6], FRUSTUM_BOUNDING_BOX_COLOR);
+	mRenderServer.PushLine(corners[3], corners[7], FRUSTUM_BOUNDING_BOX_COLOR);
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
@@ -1371,6 +1462,7 @@ void Renderer::ClearFrameData()
 	/* Debug Drawing */
 	{
 		mAABBData.clear();
+		mLineData.clear();
 	}
 
 	mGeometryData.clear();

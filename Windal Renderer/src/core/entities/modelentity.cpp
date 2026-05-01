@@ -30,13 +30,6 @@ void ModelEntity::RenderSelf(RenderServer& renderServer)
 		{
 			renderServer.PushMesh(mModel->GetMesh(meshIndex), GetGlobalTransform());
 			renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
-
-			for (auto& mesh : mModel->GetMeshes())
-			{
-				AABB localBounds = mesh->GetBounds();
-				AABB bounds = localBounds.Transform(GetGlobalTransform());
-				renderServer.PushAABB(bounds, { 0, 1.0f, 0 });
-			}
 		}
 	}
 }

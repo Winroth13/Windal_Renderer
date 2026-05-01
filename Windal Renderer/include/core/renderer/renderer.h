@@ -4,6 +4,7 @@
 #include "core/window.h"
 #include "core/renderer/renderserver.h"
 #include "core/renderer/aabbrenderer.h"
+#include "core/renderer/linerenderer.h"
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
@@ -16,6 +17,8 @@
 #include "math/transform.h"
 
 #include <DirectXMath.h>
+#include <DirectXCollision.h>
+
 #include <vector>
 #include <array>
 
@@ -61,7 +64,8 @@ enum RenderFlags
 {
 	WIRE_FRAME = 1,
 	SHOW_GBUFFERS = 2,
-	USE_BLINN_PHONG = 4
+	USE_BLINN_PHONG = 4,
+	SHOW_BOUNDING_BOXES = 8
 };
 
 enum class ShaderType
@@ -163,6 +167,11 @@ struct CameraData
 	DirectX::XMFLOAT3 pos;
 };
 
+struct FrustumData
+{
+	DirectX::BoundingFrustum frustum;
+};
+
 struct CubemapData
 {
 	std::shared_ptr<CubemapTexture> cubemapTexture;
@@ -210,9 +219,11 @@ public:
 	void PushCubemapData(const CubemapData& cubemapData);
 
 	void PushAABBData(const AABBData& aabbData);
+	void PushLineData(const LineData& lineData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
 	void SetSceneCamera(const CameraData& cameraData);
+	void SetCullingFrustum(const FrustumData& frustum);
 
 	const uint16_t GetFlags() { return mNewFlags; }
 	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
@@ -220,7 +231,8 @@ public:
 private:
 	void RenderShadowMaps();
 	void RenderCubeMaps();
-	void RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera);
+	void RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera, FrustumData frustum);
+	void RenderBB();
 
 	void UpdatePerViewBuffer(const CameraData& cameraData);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
@@ -263,12 +275,14 @@ private:
 
 	/* Renderers */
 	AABBRenderer mAABBRenderer;
+	LineRenderer mLineRenderer;
 
 	std::vector<GeometryData> mGeometryData;
 	std::vector<MaterialData> mMaterialData;
 
 	EnviromentData mEnviromentData;
-	CameraData mSceneCamera; // TODO: Maybe this should have a better name...
+	CameraData mSceneCamera;	// TODO: Maybe this should have a better name...
+	FrustumData mSceneFrustum;	// TODO: Maybe this should have a better name...
 
 	/* GBuffers */
 	GBuffers mGBuffers;
@@ -290,6 +304,7 @@ private:
 
 	/* Debug Drawing */
 	std::vector<AABBData> mAABBData;
+	std::vector<LineData> mLineData;
 
 	DirectX::XMFLOAT4 mClearColor;
 	Window* mWindow;

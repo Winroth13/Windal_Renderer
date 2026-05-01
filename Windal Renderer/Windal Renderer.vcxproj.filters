@@ -183,6 +183,9 @@
     <ClInclude Include="include\math\aabb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\core\renderer\linerenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -332,6 +335,9 @@
     <ClCompile Include="src\math\aabb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\renderer\linerenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -346,5 +352,7 @@
     <FxCompile Include="shaders\ShadowMapVertexShader.hlsl" />
     <FxCompile Include="shaders\AABBVertexShader.hlsl" />
     <FxCompile Include="shaders\AABBPixelShader.hlsl" />
+    <FxCompile Include="shaders\LineVertexShader.hlsl" />
+    <FxCompile Include="shaders\LinePixelShader.hlsl" />
   </ItemGroup>
 </Project>

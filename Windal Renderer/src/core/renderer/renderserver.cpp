@@ -6,6 +6,7 @@
 #include "graphics/enviroment.h"
 
 #include "math/transform.h"
+#include "graphics/camera.h"
 
 #include <iostream>
 #include <d3d11.h>
@@ -85,12 +86,28 @@ void RenderServer::PushAABB(AABB aabb, DirectX::XMFLOAT3 color)
 	mRenderer->PushAABBData(data);
 }
 
+void RenderServer::PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, DirectX::XMFLOAT3 color)
+{
+	LineData data = {};
+	data.start = start;
+	data.end = end;
+	data.color = color;
+	mRenderer->PushLineData(data);
+}
+
 void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
 {
 	CameraData data = {};
 	data.viewProj = viewProj;
 	data.pos = cameraPos;
 	mRenderer->SetSceneCamera(data);
+}
+
+void RenderServer::UpdateFrustum(DirectX::BoundingFrustum frustum)
+{
+	FrustumData data = {};
+	data.frustum = frustum;
+	mRenderer->SetCullingFrustum(data);
 }
 
 void RenderServer::UpdateEnviroment(Enviroment& enviroment)
@@ -123,4 +140,16 @@ void RenderServer::SetShowGBuffer(bool value)
 	{
 		mRenderer->SetFlags(mRenderer->GetFlags() & ~SHOW_GBUFFERS);
 	}
+}
+
+void RenderServer::SetShowBoundingBoxes(bool value)
+{
+    if (value)
+    {
+        mRenderer->SetFlags(mRenderer->GetFlags() | SHOW_BOUNDING_BOXES);
+    }
+    else
+    {
+        mRenderer->SetFlags(mRenderer->GetFlags() & ~SHOW_BOUNDING_BOXES);
+    }
 }

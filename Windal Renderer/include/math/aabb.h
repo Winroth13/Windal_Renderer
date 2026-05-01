@@ -11,5 +11,5 @@ struct AABB
 
 	AABB Transform(const DirectX::XMMATRIX matrix);
 
-	DirectX::BoundingBox ToBoundingBox();
+	DirectX::BoundingBox ToBoundingBox() const;
 };

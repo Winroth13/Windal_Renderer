@@ -86,6 +86,7 @@ public:
 		spotEntity2.SetVisible(false);
 
 		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
+		cubemapEntity.SetDynamic(true);
 
 		auto cube = std::make_shared<OBJModel>("assets/cube/cube.obj", vShader, true);
 		cube->GetMaterial(0)->SetCubemapTexture(cubemapEntity.GetCubemapTexture());
@@ -155,11 +156,11 @@ public:
 				cameraEntity->transform.RotateX(TURN_SPEED * (float)delta);
 			if (GetAsyncKeyState(MK_RBUTTON) & 0x8000)
 			{
-				float dx = 20 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
-				float dy = 20 * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
+				float dx = 0.25f * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.x - previousMousePos.x));
+				float dy = 0.25f * DirectX::XMConvertToRadians(static_cast<float>(newMousePos.y - previousMousePos.y));
 
-				cameraEntity->transform.RotateX(TURN_SPEED * dy * (float)delta);
-				cameraEntity->transform.RotateY(TURN_SPEED * dx * (float)delta);
+				cameraEntity->transform.RotateX(TURN_SPEED * dy);
+				cameraEntity->transform.RotateY(TURN_SPEED * dx);
 
 				/* Clamp pitch */
 				if (cameraEntity->transform.GetAngles3f().x > DirectX::XM_PIDIV2)
@@ -214,6 +215,8 @@ public:
 
 			if (ImGui::BeginMenu("Debug"))
 			{
+				ImGui::Checkbox("Lock Frustum", &mScene->GetLockFrustum());
+
 				if (ImGui::BeginMenu("Viewport"))
 				{
 					bool changed = false;
@@ -236,10 +239,17 @@ public:
 						changed = true;
 					}
 
+					if (ImGui::RadioButton("Bounding Boxes", mViewportDebugMode == 3))
+					{
+						mViewportDebugMode = 3;
+						changed = true;
+					}
+
 					if (changed)
 					{
 						renderServer.SetWireframe(mViewportDebugMode == 1);
 						renderServer.SetShowGBuffer(mViewportDebugMode == 2);
+						renderServer.SetShowBoundingBoxes(mViewportDebugMode == 3);
 					}
 
 					ImGui::EndMenu();
@@ -297,8 +307,8 @@ public:
 					auto& camera = mScene->GetCamera();
 					Entity* attachEnt = inspectorEntity->get()->GetAttachEntity();
 
-					XMFLOAT4X4 view = camera.GetView4x4f();
-					XMFLOAT4X4 proj = camera.GetProj4x4f();
+					DirectX::XMFLOAT4X4 view = camera.GetView4x4f();
+					DirectX::XMFLOAT4X4 proj = camera.GetProj4x4f();
 
 					Transform localTransform = inspectorEntity->get()->transform;
 
@@ -309,7 +319,7 @@ public:
 						localTransform.Scale(attachEnt->GetGlobalScale());
 					}
 
-					XMFLOAT4X4 localMat = localTransform.GetMatrixf();
+					DirectX::XMFLOAT4X4 localMat = localTransform.GetMatrixf();
 
 					Transform& transform = inspectorEntity->get()->transform;
 
@@ -326,7 +336,7 @@ public:
 						case ImGuizmo::TRANSLATE:
 							if (inspectorEntity->get()->HasAttach())
 							{
-								XMFLOAT3 invAttachPos = attachEnt->GetGlobalPosition();
+								DirectX::XMFLOAT3 invAttachPos = attachEnt->GetGlobalPosition();
 								invAttachPos.x = -invAttachPos.x;
 								invAttachPos.y = -invAttachPos.y;
 								invAttachPos.z = -invAttachPos.z;
@@ -341,7 +351,7 @@ public:
 						case ImGuizmo::SCALE:
 							if (inspectorEntity->get()->HasAttach())
 							{
-								XMFLOAT3 invAttachScale = attachEnt->GetGlobalScale();
+								DirectX::XMFLOAT3 invAttachScale = attachEnt->GetGlobalScale();
 								invAttachScale.x = -invAttachScale.x;
 								invAttachScale.y = -invAttachScale.y;
 								invAttachScale.z = -invAttachScale.z;

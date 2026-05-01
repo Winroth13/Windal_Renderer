@@ -52,6 +52,7 @@ PixelShaderOutput main(PixelShaderInput input)
 {
     PixelShaderOutput output;
     output.position = float4(input.worldPosition, true);
+    float3 resultingNormal;
     
     /* Normal Mapping */
     if ((materialFlags & HAS_NORMAL_MAP) == HAS_NORMAL_MAP)
@@ -65,12 +66,14 @@ PixelShaderOutput main(PixelShaderInput input)
         sampledNormal *= 2.0f;
         sampledNormal -= float3(1.0f, 1.0f, 1.0f);
 
-        output.normal = float4(mul(sampledNormal, tbnMatrix), 1.0f);
+        resultingNormal = mul(sampledNormal, tbnMatrix);
     }
     else
     {
-        output.normal = float4(input.worldNormal, 1.0f);
+        resultingNormal = input.worldNormal;
     }
+    
+    output.normal = float4(resultingNormal, 1.0f);
     
     /* Diffuse */
     float3 color = diffuseTexture.Sample(samplerState, input.uv).rgb;
@@ -79,7 +82,7 @@ PixelShaderOutput main(PixelShaderInput input)
     if (reflectiveness > 0)
     {
         float3 viewVector = input.worldPosition - cameraPos;
-        float3 reflectVector = normalize(reflect(viewVector, input.worldNormal));
+        float3 reflectVector = normalize(reflect(viewVector, resultingNormal));
         float3 reflectionColor = cubemapTexture.Sample(samplerState, reflectVector).rgb;
     
         color = lerp(color, reflectionColor, reflectiveness);

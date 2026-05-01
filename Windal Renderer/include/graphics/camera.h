@@ -1,8 +1,7 @@
 #pragma once
 #include "math/transform.h"
 #include "core/logger.h"
-
-using namespace DirectX;
+#include "DirectXCollision.h"
 
 class Camera
 {
@@ -34,6 +33,8 @@ public:
 	DirectX::XMFLOAT4X4 GetProj4x4f() const;
 
 	void UpdateViewMatrix();
+
+	DirectX::BoundingFrustum GetBoundingFrustum();
 
 private:
 	float mNearZ = 0.0f;

@@ -39,7 +39,7 @@ public:
 		}
 
 		T& reference = *ptr;
-		mEntities.push_back(std::move(ptr));
+		mEntities.emplace_back(std::move(ptr));
 		return reference;
 	};
 
@@ -48,9 +48,14 @@ public:
 	Camera& GetCamera() { return mCamera; }
 	Enviroment& GetEnviroment() { return mEnviroment; }
 
+	void SetLockFrustum(bool value) { mIsFrustumLocked = value; }
+	bool IsFrustumLocked() { return mIsFrustumLocked; }
+	bool& GetLockFrustum() { return mIsFrustumLocked; }
+
 private:
 	Camera mCamera;
 	Enviroment mEnviroment;
+	bool mIsFrustumLocked;
 
 	std::unordered_map<std::string, size_t> mEntityNameCount;
 	std::vector<std::unique_ptr<Entity>> mEntities;

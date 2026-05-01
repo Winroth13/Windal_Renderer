@@ -1,6 +1,8 @@
 #include "graphics/camera.h"
 #include <DirectXMath.h>
 
+using namespace DirectX;
+
 Camera::Camera()
 {
 }
@@ -65,7 +67,7 @@ void Camera::SetPerspectiveLens(float fovY, float aspect, float zNear, float zFa
 	mNearWindowHeight = 2.0f * mNearZ * tanf(0.5f * mFovY);
 	mFarWindowHeight = 2.0f * mFarZ * tanf(0.5f * mFovY);
 
-	DirectX::XMMATRIX p = DirectX::XMMatrixPerspectiveFovLH(mFovY, mAspect, mNearZ, mFarZ);
+	XMMATRIX p = XMMatrixPerspectiveFovLH(mFovY, mAspect, mNearZ, mFarZ);
 	XMStoreFloat4x4(&mProj, p);
 }
 
@@ -79,31 +81,31 @@ void Camera::SetOrthographicLens(float width, float height, float zNear, float z
 	mNearWindowHeight = height;
 	mFarWindowHeight = height;
 
-	DirectX::XMMATRIX o = DirectX::XMMatrixOrthographicLH(width, height, zNear, zFar);
+	XMMATRIX o = XMMatrixOrthographicLH(width, height, zNear, zFar);
 	XMStoreFloat4x4(&mProj, o);
 }
 
-DirectX::XMMATRIX Camera::GetView() const
+XMMATRIX Camera::GetView() const
 {
 	return XMLoadFloat4x4(&mView);
 }
 
-DirectX::XMMATRIX Camera::GetProj() const
+XMMATRIX Camera::GetProj() const
 {
 	return XMLoadFloat4x4(&mProj);
 }
 
-DirectX::XMMATRIX Camera::GetViewProj() const
+XMMATRIX Camera::GetViewProj() const
 {
 	return GetView() * GetProj();
 }
 
-DirectX::XMFLOAT4X4 Camera::GetView4x4f() const
+XMFLOAT4X4 Camera::GetView4x4f() const
 {
 	return mView;
 }
 
-DirectX::XMFLOAT4X4 Camera::GetProj4x4f() const
+XMFLOAT4X4 Camera::GetProj4x4f() const
 {
 	return mProj;
 }
@@ -152,4 +154,25 @@ void Camera::UpdateViewMatrix()
 	mView(1, 3) = 0.0f;
 	mView(2, 3) = 0.0f;
 	mView(3, 3) = 1.0f;
+}
+
+BoundingFrustum Camera::GetBoundingFrustum()
+{
+	BoundingFrustum boundingFrustum = {};
+	BoundingFrustum::CreateFromMatrix(boundingFrustum, GetProj());
+	boundingFrustum.Origin = transform.GetPosition3f();
+
+	XMFLOAT3 angles = transform.GetAngles3f();
+	XMVECTOR orientation = DirectX::XMQuaternionRotationRollPitchYawFromVector(
+		DirectX::XMLoadFloat3(&angles)
+	);
+
+	XMFLOAT4 orientationf;
+	DirectX::XMStoreFloat4(&orientationf, orientation);
+	boundingFrustum.Orientation = orientationf;
+
+	boundingFrustum.Near = mNearZ;
+	boundingFrustum.Far = mFarZ;
+
+	return boundingFrustum;
 }
