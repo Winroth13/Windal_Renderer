@@ -9,6 +9,11 @@ Entity::Entity(std::string name)
 {
 }
 
+void Entity::Begin(RenderServer& renderServer)
+{
+	BeginSelf(renderServer);
+}
+
 void Entity::Update(double delta)
 {
 	UpdateSelf(delta);

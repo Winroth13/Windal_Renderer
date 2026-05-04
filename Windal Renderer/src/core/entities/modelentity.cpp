@@ -1,8 +1,11 @@
 #include "core/entities/modelentity.h"
 #include "graphics/models/model.h"
 #include "graphics/meshes/mesh.h"
+
 #include "core/renderer/renderserver.h"
 #include "core/logger.h"
+
+#include "math/mathfunctions.h"
 
 #include <d3d11.h>
 
@@ -13,6 +16,19 @@ ModelEntity::ModelEntity(std::shared_ptr<Model> model)
 
 ModelEntity::~ModelEntity() {}
 
+void ModelEntity::BeginSelf(RenderServer& renderServer)
+{
+	/* Push static geometry on scene begin */
+	if (mStatic)
+	{
+		for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
+		{
+			renderServer.PushMesh(mModel->GetMesh(meshIndex), GetGlobalTransform(), true);
+			renderServer.PushMaterial(mModel->GetMaterial(meshIndex), true);
+		}
+	}
+}
+
 void ModelEntity::UpdateSelf(double delta)
 {
 	//transform.RotateY((3.14f / 8) * static_cast<float>(delta));
@@ -20,16 +36,17 @@ void ModelEntity::UpdateSelf(double delta)
 	//transform.RotateZ((3.14f / 8) * static_cast<float>(delta));
 }
 
-#include "math/mathfunctions.h"
-
 void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
-	for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
+	if (!mStatic)
 	{
-		if (mModel->IsMeshVisible(meshIndex))
+		for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
 		{
-			renderServer.PushMesh(mModel->GetMesh(meshIndex), GetGlobalTransform());
-			renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
+			if (mModel->IsMeshVisible(meshIndex))
+			{
+				renderServer.PushMesh(mModel->GetMesh(meshIndex), GetGlobalTransform());
+				renderServer.PushMaterial(mModel->GetMaterial(meshIndex));
+			}
 		}
 	}
 }

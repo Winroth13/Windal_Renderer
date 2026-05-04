@@ -15,6 +15,7 @@ public:
 	Scene();
 	~Scene() {};
 
+	void Begin(RenderServer& renderServer);
 	void Update(double delta);
 	void Render(RenderServer& renderServer);
 	void Shutdown();

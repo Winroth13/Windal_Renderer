@@ -7,6 +7,14 @@ Scene::Scene()
 	mCamera.SetPerspectiveLens(fov, 16.f / 9.f, 0.1f, 1000.0f); // TODO: This assumes the aspect ratio will always be 16:9
 }
 
+void Scene::Begin(RenderServer& renderServer)
+{
+	for (std::unique_ptr<Entity>& e : mEntities)
+	{
+		e->Begin(renderServer);
+	}
+}
+
 void Scene::Update(double delta)
 {
 	for (std::unique_ptr<Entity>& e : mEntities)

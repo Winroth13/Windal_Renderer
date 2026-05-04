@@ -48,6 +48,8 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 	}
 
 	mApp->Initialize();
+	mScene.Begin(mRenderer.GetRenderServer());
+	mRenderer.BakeStaticGeometry();
 
 	return true;
 }

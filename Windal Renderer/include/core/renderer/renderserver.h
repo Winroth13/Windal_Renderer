@@ -31,8 +31,8 @@ public:
 
 	bool Create(Renderer* renderer);
 
-	void PushMesh(std::shared_ptr<Mesh> mesh, DirectX::XMMATRIX transform);
-	void PushMaterial(std::shared_ptr<Material> material);
+	void PushMesh(std::shared_ptr<Mesh> mesh, DirectX::XMMATRIX transform, bool isStatic = false);
+	void PushMaterial(std::shared_ptr<Material> material, bool isStatic = false);
 
 	void PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
 	void PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity);

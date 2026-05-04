@@ -4,6 +4,9 @@
 
 struct AABB
 {
+	AABB();
+	AABB(const DirectX::BoundingBox& boundingBox);
+
 	DirectX::XMFLOAT3 mMin = { 0, 0, 0 };
 	DirectX::XMFLOAT3 mMax = { 0, 0, 0 };
 

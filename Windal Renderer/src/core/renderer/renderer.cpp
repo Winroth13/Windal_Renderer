@@ -509,6 +509,8 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		return false;
 	}
 
+	mStaticGeometryTree.Create(20, 20, 20);
+
 	return true;
 }
 
@@ -675,14 +677,28 @@ void Renderer::UpdatePerFrameBuffer(
 	mImmediateContext->UpdateSubresource(mPerFrameBuffer, 0, NULL, &perFrameBuffer, 0, 0);
 }
 
-void Renderer::PushGeometryData(const GeometryData& geometryData)
+void Renderer::PushGeometryData(const GeometryData& geometryData, bool isStatic)
 {
-	mGeometryData.push_back(geometryData);
+	if (isStatic)
+	{
+		mStaticGeometryData.push_back(geometryData);
+	}
+	else
+	{
+		mGeometryData.push_back(geometryData);
+	}
 }
 
-void Renderer::PushMaterialData(const MaterialData& materialData)
+void Renderer::PushMaterialData(const MaterialData& materialData, bool isStatic)
 {
-	mMaterialData.push_back(materialData);
+	if (isStatic)
+	{
+		mStaticMaterialData.push_back(materialData);
+	}
+	else
+	{
+		mMaterialData.push_back(materialData);
+	}
 }
 
 void Renderer::PushDirectionalLightData(const DirectionalLightData& directionalLightData)
@@ -751,6 +767,22 @@ void Renderer::SetCullingFrustum(const FrustumData& frustum)
 	mSceneFrustum = frustum;
 }
 
+void Renderer::BakeStaticGeometry()
+{
+	mStaticGeometryTree.Clear();
+
+	for (size_t i = 0; i < mStaticGeometryData.size(); ++i)
+	{
+		auto& mesh = mStaticGeometryData[i].mesh;
+		auto& transform = mStaticGeometryData[i].transform;
+
+		AABB localBounds = mesh->GetBounds();
+		AABB bounds = localBounds.Transform(transform);
+
+		mStaticGeometryTree.AddElement(i, bounds.ToBoundingBox());
+	}
+}
+
 void Renderer::RenderShadowMaps()
 {
 	/* Bind Shadow Map Vertex Shader */
@@ -791,7 +823,15 @@ void Renderer::RenderShadowMaps()
 
 		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
 
-		/* Draw to depth stencil */
+		/* Draw static geometry to depth stencil */
+		for (auto& data : mStaticGeometryData)
+		{
+			BindMesh(data.mesh);
+			UpdatePerObjectBuffer(data.transform);
+			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+		}
+
+		/* Draw dynamic data to depth stencil */
 		for (auto& data : mGeometryData)
 		{
 			BindMesh(data.mesh);
@@ -829,12 +869,29 @@ void Renderer::RenderShadowMaps()
 
 		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
 
-		/* Draw to depth stencil */
+		DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
+
+		/* Draw static geometry to depth stencil */
+		for (auto& index : mStaticGeometryTree.GetVisibleElements(frustum))
+		{
+			GeometryData& data = mStaticGeometryData[index];
+			if (IsGeometryVisible(data, frustum))
+			{
+				BindMesh(data.mesh);
+				UpdatePerObjectBuffer(data.transform);
+				mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+			}
+		}
+
+		/* Draw dynamic data to depth stencil */
 		for (auto& data : mGeometryData)
 		{
-			BindMesh(data.mesh);
-			UpdatePerObjectBuffer(data.transform);
-			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+			if (IsGeometryVisible(data, frustum))
+			{
+				BindMesh(data.mesh);
+				UpdatePerObjectBuffer(data.transform);
+				mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+			}
 		}
 	}
 
@@ -960,54 +1017,30 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 		materials.reserve(MAX_MATERIALS);
 		std::unordered_map<std::shared_ptr<Material>, uint32_t> materialsMap;
 
-		/* Draw each mesh and material pair	*/
+		/* Draw each mesh and material pair */
+
+		/* Static entities */
+		for (auto& staticIndicies : mStaticGeometryTree.GetVisibleElements(frustum.frustum))
+		{
+			auto& geometryData = mStaticGeometryData[staticIndicies];
+			auto& materialData = mStaticMaterialData[staticIndicies];
+
+			if (IsGeometryVisible(geometryData, frustum.frustum))
+			{
+				RenderDeferredMeshAndMaterial(geometryData, materialData, materialsMap, materials);
+			}
+		}
+
+		/* Dynamic entities */
 		for (size_t i = 0; i < mGeometryData.size(); ++i)
 		{
-			auto& mesh = mGeometryData[i].mesh;
-			auto& mat = mMaterialData[i].material;
-			auto& transform = mGeometryData[i].transform;
+			auto& geometryData = mGeometryData[i];
+			auto& materialData = mMaterialData[i];
 
-			/* Cull meshes outside camera frustum */
-			AABB aabb = mesh->GetBounds();
-			aabb = aabb.Transform(transform);
-
-			DirectX::BoundingBox boundingBox = aabb.ToBoundingBox();
-
-			if (!frustum.frustum.Intersects(boundingBox))
+			if (IsGeometryVisible(geometryData, frustum.frustum))
 			{
-				continue;
+				RenderDeferredMeshAndMaterial(geometryData, materialData, materialsMap, materials);
 			}
-
-			/* When we encounter a new material, add it! */
-			if (materialsMap.find(mat) == materialsMap.end())
-			{
-				materialsMap[mat] = (uint32_t)materials.size();
-
-				PerMaterial data = {};
-				data.ambientCoefficient = mat->GetAmbientCoefficient3f();
-				data.diffuseCoefficient = mat->GetDiffuseCoefficient3f();
-				data.specularCoefficient = mat->GetSpecularCoefficient3f();
-				data.phongExponent = mat->GetPhongExponent();
-				data.reflectiveness = mat->GetReflectiveness();
-
-				if (materials.size() < MAX_MATERIALS)
-					materials.emplace_back(data);
-				else
-					Logger::Warn("Materials cannot exceed " + MAX_MATERIALS);
-			}
-
-			uint32_t matIndex = materialsMap[mat];
-
-			BindMesh(mesh);
-			BindMaterialSRV(mat, matIndex);
-
-			UpdatePerObjectBuffer(mGeometryData[i].transform);
-			UpdatePerMaterialBuffer(mat);
-
-			mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
-
-			ID3D11ShaderResourceView* views[] = { nullptr };
-			mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
 		}
 
 		/* Fill materials buffer */
@@ -1103,10 +1136,21 @@ void Renderer::RenderBB()
 	constexpr DirectX::XMFLOAT3 FRUSTUM_BOUNDING_BOX_COLOR = { 0.0f, 0.0f, 1.0f };
 
 	/* Draw Geometry Bounding Boxes	*/
-	for (size_t i = 0; i < mGeometryData.size(); ++i)
+	for (size_t i = 0; i < mGeometryData.size() + mStaticGeometryData.size(); ++i)
 	{
-		auto& mesh = mGeometryData[i].mesh;
-		auto& transform = mGeometryData[i].transform;
+		std::shared_ptr<Mesh> mesh;
+		DirectX::XMMATRIX transform;
+
+		if (i < mGeometryData.size())
+		{
+			mesh = mGeometryData[i].mesh;
+			transform = mGeometryData[i].transform;
+		}
+		else
+		{
+			mesh = mStaticGeometryData[i - mGeometryData.size()].mesh;
+			transform = mStaticGeometryData[i - mGeometryData.size()].transform;
+		}
 
 		AABB localBounds = mesh->GetBounds();
 		AABB bounds = localBounds.Transform(transform);
@@ -1146,6 +1190,76 @@ void Renderer::RenderBB()
 	mRenderServer.PushLine(corners[1], corners[5], FRUSTUM_BOUNDING_BOX_COLOR);
 	mRenderServer.PushLine(corners[2], corners[6], FRUSTUM_BOUNDING_BOX_COLOR);
 	mRenderServer.PushLine(corners[3], corners[7], FRUSTUM_BOUNDING_BOX_COLOR);
+
+	constexpr DirectX::XMFLOAT3 treeBoundsColors[6] =
+	{
+		{1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1},
+		{1, 1, 0},
+		{1, 0, 1},
+		{0, 0, 0}
+	};
+
+	/* Draw Quad Tree */
+	for (auto& result : mStaticGeometryTree.GetTreeBounds())
+	{
+		AABB aabb = AABB(result.boundingBox);
+		mRenderServer.PushAABB(aabb, treeBoundsColors[result.depth % 6]);
+	}
+}
+
+bool Renderer::IsGeometryVisible(GeometryData& geometryData, const DirectX::BoundingFrustum& frustum)
+{
+	auto& transform = geometryData.transform;
+
+	AABB aabb = geometryData.mesh->GetBounds();
+	aabb = aabb.Transform(transform);
+
+	DirectX::BoundingBox boundingBox = aabb.ToBoundingBox();
+
+	return frustum.Intersects(boundingBox);
+}
+
+void Renderer::RenderDeferredMeshAndMaterial(
+	GeometryData& geometryData,
+	MaterialData& materialData,
+	std::unordered_map<std::shared_ptr<Material>, uint32_t>& materialsMap,
+	std::vector<PerMaterial>& perMaterials)
+{
+	auto& mesh = geometryData.mesh;
+	auto& mat = materialData.material;
+	auto& transform = geometryData.transform;
+
+	if (materialsMap.find(mat) == materialsMap.end())
+	{
+		materialsMap[mat] = (uint32_t)perMaterials.size();
+
+		PerMaterial data = {};
+		data.ambientCoefficient = mat->GetAmbientCoefficient3f();
+		data.diffuseCoefficient = mat->GetDiffuseCoefficient3f();
+		data.specularCoefficient = mat->GetSpecularCoefficient3f();
+		data.phongExponent = mat->GetPhongExponent();
+		data.reflectiveness = mat->GetReflectiveness();
+
+		if (perMaterials.size() < MAX_MATERIALS)
+			perMaterials.emplace_back(data);
+		else
+			Logger::Warn("Materials cannot exceed " + MAX_MATERIALS);
+	}
+
+	uint32_t matIndex = materialsMap[mat];
+
+	BindMesh(mesh);
+	BindMaterialSRV(mat, matIndex);
+
+	UpdatePerObjectBuffer(geometryData.transform);
+	UpdatePerMaterialBuffer(mat);
+
+	mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
+
+	ID3D11ShaderResourceView* views[] = { nullptr };
+	mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)

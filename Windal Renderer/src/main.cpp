@@ -37,8 +37,6 @@ public:
 
 	void Initialize() override
 	{
-		QuadTree<int> tree;
-
 		auto skyCubemapTexture = std::make_shared<CubemapTexture>(
 			std::array<std::string, 6>
 		{
@@ -58,6 +56,7 @@ public:
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.01f, 0.01f, 0.01f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
+		entity.SetStatic(true);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>();
 		cameraEntity->transform.SetPosition(0, 1, 0);

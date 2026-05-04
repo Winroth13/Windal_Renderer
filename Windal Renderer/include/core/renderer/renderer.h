@@ -15,12 +15,14 @@
 #include "graphics/gbuffers.h"
 
 #include "math/transform.h"
+#include "core/quadtree.h"
 
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 
 #include <vector>
 #include <array>
+#include <unordered_map>
 
 #define MAX_DIRECTIONAL_LIGHTS 8
 #define MAX_POINT_LIGHTS 8
@@ -209,8 +211,8 @@ public:
 		const std::array<uint32_t, 2> screenDimensions
 	);
 
-	void PushGeometryData(const GeometryData& geometryData);
-	void PushMaterialData(const MaterialData& materialData);
+	void PushGeometryData(const GeometryData& geometryData, bool isStatic = false);
+	void PushMaterialData(const MaterialData& materialData, bool isStatic = false);
 
 	void PushDirectionalLightData(const DirectionalLightData& directionalLightData);
 	void PushPointLightData(const PointLightData& pointLightData);
@@ -228,11 +230,22 @@ public:
 	const uint16_t GetFlags() { return mNewFlags; }
 	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
 
+	void BakeStaticGeometry();
+
 private:
 	void RenderShadowMaps();
 	void RenderCubeMaps();
 	void RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& buffers, uint16_t flags, CameraData camera, FrustumData frustum);
 	void RenderBB();
+
+	bool IsGeometryVisible(GeometryData& geometryData, const DirectX::BoundingFrustum& frustum);
+
+	void RenderDeferredMeshAndMaterial(
+		GeometryData& geometryData,
+		MaterialData& materialData,
+		std::unordered_map<std::shared_ptr<Material>, uint32_t>& materialsMap,
+		std::vector<PerMaterial>& perMaterials
+	);
 
 	void UpdatePerViewBuffer(const CameraData& cameraData);
 	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
@@ -277,6 +290,12 @@ private:
 	AABBRenderer mAABBRenderer;
 	LineRenderer mLineRenderer;
 
+	/* Static Data */
+	std::vector<GeometryData> mStaticGeometryData;
+	std::vector<MaterialData> mStaticMaterialData;
+	QuadTree<size_t> mStaticGeometryTree;
+
+	/* Dynamic Model Data */
 	std::vector<GeometryData> mGeometryData;
 	std::vector<MaterialData> mMaterialData;
 

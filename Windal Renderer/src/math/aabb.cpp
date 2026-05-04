@@ -4,6 +4,21 @@
 
 using namespace DirectX;
 
+AABB::AABB()
+{
+}
+
+AABB::AABB(const DirectX::BoundingBox& boundingBox)
+{
+	mMin.x = boundingBox.Center.x - boundingBox.Extents.x;
+	mMin.y = boundingBox.Center.y - boundingBox.Extents.y;
+	mMin.z = boundingBox.Center.z - boundingBox.Extents.z;
+
+	mMax.x = boundingBox.Center.x + boundingBox.Extents.x;
+	mMax.y = boundingBox.Center.y + boundingBox.Extents.y;
+	mMax.z = boundingBox.Center.z + boundingBox.Extents.z;
+}
+
 void AABB::Expand(const XMFLOAT3& point)
 {
 	XMVECTOR min = XMLoadFloat3(&mMin);
