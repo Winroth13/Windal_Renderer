@@ -196,6 +196,8 @@ OBJModel::OBJModel(
 
 		std::shared_ptr<ImageTexture2D> diffuseTexture = nullptr;
 		std::shared_ptr<ImageTexture2D> normalTexture = nullptr;
+		std::shared_ptr<ImageTexture2D> displacementTexture = nullptr;
+		std::shared_ptr<ImageTexture2D> alphaTexture = nullptr;
 
 		std::string dir = std::filesystem::path(path)
 			.parent_path()
@@ -216,6 +218,26 @@ OBJModel::OBJModel(
 				std::string texturePath = dir + "/" + objMaterial.normal_texname;
 				normalTexture = std::make_shared<ImageTexture2D>(texturePath);
 				material->SetNormalMap(normalTexture);
+			}
+		}
+
+		/* Load Displacement Texture */
+		{
+			if (objMaterial.displacement_texname.length() > 0)
+			{
+				std::string texturePath = dir + "/" + objMaterial.displacement_texname;
+				displacementTexture = std::make_shared<ImageTexture2D>(texturePath);
+				material->SetDisplacementMap(displacementTexture);
+			}
+		}
+
+		/* Load Alpha Texture */
+		{
+			if (objMaterial.alpha_texname.length() > 0)
+			{
+				std::string texturePath = dir + "/" + objMaterial.alpha_texname;
+				alphaTexture = std::make_shared<ImageTexture2D>(texturePath);
+				material->SetAlphaMap(alphaTexture);
 			}
 		}
 

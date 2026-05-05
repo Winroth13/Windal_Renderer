@@ -1,8 +1,8 @@
 RWTexture2DArray<unorm float4> backBufferUAV;
 
-Texture2D<float4> positionGBuffer : register(t8);
-Texture2D<float4> normalGBuffer : register(t9);
-Texture2D<float4> colorGBuffer : register(t10);
+Texture2D<float4> positionGBuffer : register(t11);
+Texture2D<float4> normalGBuffer : register(t12);
+Texture2D<float4> colorGBuffer : register(t13);
 
 // Lights
 struct DirectionalLight
@@ -70,9 +70,9 @@ StructuredBuffer<SpotLight> spotLights : register(t2);
 
 StructuredBuffer<Material> materials : register(t3);
 
-Texture2DArray<float> directionalLightShadowMaps : register(t5);
-Texture2DArray<float> pointLightShadowMaps : register(t6);
-Texture2DArray<float> spotLightShadowMaps : register(t7);
+Texture2DArray<float> directionalLightShadowMaps : register(t8);
+Texture2DArray<float> pointLightShadowMaps : register(t9);
+Texture2DArray<float> spotLightShadowMaps : register(t10);
 
 sampler shadowMapSampler : register(s1);
 

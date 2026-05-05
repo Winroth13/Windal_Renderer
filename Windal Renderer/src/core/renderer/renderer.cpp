@@ -426,6 +426,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	/* Create Shadow Maps */
 	{
 		mShadowMapVertexShader = std::make_unique<VertexShader>("resources/ShadowMapVertexShader.cso");
+		mShadowMapPixelShader = std::make_unique<PixelShader>("resources/ShadowMapPixelShader.cso");
 
 		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS, 2048, 2048))
 		{
@@ -441,14 +442,15 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 		/* Create Input Layout */
 		{
-			D3D11_INPUT_ELEMENT_DESC inputDesc[1] =
+			D3D11_INPUT_ELEMENT_DESC inputDesc[2] =
 			{
 				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			};
 
 			HRESULT hr = Renderer::GetDevice()->CreateInputLayout(
 				inputDesc,
-				1,
+				2,
 				mShadowMapVertexShader->GetByteCode().c_str(),
 				mShadowMapVertexShader->GetByteCode().length(),
 				&mShadowInputLayout
@@ -605,6 +607,8 @@ void Renderer::BeginRender()
 	BindPerViewBuffer(ShaderType::PIXEL);
 
 	BindPerMaterialBuffer(ShaderType::PIXEL);
+
+	mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
 }
 
 void Renderer::Render()
@@ -824,11 +828,27 @@ void Renderer::RenderShadowMaps()
 		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
 
 		/* Draw static geometry to depth stencil */
-		for (auto& data : mStaticGeometryData)
+		for (size_t i = 0; i < mStaticGeometryData.size(); ++i)
 		{
-			BindMesh(data.mesh);
-			UpdatePerObjectBuffer(data.transform);
-			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+			auto& geometryData = mStaticGeometryData[i];
+			auto& materialData = mStaticMaterialData[i];
+
+			bool hasAlpha = (materialData.material->GetFlags() & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP))
+				== static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
+
+			if (hasAlpha)
+			{
+				BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
+				BindPixelShader(mShadowMapPixelShader);
+			}
+			else
+			{
+				UnbindPixelShader();
+			}
+
+			BindMesh(geometryData.mesh);
+			UpdatePerObjectBuffer(geometryData.transform);
+			mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
 		}
 
 		/* Draw dynamic data to depth stencil */
@@ -872,14 +892,29 @@ void Renderer::RenderShadowMaps()
 		DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
 
 		/* Draw static geometry to depth stencil */
-		for (auto& index : mStaticGeometryTree.GetVisibleElements(frustum))
+		for (auto& i : mStaticGeometryTree.GetVisibleElements(frustum))
 		{
-			GeometryData& data = mStaticGeometryData[index];
-			if (IsGeometryVisible(data, frustum))
+			GeometryData& geometryData = mStaticGeometryData[i];
+			if (IsGeometryVisible(geometryData, frustum))
 			{
-				BindMesh(data.mesh);
-				UpdatePerObjectBuffer(data.transform);
-				mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+				MaterialData& materialData = mStaticMaterialData[i];
+
+				bool hasAlpha = (materialData.material->GetFlags() & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP))
+					== static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
+
+				if (hasAlpha)
+				{
+					BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
+					BindPixelShader(mShadowMapPixelShader);
+				}
+				else
+				{
+					UnbindPixelShader();
+				}
+
+				BindMesh(geometryData.mesh);
+				UpdatePerObjectBuffer(geometryData.transform);
+				mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
 			}
 		}
 
@@ -1004,8 +1039,6 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 		BindSpotLights(ShaderType::COMPUTE);
 
 		BindPixelShader(mDeferredPixelShader);
-
-		mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
 	}
 
 	std::vector<PerMaterial> materials;
@@ -1370,6 +1403,8 @@ void Renderer::BindMaterialSRV(std::shared_ptr<Material> material, uint32_t inde
 	BindTexture2D(material->GetTexture(), DIFFUSE_TEXTURE_SLOT);
 	BindTexture2D(material->GetCubemapTexture(), CUBEMAP_TEXTURE_SLOT);
 	BindTexture2D(material->GetNormalMap(), NORMALMAP_TEXTURE_SLOT);
+	BindTexture2D(material->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT);
+	BindTexture2D(material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 

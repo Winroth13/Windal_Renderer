@@ -28,12 +28,35 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	mHeight = height;
 	mChannels = channels;
 
+	/* Convert STBI channels to DXGI Texture Format */
+	DXGI_FORMAT textureFormat;
+	switch (mChannels)
+	{
+	case STBI_rgb:
+	case STBI_rgb_alpha:
+		textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+
+		//case STBI_rgb:
+		//	textureFormat = DXGI_FORMAT_R8G8B8_UNORM;
+		//	break;
+
+	case STBI_grey:
+		textureFormat = DXGI_FORMAT_R8_UNORM;
+		break;
+
+	default:
+		Logger::Warn("Texture has unsupported format: " + std::to_string(mChannels) + ", falling back to RGBA");
+		textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	}
+
 	/* Create Texture */
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	desc.MipLevels = 0;
 	desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.Format = textureFormat;
 	desc.Width = mWidth;
 	desc.Height = mHeight;
 	desc.SampleDesc.Count = 1;
@@ -58,7 +81,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 	stbi_image_free(imageData);
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = textureFormat;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = -1;
 

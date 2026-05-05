@@ -85,6 +85,32 @@ void Material::SetNormalMap(std::shared_ptr<Texture2D> normalMap)
 	}
 }
 
+void Material::SetDisplacementMap(std::shared_ptr<Texture2D> displacementMap)
+{
+	mDisplacementMap = displacementMap;
+	if (mDisplacementMap)
+	{
+		mFlags |= static_cast<uint32_t>(MaterialFlags::HAS_DISPLACEMENT_MAP);
+	}
+	else
+	{
+		mFlags &= ~static_cast<uint32_t>(MaterialFlags::HAS_DISPLACEMENT_MAP);
+	}
+}
+
+void Material::SetAlphaMap(std::shared_ptr<Texture2D> alphaMap)
+{
+	mAlphaMap = alphaMap;
+	if (mAlphaMap)
+	{
+		mFlags |= static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
+	}
+	else
+	{
+		mFlags &= ~static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
+	}
+}
+
 void Material::RenderImgui()
 {
 	if (ImGui::TreeNodeEx("Shaders", TREE_NODE_FLAGS))
@@ -127,12 +153,30 @@ void Material::RenderImgui()
 		ImGui::TreePop();
 	}
 
-	if (ImGui::TreeNodeEx("Normal Texture", TREE_NODE_FLAGS))
+	if (mNormalMap != nullptr)
 	{
-		if (mNormalMap != nullptr)
+		if (ImGui::TreeNodeEx("Normal Texture", TREE_NODE_FLAGS))
 		{
 			mNormalMap->RenderImgui(TEXTURE_SIZE, TEXTURE_SIZE);
+			ImGui::TreePop();
 		}
-		ImGui::TreePop();
+	}
+
+	if (mDisplacementMap != nullptr)
+	{
+		if (ImGui::TreeNodeEx("Displacement Texture", TREE_NODE_FLAGS))
+		{
+			mDisplacementMap->RenderImgui(TEXTURE_SIZE, TEXTURE_SIZE);
+			ImGui::TreePop();
+		}
+	}
+
+	if (mAlphaMap != nullptr)
+	{
+		if (ImGui::TreeNodeEx("Alpha Texture", TREE_NODE_FLAGS))
+		{
+			mAlphaMap->RenderImgui(TEXTURE_SIZE, TEXTURE_SIZE);
+			ImGui::TreePop();
+		}
 	}
 }

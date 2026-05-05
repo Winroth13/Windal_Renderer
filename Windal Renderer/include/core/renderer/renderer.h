@@ -42,25 +42,27 @@
 #define POINT_LIGHT_SLOT 1
 #define SPOT_LIGHT_SLOT 2
 
+/* Texture Slots */
+#define DIFFUSE_TEXTURE_SLOT 3
+#define CUBEMAP_TEXTURE_SLOT 4
+#define NORMALMAP_TEXTURE_SLOT 5
+#define DISPLACEMENT_TEXTURE_SLOT 6
+#define ALPHA_TEXTURE_SLOT 7
+
 /* Shadow Maps */
-#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 5
-#define POINT_LIGHT_SHADOW_MAPS_SLOT 6
-#define SPOT_LIGHT_SHADOW_MAPS_SLOT 7
+#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 8
+#define POINT_LIGHT_SHADOW_MAPS_SLOT 9
+#define SPOT_LIGHT_SHADOW_MAPS_SLOT 10
 
 /* Materials */
 #define DEFERRED_MATERIALS_SLOT 3
 
 /* GBuffers */
-#define GBUFFER_START_SLOT 8
+#define GBUFFER_START_SLOT 11
 
 /* Samplers */
 #define DEFAULT_SAMPLER_SLOT 0
 #define SHADOW_MAP_SAMPLER_SLOT 1
-
-/* Texture Slots */
-#define DIFFUSE_TEXTURE_SLOT 3
-#define CUBEMAP_TEXTURE_SLOT 4
-#define NORMALMAP_TEXTURE_SLOT 5
 
 enum RenderFlags
 {
@@ -313,6 +315,7 @@ private:
 
 	/* Shadow Mapping */
 	std::unique_ptr<VertexShader> mShadowMapVertexShader;
+	std::unique_ptr<PixelShader> mShadowMapPixelShader;
 	ShadowMap mDirectionalLightsShadowMap;
 	ShadowMap mSpotLightsShadowMap;
 	ID3D11InputLayout* mShadowInputLayout = nullptr;

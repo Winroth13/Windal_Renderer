@@ -2,12 +2,14 @@
 struct VertexShaderInput
 {
     float3 position : POSITION;
+    float2 uv : UV;
 };
 
 // Output
 struct VertexShaderOutput
 {
-    float4 clipPosition : SV_POSITION;
+    float4 position : SV_POSITION;
+    float2 uv : UV;
 };
 
 // Constant buffers
@@ -31,7 +33,8 @@ VertexShaderOutput main(VertexShaderInput input)
     float4 worldPos = mul(float4(input.position.xyz, 1.0f), worldMatrix);
     float4 clipPos = mul(viewProjMatrix, worldPos);
 
-    output.clipPosition = clipPos;
+    output.position = clipPos;
+    output.uv = input.uv;
     
     return output;
 }

@@ -1,7 +1,7 @@
 # Blender 5.1.0
 # www.blender.org
 mtllib sphere.mtl
-o Cube
+o Sphere
 v 0.500000 0.500000 -0.500000
 v 0.500000 -0.500000 -0.500000
 v 0.500000 0.500000 0.500000

@@ -182,7 +182,7 @@ public:
 			if (GetAsyncKeyState('R') & 0x8000)
 				mGizmoOperation = ImGuizmo::SCALE;
 
-			if ((GetAsyncKeyState(VK_BACK) & 0x8000) || (GetAsyncKeyState(VK_ESCAPE) & 0x8000))
+			if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
 			{
 				inspectorEntity = nullptr;
 			}

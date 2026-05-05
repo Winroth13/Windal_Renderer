@@ -42,14 +42,26 @@ cbuffer cbMateralIndex : register(b4)
 Texture2D diffuseTexture : register(t3);
 TextureCube cubemapTexture : register(t4);
 Texture2D normalTexture : register(t5);
+Texture2D alphaTexture : register(t7);
 
 SamplerState samplerState : register(s0);
 
 /* Material Flags */
 #define HAS_NORMAL_MAP 1
+#define HAS_DISPLACEMENT_MAP 2
+#define HAS_ALPHA_MAP 4
 
 PixelShaderOutput main(PixelShaderInput input)
 {
+    if ((materialFlags & HAS_ALPHA_MAP) == HAS_ALPHA_MAP)
+    {
+        float alpha = alphaTexture.Sample(samplerState, input.uv).r;
+        if (alpha < 0.5f)
+        {
+            discard;
+        }
+    }
+
     PixelShaderOutput output;
     output.position = float4(input.worldPosition, true);
     float3 resultingNormal;

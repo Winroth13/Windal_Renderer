@@ -7,9 +7,12 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 
-enum class MaterialFlags
+enum class MaterialFlags : uint32_t
 {
-	HAS_NORMAL_MAP = 1
+	NONE = 0,
+	HAS_NORMAL_MAP = 1,
+	HAS_DISPLACEMENT_MAP = 2,
+	HAS_ALPHA_MAP = 4
 };
 
 class Material
@@ -25,9 +28,11 @@ public:
 	inline ID3D11InputLayout* GetInputLayout() { return mInputLayout; }
 
 	inline std::shared_ptr<Texture2D> GetTexture() { return mTexture; }
-    inline std::shared_ptr<Texture2D> GetNormalMap() { return mNormalMap; }
+	inline std::shared_ptr<Texture2D> GetNormalMap() { return mNormalMap; }
 	inline std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
-	
+	inline std::shared_ptr<Texture2D> GetDisplacementMap() { return mDisplacementMap; }
+	inline std::shared_ptr<Texture2D> GetAlphaMap() { return mAlphaMap; }
+
 	void SetAmbientCoefficient(const float r, const float g, const float b);
 	void SetDiffuseCoefficient(const float r, const float g, const float b);
 	void SetSpecularCoefficient(const float r, const float g, const float b);
@@ -36,6 +41,8 @@ public:
 
 	void SetCubemapTexture(std::shared_ptr<CubemapTexture> cubemapTexture) { mCubemapTexture = cubemapTexture; }
 	void SetNormalMap(std::shared_ptr<Texture2D> normalMap);
+	void SetDisplacementMap(std::shared_ptr<Texture2D> displacementMap);
+	void SetAlphaMap(std::shared_ptr<Texture2D> alphaMap);
 
 	void RenderImgui();
 
@@ -69,6 +76,8 @@ private:
 	std::shared_ptr<Texture2D> mTexture = nullptr;
 	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;
 	std::shared_ptr<Texture2D> mNormalMap = nullptr;
+	std::shared_ptr<Texture2D> mDisplacementMap = nullptr;
+	std::shared_ptr<Texture2D> mAlphaMap = nullptr;
 
 	uint32_t mFlags = 0;
 

@@ -12,3 +12,4 @@ d 1.000000
 illum 2
 map_Kd textures/red_brick_diff_1k.jpg
 norm textures/red_brick_nor_dx_1k.jpg
+disp textures/red_brick_disp_1k.jpg
