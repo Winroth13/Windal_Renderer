@@ -513,6 +513,10 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 	mStaticGeometryTree.Create(20, 20, 20);
 
+	/* Initialize Rasterizer Desc */
+	mRasterizerDesc.CullMode = D3D11_CULL_BACK;
+	mRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+
 	return true;
 }
 
@@ -590,11 +594,10 @@ void Renderer::BeginRender()
 	if ((mFlags & WIRE_FRAME) == WIRE_FRAME)
 	{
 		ID3D11RasterizerState* state;
-		D3D11_RASTERIZER_DESC desc = {};
-		desc.FillMode = D3D11_FILL_SOLID;
-		desc.CullMode = D3D11_CULL_BACK;
+		mRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+		mRasterizerDesc.CullMode = D3D11_CULL_BACK;
 
-		sDevice->CreateRasterizerState(&desc, &state);
+		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
 		mImmediateContext->RSSetState(state);
 		state->Release();
 	}
@@ -619,11 +622,10 @@ void Renderer::Render()
 	if ((mNewFlags & WIRE_FRAME) == WIRE_FRAME)
 	{
 		ID3D11RasterizerState* state;
-		D3D11_RASTERIZER_DESC desc = {};
-		desc.FillMode = D3D11_FILL_WIREFRAME;
-		desc.CullMode = D3D11_CULL_BACK;
+		mRasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+		mRasterizerDesc.CullMode = D3D11_CULL_BACK;
 
-		sDevice->CreateRasterizerState(&desc, &state);
+		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
 		mImmediateContext->RSSetState(state);
 		state->Release();
 	}
@@ -832,31 +834,15 @@ void Renderer::RenderShadowMaps()
 		{
 			auto& geometryData = mStaticGeometryData[i];
 			auto& materialData = mStaticMaterialData[i];
-
-			bool hasAlpha = (materialData.material->GetFlags() & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP))
-				== static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
-
-			if (hasAlpha)
-			{
-				BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
-				BindPixelShader(mShadowMapPixelShader);
-			}
-			else
-			{
-				UnbindPixelShader();
-			}
-
-			BindMesh(geometryData.mesh);
-			UpdatePerObjectBuffer(geometryData.transform);
-			mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
+			RenderShadowMeshAndMaterial(geometryData, materialData);
 		}
 
 		/* Draw dynamic data to depth stencil */
-		for (auto& data : mGeometryData)
+		for (size_t i = 0; i < mGeometryData.size(); ++i)
 		{
-			BindMesh(data.mesh);
-			UpdatePerObjectBuffer(data.transform);
-			mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+			auto& geometryData = mGeometryData[i];
+			auto& materialData = mMaterialData[i];
+			RenderShadowMeshAndMaterial(geometryData, materialData);
 		}
 	}
 
@@ -898,34 +884,18 @@ void Renderer::RenderShadowMaps()
 			if (IsGeometryVisible(geometryData, frustum))
 			{
 				MaterialData& materialData = mStaticMaterialData[i];
-
-				bool hasAlpha = (materialData.material->GetFlags() & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP))
-					== static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
-
-				if (hasAlpha)
-				{
-					BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
-					BindPixelShader(mShadowMapPixelShader);
-				}
-				else
-				{
-					UnbindPixelShader();
-				}
-
-				BindMesh(geometryData.mesh);
-				UpdatePerObjectBuffer(geometryData.transform);
-				mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
+				RenderShadowMeshAndMaterial(geometryData, materialData);
 			}
 		}
 
 		/* Draw dynamic data to depth stencil */
-		for (auto& data : mGeometryData)
+		for (size_t i = 0; i < mGeometryData.size(); ++i)
 		{
-			if (IsGeometryVisible(data, frustum))
+			GeometryData& geometryData = mGeometryData[i];
+			if (IsGeometryVisible(geometryData, frustum))
 			{
-				BindMesh(data.mesh);
-				UpdatePerObjectBuffer(data.transform);
-				mImmediateContext->DrawIndexed((UINT)data.mesh->GetNumIndicies(), 0, 0);
+				MaterialData& materialData = mMaterialData[i];
+				RenderShadowMeshAndMaterial(geometryData, materialData);
 			}
 		}
 	}
@@ -1244,7 +1214,7 @@ void Renderer::RenderBB()
 
 bool Renderer::IsGeometryVisible(GeometryData& geometryData, const DirectX::BoundingFrustum& frustum)
 {
-	auto& transform = geometryData.transform;
+	DirectX::XMMATRIX& transform = geometryData.transform;
 
 	AABB aabb = geometryData.mesh->GetBounds();
 	aabb = aabb.Transform(transform);
@@ -1252,6 +1222,34 @@ bool Renderer::IsGeometryVisible(GeometryData& geometryData, const DirectX::Boun
 	DirectX::BoundingBox boundingBox = aabb.ToBoundingBox();
 
 	return frustum.Intersects(boundingBox);
+}
+
+void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialData& materialData)
+{
+	if (materialData.material->HasAlpha())
+	{
+		BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
+		BindPixelShader(mShadowMapPixelShader);
+	}
+	else
+	{
+		UnbindPixelShader();
+	}
+
+	D3D11_CULL_MODE wishCullMode = materialData.material->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+	if (mRasterizerDesc.CullMode != wishCullMode)
+	{
+		ID3D11RasterizerState* state;
+		mRasterizerDesc.CullMode = wishCullMode;
+
+		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
+		mImmediateContext->RSSetState(state);
+		state->Release();
+	}
+
+	BindMesh(geometryData.mesh);
+	UpdatePerObjectBuffer(geometryData.transform);
+	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
 }
 
 void Renderer::RenderDeferredMeshAndMaterial(
@@ -1262,7 +1260,7 @@ void Renderer::RenderDeferredMeshAndMaterial(
 {
 	auto& mesh = geometryData.mesh;
 	auto& mat = materialData.material;
-	auto& transform = geometryData.transform;
+	DirectX::XMMATRIX& transform = geometryData.transform;
 
 	if (materialsMap.find(mat) == materialsMap.end())
 	{
@@ -1288,6 +1286,17 @@ void Renderer::RenderDeferredMeshAndMaterial(
 
 	UpdatePerObjectBuffer(geometryData.transform);
 	UpdatePerMaterialBuffer(mat);
+
+	D3D11_CULL_MODE wishCullMode = materialData.material->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+	if (mRasterizerDesc.CullMode != wishCullMode)
+	{
+		ID3D11RasterizerState* state;
+		mRasterizerDesc.CullMode = wishCullMode;
+
+		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
+		mImmediateContext->RSSetState(state);
+		state->Release();
+	}
 
 	mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
 

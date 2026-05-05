@@ -56,6 +56,9 @@ public:
 
 	inline float& GetPhongExponent() { return mPhongExponent; }
 	inline float& GetReflectiveness() { return mReflectiveness; }
+
+	bool HasAlpha() const;
+
 	inline uint32_t GetFlags() { return mFlags; }
 
 	void SetName(const std::string& name) { mName = name; }

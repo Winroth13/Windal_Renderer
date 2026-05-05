@@ -242,6 +242,8 @@ private:
 
 	bool IsGeometryVisible(GeometryData& geometryData, const DirectX::BoundingFrustum& frustum);
 
+	void RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialData& materialData);
+
 	void RenderDeferredMeshAndMaterial(
 		GeometryData& geometryData,
 		MaterialData& materialData,
@@ -365,6 +367,8 @@ private:
 
 	ID3D11Buffer* mPerMaterialBuffer;
 	ID3D11ShaderResourceView* mPerMaterialSRV;
+
+	D3D11_RASTERIZER_DESC mRasterizerDesc = {};
 
 	uint16_t mFlags = 0;
 	uint16_t mNewFlags = 0;

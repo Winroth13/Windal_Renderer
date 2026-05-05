@@ -180,3 +180,10 @@ void Material::RenderImgui()
 		}
 	}
 }
+
+bool Material::HasAlpha() const
+{
+	return 
+		(mFlags & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP)) == 
+		static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
+}
