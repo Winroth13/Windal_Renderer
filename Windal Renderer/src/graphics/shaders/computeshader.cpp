@@ -18,7 +18,8 @@ ComputeShader::ComputeShader(const std::string& path)
 	if (FAILED(hr))
 	{
 		// TODO: maybe implement some fallback shader!
-		throw std::runtime_error(std::string("ERROR: Failed to create compute shader: ") + path);
+		Logger::Error(std::string("Failed to create compute shader: ") + path);
+		throw std::runtime_error("");
 	}
 
 	Logger::Info("Loaded compute shader: " + path);

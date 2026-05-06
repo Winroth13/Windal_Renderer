@@ -189,6 +189,12 @@
     <ClInclude Include="include\core\quadtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\graphics\shaders\domainshader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\shaders\hullshader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -341,6 +347,12 @@
     <ClCompile Include="src\core\renderer\linerenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\shaders\domainshadercpp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\hullshader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -358,5 +370,7 @@
     <FxCompile Include="shaders\LineVertexShader.hlsl" />
     <FxCompile Include="shaders\LinePixelShader.hlsl" />
     <FxCompile Include="shaders\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="shaders\TessellationHullShader.hlsl" />
+    <FxCompile Include="shaders\DisplacementDomainShader.hlsl" />
   </ItemGroup>
 </Project>

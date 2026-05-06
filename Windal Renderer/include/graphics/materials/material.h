@@ -58,6 +58,7 @@ public:
 	inline float& GetReflectiveness() { return mReflectiveness; }
 
 	bool HasAlpha() const;
+	bool HasDisplacement() const;
 
 	inline uint32_t GetFlags() { return mFlags; }
 

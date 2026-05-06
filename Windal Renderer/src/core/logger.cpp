@@ -1,9 +1,10 @@
 #include "core/logger.h"
+
 #include <iostream>
 #include <Windows.h>
-
 #include <stdarg.h>
 #include <stdio.h>
+#include <sstream>
 
 void Logger::Info(const std::string& text)
 {
@@ -21,6 +22,10 @@ void Logger::Error(const std::string& text)
 	std::cout << "ERROR: ";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
 	std::cout << text << std::endl;
+
+	std::ostringstream os;
+	os << text;
+	MessageBoxA(NULL, os.str().c_str(), "Error", MB_OK | MB_ICONERROR);
 }
 
 void Logger::Warn(const std::string& text)

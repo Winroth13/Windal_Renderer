@@ -187,3 +187,10 @@ bool Material::HasAlpha() const
 		(mFlags & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP)) == 
 		static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
 }
+
+bool Material::HasDisplacement() const
+{
+	return
+		(mFlags & static_cast<uint32_t>(MaterialFlags::HAS_DISPLACEMENT_MAP)) ==
+		static_cast<uint32_t>(MaterialFlags::HAS_DISPLACEMENT_MAP);
+}

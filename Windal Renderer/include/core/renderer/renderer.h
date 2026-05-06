@@ -8,9 +8,13 @@
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
+
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/shaders/pixelshader.h"
 #include "graphics/shaders/computeshader.h"
+#include "graphics/shaders/domainshader.h"
+#include "graphics/shaders/hullshader.h"
+
 #include "graphics/shadowmap.h"
 #include "graphics/gbuffers.h"
 
@@ -76,7 +80,9 @@ enum class ShaderType
 {
 	VERTEX,
 	PIXEL,
-	COMPUTE
+	COMPUTE,
+	DOMAIN_SHADER,
+	HULL,
 };
 
 struct PerFrameBuffer
@@ -272,7 +278,13 @@ private:
 	void BindPixelShader(std::shared_ptr<PixelShader> pixelShader);
 	void BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader);
 
-	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot);
+	void BindDomainShader(std::shared_ptr<DomainShader> domainShader);
+	void BindDomainShader(const std::unique_ptr<DomainShader>& domainShader);
+
+	void BindHullShader(std::shared_ptr<HullShader> hullShader);
+	void BindHullShader(const std::unique_ptr<HullShader>& hullShader);
+
+	void BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot, ShaderType type = ShaderType::PIXEL);
 
 	void BindDirectionalLights(ShaderType shaderType);
 	void BindPointLights(ShaderType shaderType);
@@ -283,6 +295,8 @@ private:
 	void UnbindMesh();
 	void UnbindVertexShader();
 	void UnbindPixelShader();
+	void UnbindDomainShader();
+	void UnbindHullShader();
 	void UnbindTexture2D(UINT slot);
 
 	/* Update Buffers */
@@ -338,6 +352,9 @@ private:
 
 	std::unique_ptr<ComputeShader> mLightingComputeShader;
 	std::unique_ptr<PixelShader> mDeferredPixelShader;
+
+	std::unique_ptr<HullShader> mTessellationHullShader;
+	std::unique_ptr<DomainShader> mDisplacementDomainShader;
 
 	IDXGISwapChain* mSwapChain;
 	ID3D11RenderTargetView* mBackBufferRenderTargetView;

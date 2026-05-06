@@ -499,6 +499,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		mDeferredPixelShader = std::make_unique<PixelShader>("resources/DeferredPixelShader.cso");
 	}
 
+	/* Load Tessellation and Displacement Shader */
+	{
+		mTessellationHullShader = std::make_unique<HullShader>("resources/TessellationHullShader.cso");
+		mDisplacementDomainShader = std::make_unique<DomainShader>("resources/DisplacementDomainShader.cso");
+	}
+
 	if (!mAABBRenderer.Create())
 	{
 		Logger::Error("Failed to create AABB Renderer");
@@ -608,10 +614,12 @@ void Renderer::BeginRender()
 
 	BindPerViewBuffer(ShaderType::VERTEX);
 	BindPerViewBuffer(ShaderType::PIXEL);
-
+	BindPerViewBuffer(ShaderType::HULL);
+	BindPerViewBuffer(ShaderType::DOMAIN_SHADER);
 	BindPerMaterialBuffer(ShaderType::PIXEL);
 
 	mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
+	mImmediateContext->DSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
 }
 
 void Renderer::Render()
@@ -1226,17 +1234,15 @@ bool Renderer::IsGeometryVisible(GeometryData& geometryData, const DirectX::Boun
 
 void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialData& materialData)
 {
-	if (materialData.material->HasAlpha())
+	auto& mat = materialData.material;
+
+	if (mat->HasAlpha())
 	{
-		BindTexture2D(materialData.material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
+		BindTexture2D(mat->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
 		BindPixelShader(mShadowMapPixelShader);
 	}
-	else
-	{
-		UnbindPixelShader();
-	}
 
-	D3D11_CULL_MODE wishCullMode = materialData.material->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+	D3D11_CULL_MODE wishCullMode = mat->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
 	if (mRasterizerDesc.CullMode != wishCullMode)
 	{
 		ID3D11RasterizerState* state;
@@ -1247,9 +1253,24 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 		state->Release();
 	}
 
+	/*if (mat->HasDisplacement())
+	{
+		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		BindHullShader(mTessellationHullShader);
+		BindDomainShader(mDisplacementDomainShader);
+		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
+	}*/
+
 	BindMesh(geometryData.mesh);
 	UpdatePerObjectBuffer(geometryData.transform);
 	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
+
+	UnbindPixelShader();
+
+	/* Disable Tessellation */
+	//UnbindHullShader();
+	//UnbindDomainShader();
 }
 
 void Renderer::RenderDeferredMeshAndMaterial(
@@ -1287,7 +1308,7 @@ void Renderer::RenderDeferredMeshAndMaterial(
 	UpdatePerObjectBuffer(geometryData.transform);
 	UpdatePerMaterialBuffer(mat);
 
-	D3D11_CULL_MODE wishCullMode = materialData.material->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+	D3D11_CULL_MODE wishCullMode = mat->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
 	if (mRasterizerDesc.CullMode != wishCullMode)
 	{
 		ID3D11RasterizerState* state;
@@ -1298,10 +1319,24 @@ void Renderer::RenderDeferredMeshAndMaterial(
 		state->Release();
 	}
 
+	if (mat->HasDisplacement())
+	{
+		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		BindHullShader(mTessellationHullShader);
+		BindDomainShader(mDisplacementDomainShader);
+		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
+	}
+
 	mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
 
 	ID3D11ShaderResourceView* views[] = { nullptr };
 	mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
+
+	/* Disable Tessellation */
+	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	UnbindHullShader();
+	UnbindDomainShader();
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
@@ -1380,6 +1415,12 @@ void Renderer::BindPerViewBuffer(ShaderType shaderType)
 		break;
 	case ShaderType::COMPUTE:
 		mImmediateContext->CSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
+		break;
+	case ShaderType::HULL:
+		mImmediateContext->HSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
+		break;
+	case ShaderType::DOMAIN_SHADER:
+		mImmediateContext->DSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
 		break;
 	default:
 		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
@@ -1470,12 +1511,46 @@ void Renderer::BindPixelShader(const std::unique_ptr<PixelShader>& pixelShader)
 	);
 }
 
-void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot)
+void Renderer::BindDomainShader(std::shared_ptr<DomainShader> domainShader)
+{
+	mImmediateContext->DSSetShader(domainShader->GetShader(), nullptr, 0);
+}
+
+void Renderer::BindDomainShader(const std::unique_ptr<DomainShader>& domainShader)
+{
+	mImmediateContext->DSSetShader(domainShader->GetShader(), nullptr, 0);
+}
+
+void Renderer::BindHullShader(std::shared_ptr<HullShader> hullShader)
+{
+	mImmediateContext->HSSetShader(hullShader->GetShader(), nullptr, 0);
+}
+
+void Renderer::BindHullShader(const std::unique_ptr<HullShader>& hullShader)
+{
+	mImmediateContext->HSSetShader(hullShader->GetShader(), nullptr, 0);
+}
+
+void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot, ShaderType type)
 {
 	if (texture2d)
 	{
 		ID3D11ShaderResourceView* srv = texture2d->GetSRV();
-		mImmediateContext->PSSetShaderResources(slot, 1, &srv);
+		if (type == ShaderType::PIXEL)
+		{
+			mImmediateContext->PSSetShaderResources(slot, 1, &srv);
+		}
+		else if (type == ShaderType::DOMAIN_SHADER)
+		{
+			mImmediateContext->DSSetShaderResources(slot, 1, &srv);
+		}
+		else
+		{
+			Logger::Warn(
+				"Trying to bind texture to an unsupported shader type: " 
+				+ std::to_string((int)type)
+			);
+		}
 	}
 	else
 	{
@@ -1588,6 +1663,16 @@ void Renderer::UnbindVertexShader()
 void Renderer::UnbindPixelShader()
 {
 	mImmediateContext->PSSetShader(nullptr, nullptr, 0);
+}
+
+void Renderer::UnbindDomainShader()
+{
+	mImmediateContext->DSSetShader(nullptr, nullptr, 0);
+}
+
+void Renderer::UnbindHullShader()
+{
+	mImmediateContext->HSSetShader(nullptr, nullptr, 0);
 }
 
 void Renderer::UnbindTexture2D(UINT slot)
