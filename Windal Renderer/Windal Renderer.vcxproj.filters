@@ -360,17 +360,18 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\PixelShader.hlsl" />
-    <FxCompile Include="shaders\VertexShader.hlsl" />
-    <FxCompile Include="shaders\DeferredPixelShader.hlsl" />
-    <FxCompile Include="shaders\DeferredLightingComputeShader.hlsl" />
-    <FxCompile Include="shaders\ShadowMapVertexShader.hlsl" />
-    <FxCompile Include="shaders\AABBVertexShader.hlsl" />
-    <FxCompile Include="shaders\AABBPixelShader.hlsl" />
-    <FxCompile Include="shaders\LineVertexShader.hlsl" />
-    <FxCompile Include="shaders\LinePixelShader.hlsl" />
-    <FxCompile Include="shaders\ShadowMapPixelShader.hlsl" />
-    <FxCompile Include="shaders\TessellationHullShader.hlsl" />
-    <FxCompile Include="shaders\DisplacementDomainShader.hlsl" />
+    <FxCompile Include="shaders\Deferred\VertexShader.hlsl" />
+    <FxCompile Include="shaders\Deferred\DeferredPixelShader.hlsl" />
+    <FxCompile Include="shaders\Deferred\DeferredLightingComputeShader.hlsl" />
+    <FxCompile Include="shaders\Shadowmapping\ShadowMapVertexShader.hlsl" />
+    <FxCompile Include="shaders\AABB\AABBVertexShader.hlsl" />
+    <FxCompile Include="shaders\AABB\AABBPixelShader.hlsl" />
+    <FxCompile Include="shaders\Line\LineVertexShader.hlsl" />
+    <FxCompile Include="shaders\Line\LinePixelShader.hlsl" />
+    <FxCompile Include="shaders\Shadowmapping\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="shaders\Displacement\TessellationHullShader.hlsl" />
+    <FxCompile Include="shaders\Displacement\DisplacementDomainShader.hlsl" />
+    <FxCompile Include="shaders\Displacement\ShadowMapDisplacementDomainShader.hlsl" />
+    <FxCompile Include="shaders\Displacement\ShadowMapTessellationHullShader.hlsl" />
   </ItemGroup>
 </Project>

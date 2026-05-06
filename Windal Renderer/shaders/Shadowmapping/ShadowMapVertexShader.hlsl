@@ -2,13 +2,16 @@
 struct VertexShaderInput
 {
     float3 position : POSITION;
+    float3 normal : NORMAL;
     float2 uv : UV;
 };
 
 // Output
 struct VertexShaderOutput
 {
-    float4 position : SV_POSITION;
+    float4 clipPosition : SV_POSITION;
+    float3 worldPosition : WORLD_POSITION;
+    float3 worldNormal : WORLD_NORMAL;
     float2 uv : UV;
 };
 
@@ -33,7 +36,11 @@ VertexShaderOutput main(VertexShaderInput input)
     float4 worldPos = mul(float4(input.position.xyz, 1.0f), worldMatrix);
     float4 clipPos = mul(viewProjMatrix, worldPos);
 
-    output.position = clipPos;
+    output.clipPosition = clipPos;
+    output.worldPosition = worldPos.xyz;
+
+    output.worldNormal = normalize(mul((float3x3) worldInvTransposeMatrix, input.normal));
+
     output.uv = input.uv;
     
     return output;

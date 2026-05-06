@@ -332,6 +332,10 @@ private:
 	/* Shadow Mapping */
 	std::unique_ptr<VertexShader> mShadowMapVertexShader;
 	std::unique_ptr<PixelShader> mShadowMapPixelShader;
+
+	std::unique_ptr<HullShader> mShadowTessellationHullShader;
+	std::unique_ptr<DomainShader> mShadowDisplacementDomainShader;
+
 	ShadowMap mDirectionalLightsShadowMap;
 	ShadowMap mSpotLightsShadowMap;
 	ID3D11InputLayout* mShadowInputLayout = nullptr;

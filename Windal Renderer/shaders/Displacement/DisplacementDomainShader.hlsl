@@ -1,16 +1,16 @@
-struct DomainShaderOutput
+struct HullShaderOutput
 {
-	float4 position  : SV_POSITION;
-    float3 worldPosition : WORLD_POSITION;
+    float3 worldPos : WORLD_POSITION;
     float3 worldNormal : WORLD_NORMAL;
     float2 uv : UV;
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
 };
 
-struct HullShaderOutput
+struct DomainShaderOutput
 {
-    float3 worldPos : WORLD_POSITION;
+	float4 position  : SV_POSITION;
+    float3 worldPosition : WORLD_POSITION;
     float3 worldNormal : WORLD_NORMAL;
     float2 uv : UV;
     float3 tangent : TANGENT;

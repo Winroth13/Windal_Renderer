@@ -95,6 +95,8 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			Logger::Error("Failed to create device and swapchain");
 			return false;
 		}
+
+		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
 	/* Create Render Target View and Unordered Access View */
@@ -442,15 +444,16 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 		/* Create Input Layout */
 		{
-			D3D11_INPUT_ELEMENT_DESC inputDesc[2] =
+			D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
 			{
 				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+				{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			};
 
 			HRESULT hr = Renderer::GetDevice()->CreateInputLayout(
 				inputDesc,
-				2,
+				3,
 				mShadowMapVertexShader->GetByteCode().c_str(),
 				mShadowMapVertexShader->GetByteCode().length(),
 				&mShadowInputLayout
@@ -503,6 +506,9 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	{
 		mTessellationHullShader = std::make_unique<HullShader>("resources/TessellationHullShader.cso");
 		mDisplacementDomainShader = std::make_unique<DomainShader>("resources/DisplacementDomainShader.cso");
+
+		mShadowTessellationHullShader = std::make_unique<HullShader>("resources/ShadowMapTessellationHullShader.cso");
+		mShadowDisplacementDomainShader = std::make_unique<DomainShader>("resources/ShadowMapDisplacementDomainShader.cso");
 	}
 
 	if (!mAABBRenderer.Create())
@@ -1253,14 +1259,14 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 		state->Release();
 	}
 
-	/*if (mat->HasDisplacement())
+	if (mat->HasDisplacement())
 	{
 		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-		BindHullShader(mTessellationHullShader);
-		BindDomainShader(mDisplacementDomainShader);
+		BindHullShader(mShadowTessellationHullShader);
+		BindDomainShader(mShadowDisplacementDomainShader);
 		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
-	}*/
+	}
 
 	BindMesh(geometryData.mesh);
 	UpdatePerObjectBuffer(geometryData.transform);
@@ -1269,8 +1275,9 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 	UnbindPixelShader();
 
 	/* Disable Tessellation */
-	//UnbindHullShader();
-	//UnbindDomainShader();
+	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	UnbindHullShader();
+	UnbindDomainShader();
 }
 
 void Renderer::RenderDeferredMeshAndMaterial(
@@ -1472,7 +1479,6 @@ void Renderer::BindMesh(std::shared_ptr<Mesh> mesh)
 
 	mImmediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	mImmediateContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Renderer::BindVertexShader(std::shared_ptr<VertexShader> vertexShader)
@@ -1547,7 +1553,7 @@ void Renderer::BindTexture2D(std::shared_ptr<Texture2D> texture2d, UINT slot, Sh
 		else
 		{
 			Logger::Warn(
-				"Trying to bind texture to an unsupported shader type: " 
+				"Trying to bind texture to an unsupported shader type: "
 				+ std::to_string((int)type)
 			);
 		}
