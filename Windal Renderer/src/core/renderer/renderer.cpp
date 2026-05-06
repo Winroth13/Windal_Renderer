@@ -683,7 +683,8 @@ void Renderer::UpdatePerFrameBuffer(
 	const uint32_t numPointLights,
 	const uint32_t numSpotLights,
 	const uint32_t flags,
-	const std::array<uint32_t, 2> screenDimensions)
+	const std::array<uint32_t, 2> screenDimensions
+)
 {
 	PerFrameBuffer perFrameBuffer = {};
 	perFrameBuffer.ambientColor = ambientColor;
@@ -828,13 +829,13 @@ void Renderer::RenderShadowMaps()
 		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
 		Camera camera;
-		camera.SetOrthographicLens(50, 50, 1, 100.0f); // TODO: experimentation got us these values, idk!
+		camera.SetOrthographicLens(50, 50, 1.0f, 60.0f); // TODO: experimentation got us these values, idk!
 		DirectX::XMFLOAT3 direction = dirLight.direction;
 		camera.transform.SetAngles(DirectionToAngles(direction));
 
-		direction.x *= -50;
-		direction.y *= -50;
-		direction.z *= -50;
+		direction.x *= -30;
+		direction.y *= -30;
+		direction.z *= -30;
 		camera.transform.SetPosition(direction);
 
 		camera.UpdateViewMatrix();
