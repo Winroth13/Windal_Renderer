@@ -29,7 +29,8 @@ RWStructuredBuffer<Particle> Particles : register(u0);
 /* Particle Flags */
 #define IS_ANIMATED 1
 #define IS_DESATURATE 2
-#define RESET 4
+#define ADDITIVE 4
+#define RESET 8
 
 /*
 *   Pseudo-Random Number for GPU

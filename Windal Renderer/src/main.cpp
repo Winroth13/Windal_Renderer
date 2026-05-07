@@ -113,7 +113,7 @@ public:
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
 
-		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(64);
+		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(28);
 		particleEntity.transform.SetPosition(1.42f, 1.231f, 6.168f);
 
 		auto particleSystem = particleEntity.GetParticleSystem();
@@ -127,6 +127,7 @@ public:
 		particleSystem->SetAtlasHeight(3);
 		particleSystem->SetAnimated(true);
 		particleSystem->SetDesaturate(true);
+		particleSystem->SetAdditive(true);
 
 		particleSystem->SetLifeTime(1.5f);
 		particleSystem->SetSpawnRadius(0.12f);

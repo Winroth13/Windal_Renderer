@@ -37,7 +37,13 @@ void ParticleEntity::RenderImguiSelf()
 			mParticleSystem->Reset();
 		}
 		
-		ImGui::Text("Particle Count: %d", mParticleSystem->GetCount());
+		/* Count */
+		int count = (uint32_t)mParticleSystem->GetCount();
+		if (ImGui::DragInt("Count", &count, 0.1f, 1, INT32_MAX))
+		{
+			mParticleSystem->SetCount(count);
+			mParticleSystem->Reset();
+		}
 
 		/* Lifetime */
 		{
@@ -136,6 +142,15 @@ void ParticleEntity::RenderImguiSelf()
 						mParticleSystem->SetDesaturatePower(desaturatePower);
 					}
 				}
+			}
+		}
+
+		/* Additive */
+		{
+			bool isAdditive = mParticleSystem->IsAdditive();
+			if (ImGui::Checkbox("Additive", &isAdditive))
+			{
+				mParticleSystem->SetAdditive(isAdditive);
 			}
 		}
 

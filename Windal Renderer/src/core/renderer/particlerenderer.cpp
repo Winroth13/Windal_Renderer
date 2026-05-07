@@ -44,6 +44,33 @@ void ParticleRenderer::Render(
 		return;
 	}
 
+	/* Create Additive Blend State and Depth Stencil State */
+	ID3D11BlendState* blendState = nullptr;
+	ID3D11DepthStencilState* depthStencilState = nullptr;
+	UINT sampleMask = 0xffffffff;
+	float blendFactor[4] = { 0.8f, 0.8f, 0.8f, 0.0f };
+	
+	/* Blend State */
+	D3D11_BLEND_DESC desc = {};
+	desc.RenderTarget[0].BlendEnable = true;
+	desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	Renderer::GetDevice()->CreateBlendState(&desc, &blendState);
+
+	/* Depth Stencil State */
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsDesc.StencilEnable = false;
+	Renderer::GetDevice()->CreateDepthStencilState(&dsDesc, &depthStencilState);
+	
+
 	/* Configure Input Assembler */
 	ctx->IASetInputLayout(nullptr);
 	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -53,27 +80,20 @@ void ParticleRenderer::Render(
 	ctx->PSSetShader(mParticlePixelShader->GetShader(), nullptr, 0);
 	ctx->GSSetShader(mBillboardGeometryShader->GetShader(), nullptr, 0);
 
-	float blendFactor[4] = { 0.8f, 0.8f, 0.8f, 0.0f };
-	UINT sampleMask = 0xffffffff;
-
-	D3D11_BLEND_DESC desc = {};
-	desc.RenderTarget[0].BlendEnable = true;
-	desc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
-	desc.RenderTarget[0].DestBlend = D3D11_BLEND_BLEND_FACTOR;
-	desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-	desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	ID3D11BlendState* blendState = nullptr;
-	Renderer::GetDevice()->CreateBlendState(&desc, &blendState);
-
-	ctx->OMSetBlendState(blendState, blendFactor, sampleMask);
-	blendState->Release();
-
 	for (ParticleSystemData& p : data)
 	{
+		/* Modify Output Merger when Additive */
+		if (p.system->IsAdditive())
+		{
+			ctx->OMSetDepthStencilState(depthStencilState, 0);
+			ctx->OMSetBlendState(blendState, blendFactor, sampleMask);
+		}
+		else
+		{
+			ctx->OMSetBlendState(nullptr, blendFactor, sampleMask);
+			ctx->OMSetDepthStencilState(nullptr, 0);
+		}
+
 		DirectX::XMMATRIX worldMatrix = p.transform.GetMatrix();
 		renderServer.UpdatePerObject(worldMatrix);
 
@@ -113,5 +133,10 @@ void ParticleRenderer::Render(
 	ctx->PSSetShader(nullptr, nullptr, 0);
 	ctx->GSSetShader(nullptr, nullptr, 0);
 
+	blendState->Release();
+	depthStencilState->Release();
+
+	/* Reset Output Merger */
 	ctx->OMSetBlendState(nullptr, blendFactor, sampleMask);
+	ctx->OMSetDepthStencilState(nullptr, 0);
 }

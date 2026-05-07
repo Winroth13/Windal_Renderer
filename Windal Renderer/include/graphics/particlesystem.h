@@ -14,7 +14,8 @@ enum class ParticleSystemFlags : uint32_t
 	NONE = 0,
 	ANIMATED = 1,
 	DESATURATE = 2,
-	RESET = 4
+	ADDITIVE = 4,
+	RESET = 8
 };
 
 struct ParticleSystemBuffer
@@ -65,9 +66,12 @@ public:
 
 	bool IsAnimated();
 	bool IsDesaturate();
+	bool IsAdditive();
 
 	std::shared_ptr<Texture2D> GetColorTexture() { return mColorTexture; }
 	std::shared_ptr<Texture2D> GetAlphaTexture() { return mAlphaTexture; }
+
+	void SetCount(uint32_t count);
 
 	void SetSpawnRadius(float radius) { mParticleSystemConstants.spawnRadius = radius; }
 	void SetVelocity(float velocity) { mParticleSystemConstants.velocity = velocity; }
@@ -84,10 +88,13 @@ public:
 
 	void SetDesaturate(bool enabled);
 	void SetAnimated(bool enabled);
+	void SetAdditive(bool enabled);
 
 	void Reset();
 
 private:
+	void CreateParticleBuffer(uint32_t count);
+
 	ParticleSystemBuffer mParticleSystemConstants;
 
 	uint32_t mParticleCount = 0;
