@@ -44,6 +44,7 @@ Texture2D diffuseTexture : register(t3);
 TextureCube cubemapTexture : register(t4);
 Texture2D normalTexture : register(t5);
 Texture2D alphaTexture : register(t7);
+Texture2D dispTexture : register(t6);
 
 SamplerState samplerState : register(s0);
 

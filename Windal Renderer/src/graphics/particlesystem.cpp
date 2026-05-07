@@ -2,6 +2,7 @@
 #include "core/logger.h"
 #include "core/renderer/renderer.h"
 #include "graphics/shaders/computeshader.h"
+#include "core/engine.h"
 
 #include <iostream>
 #include <d3d11.h>
@@ -79,11 +80,13 @@ ParticleSystem::ParticleSystem(uint32_t count)
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.CPUAccessFlags = 0;
 		desc.MiscFlags = 0;
-		desc.ByteWidth = sizeof(PerMaterial);
+		desc.ByteWidth = sizeof(ParticleSystemBuffer);
 		desc.StructureByteStride = 0;
 
+		ParticleSystemBuffer particleSystemBuffer = {};
+
 		D3D11_SUBRESOURCE_DATA data = {};
-		data.pSysMem = &mParticleSystemBuffer;
+		data.pSysMem = &particleSystemBuffer;
 
 		HRESULT hr = Renderer::GetDevice()->CreateBuffer(&desc, &data, &mParticleSystemBuffer);
 
@@ -118,7 +121,7 @@ ParticleSystem::~ParticleSystem()
 	}
 }
 
-void ParticleSystem::Update()
+void ParticleSystem::Update(double deltaTime)
 {
 	constexpr UINT THREAD_GROUPS_COUNT = 32;
 
@@ -133,12 +136,9 @@ void ParticleSystem::Update()
 	/* Bind Particle System Buffer */
 	ctx->CSSetConstantBuffers(0, 1, &mParticleSystemBuffer);
 
-	ParticleSystemBuffer buffer = {};
-	buffer.deltaTime = 0.16f;
-	buffer.lifetime = 10.0f;
-	buffer.atlasWidth = 3;
-	buffer.atlasHeight = 3;
-	ctx->UpdateSubresource(mParticleSystemBuffer, 0, NULL, &buffer, 0, 0);
+	mParticleSystemConstants.ticks = Engine::GetTicks();
+	mParticleSystemConstants.deltaTime = static_cast<float>(deltaTime);
+	ctx->UpdateSubresource(mParticleSystemBuffer, 0, NULL, &mParticleSystemConstants, 0, 0);
 
 	ctx->Dispatch(static_cast<UINT>(std::ceil(mParticleCount) / THREAD_GROUPS_COUNT), 1, 1);
 
@@ -152,4 +152,46 @@ void ParticleSystem::Update()
 
 	/* Unbind Compute Shader */
 	ctx->CSSetShader(nullptr, nullptr, 0);
+
+	/* Uncheck Reset */
+	mParticleSystemConstants.flags &= ~static_cast<uint32_t>(ParticleSystemFlags::RESET);
+}
+
+bool ParticleSystem::IsAnimated()
+{
+	return (mParticleSystemConstants.flags & static_cast<uint32_t>(ParticleSystemFlags::ANIMATED)) == static_cast<uint32_t>(ParticleSystemFlags::ANIMATED);
+}
+
+bool ParticleSystem::IsDesaturate()
+{
+	return (mParticleSystemConstants.flags & static_cast<uint32_t>(ParticleSystemFlags::DESATURATE)) == static_cast<uint32_t>(ParticleSystemFlags::DESATURATE);
+}
+
+void ParticleSystem::SetDesaturate(bool enabled)
+{
+	if (enabled)
+	{
+		mParticleSystemConstants.flags |= static_cast<uint32_t>(ParticleSystemFlags::DESATURATE);
+	}
+	else
+	{
+		mParticleSystemConstants.flags &= ~static_cast<uint32_t>(ParticleSystemFlags::DESATURATE);
+	}
+}
+
+void ParticleSystem::SetAnimated(bool enabled)
+{
+	if (enabled)
+	{
+		mParticleSystemConstants.flags |= static_cast<uint32_t>(ParticleSystemFlags::ANIMATED);
+	}
+	else
+	{
+		mParticleSystemConstants.flags &= ~static_cast<uint32_t>(ParticleSystemFlags::ANIMATED);
+	}
+}
+
+void ParticleSystem::Reset()
+{
+	mParticleSystemConstants.flags |= static_cast<uint32_t>(ParticleSystemFlags::RESET);
 }

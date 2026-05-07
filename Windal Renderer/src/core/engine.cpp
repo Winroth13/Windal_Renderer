@@ -1,6 +1,8 @@
 #include "core/engine.h"
 #include "core/logger.h"
 
+uint32_t Engine::mTicks = 0;
+
 void Engine::Run(App* app, const std::string& title, const int width, const int height)
 {
 	mApp = app;
@@ -51,6 +53,7 @@ bool Engine::Initialize(const std::string& title, const int width, const int hei
 	mScene.Begin(mRenderer.GetRenderServer());
 	mRenderer.BakeStaticGeometry();
 
+	mLastTime = std::chrono::steady_clock::now();
 	return true;
 }
 
@@ -63,6 +66,8 @@ void Engine::Update(double delta)
 
 	mScene.Update(delta);
 	mApp->Update(delta);
+
+	mTicks++;
 }
 
 void Engine::Render()
@@ -97,4 +102,9 @@ const double Engine::GetDelta()
 	mLastTime = currentTime;
 
 	return delta;
+}
+
+const uint32_t Engine::GetTicks()
+{
+	return mTicks;
 }

@@ -17,5 +17,5 @@ protected:
 	virtual void RenderImguiSelf() override;
 
 private:
-	std::shared_ptr<ParticleSystem> mParticleSystem;
+	std::shared_ptr<ParticleSystem> mParticleSystem = nullptr;
 };

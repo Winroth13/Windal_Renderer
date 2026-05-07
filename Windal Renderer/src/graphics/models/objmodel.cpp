@@ -163,7 +163,7 @@ OBJModel::OBJModel(
 			// all surfaces with normal maps become pitch black. Why are we even dividing by 1 here since
 			// we normalize it later anyways?
 
-			float f = 1.0f; // / (deltaUV0f.x * deltaUV1f.y - deltaUV1f.x * deltaUV0f.y);
+			float f = 1.0f; /// (deltaUV0f.x * deltaUV1f.y - deltaUV1f.x * deltaUV0f.y);
 			DirectX::XMFLOAT3 tangent;
 			tangent.x = f * (deltaUV1f.y * edge0f.x - deltaUV0f.y * edge1f.x);
 			tangent.y = f * (deltaUV1f.y * edge0f.y - deltaUV0f.y * edge1f.y);

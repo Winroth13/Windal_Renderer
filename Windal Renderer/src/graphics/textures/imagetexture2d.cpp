@@ -43,7 +43,7 @@ ImageTexture2D::ImageTexture2D(const std::string& path)
 
     case STBI_grey:
         Logger::Warn("Grey scale.");
-        textureFormat = DXGI_FORMAT_A8_UNORM;
+        textureFormat = DXGI_FORMAT_R8_UNORM;
         break;
 
     default:

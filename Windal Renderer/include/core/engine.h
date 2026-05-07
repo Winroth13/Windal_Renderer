@@ -12,6 +12,8 @@ public:
 	void Run(App* app, const std::string& title, const int width, const int height);
 	void Shutdown();
 
+	static const uint32_t GetTicks();
+
 private:
 	bool Initialize(const std::string& title, const int width, const int height);
 	void Update(double delta);
@@ -26,6 +28,6 @@ private:
 
 	App* mApp = nullptr;
 
-	std::chrono::steady_clock::time_point mLastTime =
-		std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point mLastTime;
+	static uint32_t mTicks;
 };

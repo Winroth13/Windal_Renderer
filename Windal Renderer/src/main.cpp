@@ -113,7 +113,27 @@ public:
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
 
-		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(32);
+		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(64);
+		particleEntity.transform.SetPosition(1.42f, 1.231f, 6.168f);
+
+		auto particleSystem = particleEntity.GetParticleSystem();
+
+		auto colorTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_atlas.jpg");
+		auto alphaTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_mask_atlas.jpg");
+
+		particleSystem->SetColorTexture(colorTexture);
+		particleSystem->SetAlphaTexture(alphaTexture);
+		particleSystem->SetAtlasWidth(3);
+		particleSystem->SetAtlasHeight(3);
+		particleSystem->SetAnimated(true);
+		particleSystem->SetDesaturate(true);
+
+		particleSystem->SetLifeTime(1.5f);
+		particleSystem->SetSpawnRadius(0.12f);
+		particleSystem->SetStartScale(0.3f);
+		particleSystem->SetEndScale(0.105f);
+		particleSystem->SetDesaturatePower(1.5f);
+		particleSystem->SetVelocity(0.45f);
 	};
 
 	void Shutdown() override
