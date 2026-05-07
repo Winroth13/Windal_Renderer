@@ -5,9 +5,11 @@
 #include "core/renderer/renderserver.h"
 #include "core/renderer/aabbrenderer.h"
 #include "core/renderer/linerenderer.h"
+#include "core/renderer/particlerenderer.h"
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
+#include "graphics/particlesystem.h"
 
 #include "graphics/shaders/vertexshader.h"
 #include "graphics/shaders/pixelshader.h"
@@ -83,6 +85,7 @@ enum class ShaderType
 	COMPUTE,
 	DOMAIN_SHADER,
 	HULL,
+	GEOMETRY
 };
 
 struct PerFrameBuffer
@@ -100,6 +103,7 @@ struct PerFrameBuffer
 struct PerViewBuffer
 {
 	DirectX::XMMATRIX viewProj;
+	DirectX::XMMATRIX view;
 	DirectX::XMFLOAT3 cameraPos;
 	float pad0;
 };
@@ -174,6 +178,7 @@ struct EnviromentData
 struct CameraData
 {
 	DirectX::XMMATRIX viewProj;
+	DirectX::XMMATRIX view;
 	DirectX::XMFLOAT3 pos;
 };
 
@@ -232,6 +237,7 @@ public:
 
 	void PushAABBData(const AABBData& aabbData);
 	void PushLineData(const LineData& lineData);
+	void PushParticleSystemData(const ParticleSystemData& particleSystemData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
 	void SetSceneCamera(const CameraData& cameraData);
@@ -241,6 +247,8 @@ public:
 	void SetFlags(const uint16_t flags) { mNewFlags = flags; }
 
 	void BakeStaticGeometry();
+
+	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
 
 private:
 	void RenderShadowMaps();
@@ -260,7 +268,6 @@ private:
 	);
 
 	void UpdatePerViewBuffer(const CameraData& cameraData);
-	void UpdatePerObjectBuffer(const DirectX::XMMATRIX world);
 	void UpdatePerMaterialBuffer(std::shared_ptr<Material> material);
 
 	/* Bind Functions*/
@@ -309,6 +316,7 @@ private:
 	/* Renderers */
 	AABBRenderer mAABBRenderer;
 	LineRenderer mLineRenderer;
+	ParticleRenderer mParticleRenderer;
 
 	/* Static Data */
 	std::vector<GeometryData> mStaticGeometryData;
@@ -342,6 +350,9 @@ private:
 	ShadowMap mSpotLightsShadowMap;
 	ID3D11InputLayout* mShadowInputLayout = nullptr;
 	ID3D11SamplerState* mShadowMapSampler = nullptr;
+
+	/* Particle System */
+	std::vector<ParticleSystemData> mParticleSystemsData;
 
 	/* Cubemaps */
 	std::vector<CubemapData> mCubemapsData;

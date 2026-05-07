@@ -59,9 +59,10 @@ cbuffer cbPerFrame : register(b0)
 
 cbuffer cbPerView : register(b1)
 {
-    float4x4 viewProj;
+    float4x4 viewProjMatrix;
+    float4x4 viewMatrix;
     float3 cameraPos;
-    float pad3;
+    float pad2;
 };
 
 StructuredBuffer<DirectionalLight> directionalLights : register(t0);

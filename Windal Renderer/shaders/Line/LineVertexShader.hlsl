@@ -15,6 +15,7 @@ struct VertexShaderOutput
 cbuffer cbPerView : register(b1)
 {
     float4x4 viewProjMatrix;
+    float4x4 viewMatrix;
     float3 cameraPos;
     float pad1;
 }

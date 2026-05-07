@@ -523,6 +523,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		return false;
 	}
 
+	if (!mParticleRenderer.Create())
+	{
+		Logger::Error("Failed to create Particle Renderer");
+		return false;
+	}
+
 	mStaticGeometryTree.Create(20, 20, 20);
 
 	/* Initialize Rasterizer Desc */
@@ -622,6 +628,7 @@ void Renderer::BeginRender()
 	BindPerViewBuffer(ShaderType::PIXEL);
 	BindPerViewBuffer(ShaderType::HULL);
 	BindPerViewBuffer(ShaderType::DOMAIN_SHADER);
+	BindPerViewBuffer(ShaderType::GEOMETRY);
 	BindPerMaterialBuffer(ShaderType::PIXEL);
 
 	mImmediateContext->PSSetSamplers(DEFAULT_SAMPLER_SLOT, 1, &mDefaultSampler);
@@ -659,6 +666,7 @@ void Renderer::BeginForward()
 
 void Renderer::RenderForward()
 {
+	mParticleRenderer.Render(mImmediateContext, mRenderServer, mParticleSystemsData);
 	mAABBRenderer.Render(mImmediateContext, mAABBData);
 	mLineRenderer.Render(mImmediateContext, mLineData);
 
@@ -773,6 +781,11 @@ void Renderer::PushLineData(const LineData& lineData)
 	mLineData.push_back(lineData);
 }
 
+void Renderer::PushParticleSystemData(const ParticleSystemData& particleSystemData)
+{
+	mParticleSystemsData.push_back(particleSystemData);
+}
+
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
 {
 	mEnviromentData = enviromentData;
@@ -842,7 +855,13 @@ void Renderer::RenderShadowMaps()
 
 		dirLight.viewProj = camera.GetViewProj();
 
-		UpdatePerViewBuffer({ dirLight.viewProj, camera.transform.GetPosition3f() });
+		UpdatePerViewBuffer(
+			{ 
+				dirLight.viewProj, 
+				camera.GetView(),
+				camera.transform.GetPosition3f()
+			}
+		);
 
 		/* Draw static geometry to depth stencil */
 		for (size_t i = 0; i < mStaticGeometryData.size(); ++i)
@@ -888,7 +907,13 @@ void Renderer::RenderShadowMaps()
 
 		spotLight.viewProj = camera.GetViewProj();
 
-		UpdatePerViewBuffer({ camera.GetViewProj(), camera.transform.GetPosition3f() });
+		UpdatePerViewBuffer(
+			{
+				spotLight.viewProj,
+				camera.GetView(),
+				camera.transform.GetPosition3f()
+			}
+		);
 
 		DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
 
@@ -964,6 +989,7 @@ void Renderer::RenderCubeMaps()
 			CameraData cameraData = {};
 			cameraData.pos = camera.transform.GetPosition3f();
 			cameraData.viewProj = camera.GetViewProj();
+			cameraData.view = camera.GetView();
 
 			FrustumData frustumData = {};
 			frustumData.frustum = camera.GetBoundingFrustum();
@@ -1352,6 +1378,7 @@ void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
 	PerViewBuffer perViewBuffer = {};
 	perViewBuffer.cameraPos = cameraData.pos;
 	perViewBuffer.viewProj = cameraData.viewProj;
+	perViewBuffer.view = cameraData.view;
 	mImmediateContext->UpdateSubresource(mPerViewBuffer, 0, NULL, &perViewBuffer, 0, 0);
 }
 
@@ -1364,6 +1391,7 @@ void Renderer::UpdatePerObjectBuffer(const DirectX::XMMATRIX world)
 
 	mImmediateContext->VSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 	mImmediateContext->PSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+	mImmediateContext->GSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 }
 
 void Renderer::UpdatePerMaterialBuffer(std::shared_ptr<Material> material)
@@ -1429,6 +1457,9 @@ void Renderer::BindPerViewBuffer(ShaderType shaderType)
 		break;
 	case ShaderType::DOMAIN_SHADER:
 		mImmediateContext->DSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
+		break;
+	case ShaderType::GEOMETRY:
+		mImmediateContext->GSSetConstantBuffers(PER_VIEW, 1, &mPerViewBuffer);
 		break;
 	default:
 		Logger::Warn("Trying to bind per frame buffer to an invalid shader type");
@@ -1702,6 +1733,11 @@ void Renderer::ClearFrameData()
 		mDirectionalLightsData.clear();
 		mSpotLightsData.clear();
 		mPointLightsData.clear();
+	}
+
+	/* Particle Systems */
+	{
+		mParticleSystemsData.clear();
 	}
 
 	/* Cubemaps */

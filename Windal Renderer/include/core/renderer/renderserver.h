@@ -11,6 +11,7 @@ class Material;
 class Enviroment;
 class CubemapTexture;
 class Camera;
+class ParticleSystem;
 
 struct ID3D11DeviceContext;
 struct AABB;
@@ -42,10 +43,12 @@ public:
 
 	void PushAABB(AABB aabb, DirectX::XMFLOAT3 color);
 	void PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, DirectX::XMFLOAT3 color);
+	void PushParticleSystem(std::shared_ptr<ParticleSystem> particleSystem, const Transform transform);
 
-	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos);
+	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMMATRIX view, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateFrustum(DirectX::BoundingFrustum frustum);
 	void UpdateEnviroment(Enviroment& enviroment);
+	void UpdatePerObject(DirectX::XMMATRIX world);
 
 	void SetWireframe(bool value);
 	void SetShowGBuffer(bool value);

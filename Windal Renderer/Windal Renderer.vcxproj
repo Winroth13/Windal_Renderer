@@ -27,6 +27,7 @@
     <ClInclude Include="include\core\entities\entity.h" />
     <ClInclude Include="include\core\entities\enviromententity.h" />
     <ClInclude Include="include\core\entities\modelentity.h" />
+    <ClInclude Include="include\core\entities\particleentity.h" />
     <ClInclude Include="include\core\entities\pointlightentity.h" />
     <ClInclude Include="include\core\entities\spotlightentity.h" />
     <ClInclude Include="include\core\imguiflags.h" />
@@ -34,11 +35,14 @@
     <ClInclude Include="include\core\logger.h" />
     <ClInclude Include="include\core\renderer\aabbrenderer.h" />
     <ClInclude Include="include\core\renderer\linerenderer.h" />
+    <ClInclude Include="include\core\renderer\particlerenderer.h" />
     <ClInclude Include="include\core\renderer\renderer.h" />
     <ClInclude Include="include\core\renderer\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\quadtree.h" />
+    <ClInclude Include="include\graphics\particlesystem.h" />
     <ClInclude Include="include\graphics\shaders\domainshader.h" />
+    <ClInclude Include="include\graphics\shaders\geometryshader.h" />
     <ClInclude Include="include\graphics\shaders\hullshader.h" />
     <ClInclude Include="include\math\aabb.h" />
     <ClInclude Include="include\math\mathfunctions.h" />
@@ -81,8 +85,10 @@
     <ClInclude Include="vendor\tinyobjloader\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\entities\particleentity.cpp" />
     <ClCompile Include="src\core\renderer\aabbrenderer.cpp" />
     <ClCompile Include="src\core\renderer\linerenderer.cpp" />
+    <ClCompile Include="src\core\renderer\particlerenderer.cpp" />
     <ClCompile Include="src\graphics\gbuffers.cpp" />
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
@@ -98,7 +104,9 @@
     <ClCompile Include="src\core\renderer\renderer.cpp" />
     <ClCompile Include="src\core\renderer\renderserver.cpp" />
     <ClCompile Include="src\core\scene.cpp" />
+    <ClCompile Include="src\graphics\particlesystem.cpp" />
     <ClCompile Include="src\graphics\shaders\domainshadercpp.cpp" />
+    <ClCompile Include="src\graphics\shaders\geometryshader.cpp" />
     <ClCompile Include="src\graphics\shaders\hullshader.cpp" />
     <ClCompile Include="src\math\aabb.cpp" />
     <ClCompile Include="src\math\mathfunctions.cpp" />
@@ -191,6 +199,38 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\Particles\BillboardGeometryShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shaders\Particles\ParticleComputeShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shaders\Particles\ParticlePixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\Particles\ParticleVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="shaders\Shadowmapping\ShadowMapPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

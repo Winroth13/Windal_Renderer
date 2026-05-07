@@ -20,6 +20,9 @@
 #include "core/entities/directionallightentity.h"
 #include "core/entities/spotlightentity.h"
 #include "core/entities/cubemapentity.h"
+#include "core/entities/particleentity.h"
+
+#include "graphics/particlesystem.h"
 
 #include "imgui/ImGuizmo.h"
 
@@ -109,6 +112,8 @@ public:
 
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
+
+		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(32);
 	};
 
 	void Shutdown() override

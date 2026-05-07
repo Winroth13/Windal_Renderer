@@ -28,6 +28,7 @@ void Scene::Render(RenderServer& renderServer)
 	mCamera.UpdateViewMatrix();
 	renderServer.UpdateCamera(
 		mCamera.GetViewProj(),
+		mCamera.GetView(),
 		mCamera.transform.GetPosition3f()
 	);
 

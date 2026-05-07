@@ -95,11 +95,24 @@ void RenderServer::PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, Dire
     mRenderer->PushLineData(data);
 }
 
-void RenderServer::UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMFLOAT3 cameraPos)
+void RenderServer::PushParticleSystem(std::shared_ptr<ParticleSystem> particleSystem, const Transform transform)
+{
+    ParticleSystemData data = {};
+    data.system = particleSystem;
+    data.transform = transform;
+    mRenderer->PushParticleSystemData(data);
+}
+
+void RenderServer::UpdateCamera(
+    const DirectX::XMMATRIX viewProj,
+    const DirectX::XMMATRIX view,
+    const DirectX::XMFLOAT3 cameraPos
+)
 {
     CameraData data = {};
     data.viewProj = viewProj;
     data.pos = cameraPos;
+    data.view = view;
     mRenderer->SetSceneCamera(data);
 }
 
@@ -116,6 +129,11 @@ void RenderServer::UpdateEnviroment(Enviroment& enviroment)
     data.ambientColor = enviroment.GetAmbientColor();
     data.useBlinnPhong = enviroment.IsUsingBlinnPhong();
     mRenderer->SetEnviromentData(data);
+}
+
+void RenderServer::UpdatePerObject(DirectX::XMMATRIX world)
+{
+    mRenderer->UpdatePerObjectBuffer(world);
 }
 
 void RenderServer::SetWireframe(bool value)

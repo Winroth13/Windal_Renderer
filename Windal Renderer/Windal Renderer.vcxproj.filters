@@ -195,6 +195,18 @@
     <ClInclude Include="include\graphics\shaders\hullshader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\core\renderer\particlerenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\particlesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\shaders\geometryshader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\entities\particleentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -353,6 +365,18 @@
     <ClCompile Include="src\graphics\shaders\hullshader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\renderer\particlerenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\particlesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\geometryshader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\entities\particleentity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -373,5 +397,9 @@
     <FxCompile Include="shaders\Displacement\DisplacementDomainShader.hlsl" />
     <FxCompile Include="shaders\Displacement\ShadowMapDisplacementDomainShader.hlsl" />
     <FxCompile Include="shaders\Displacement\ShadowMapTessellationHullShader.hlsl" />
+    <FxCompile Include="shaders\Particles\BillboardGeometryShader.hlsl" />
+    <FxCompile Include="shaders\Particles\ParticleComputeShader.hlsl" />
+    <FxCompile Include="shaders\Particles\ParticlePixelShader.hlsl" />
+    <FxCompile Include="shaders\Particles\ParticleVertexShader.hlsl" />
   </ItemGroup>
 </Project>
