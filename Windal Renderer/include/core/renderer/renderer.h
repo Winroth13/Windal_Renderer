@@ -188,6 +188,8 @@ struct CubemapData
 	DirectX::XMFLOAT3 position;
 };
 
+// TODO: Extract more sub-renderers to make the class more manageable
+
 class Renderer
 {
 public:
