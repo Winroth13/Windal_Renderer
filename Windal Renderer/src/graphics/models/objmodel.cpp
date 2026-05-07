@@ -144,7 +144,7 @@ OBJModel::OBJModel(
 			DirectX::XMVECTOR edge1 = DirectX::XMVectorSubtract(pos2, pos0);
 
 			DirectX::XMVECTOR deltaUV0 = DirectX::XMVectorSubtract(uv1, uv0);
-			DirectX::XMVECTOR deltaUV1 = DirectX::XMVectorSubtract(uv2, uv1);
+			DirectX::XMVECTOR deltaUV1 = DirectX::XMVectorSubtract(uv2, uv0);
 
 			DirectX::XMFLOAT3 edge0f;
 			DirectX::XMFLOAT3 edge1f;
