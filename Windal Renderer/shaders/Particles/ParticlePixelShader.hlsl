@@ -16,7 +16,7 @@ cbuffer PerParticleSystem : register(b0)
     uint flags;
     float atlasWidth;
     float atlasHeight;
-    float atlasSpeed;
+    float animationSpeed;
     float desaturatePow;
     float startScale;
     float endScale;
@@ -36,7 +36,7 @@ float2 AtlasUV(float2 uv, float ratio)
 {
     uint numTextures = uint(atlasWidth * atlasHeight);
     
-    uint atlasIndex = uint((numTextures - 1) * ratio * atlasSpeed) % numTextures;
+    uint atlasIndex = uint((numTextures - 1) * ratio * animationSpeed) % numTextures;
     
     uint atlasX = atlasIndex % (uint) atlasWidth;
     uint atlasY = atlasIndex / (uint) atlasHeight;

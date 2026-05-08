@@ -8,7 +8,7 @@ cbuffer PerParticleSystem : register(b0)
     uint flags;
     float atlasWidth;
     float atlasHeight;
-    float atlasSpeed;
+    float animationSpeed;
     float desaturatePow;
     float startScale;
     float endScale;

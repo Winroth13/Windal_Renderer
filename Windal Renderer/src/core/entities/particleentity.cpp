@@ -126,12 +126,12 @@ void ParticleEntity::RenderImguiSelf()
 			{
 				if (isAnimated)
 				{
-					/* Atlas Speed */
+					/* Animation Speed */
 					{
-						float atlasSpeed = mParticleSystem->GetAtlasSpeed();
-						if (ImGui::DragFloat("Atlas Speed", &atlasSpeed, 0.01f, 0, FLT_MAX))
+						float animationSpeed = mParticleSystem->GetAnimationSpeed();
+						if (ImGui::DragFloat("Speed", &animationSpeed, 0.01f, 0, FLT_MAX))
 						{
-							mParticleSystem->SetAtlasSpeed(atlasSpeed);
+							mParticleSystem->SetAnimationSpeed(animationSpeed);
 						}
 					}
 

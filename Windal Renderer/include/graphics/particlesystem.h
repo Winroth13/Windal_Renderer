@@ -28,7 +28,7 @@ struct ParticleSystemBuffer
 	uint32_t flags = static_cast<uint32_t>(ParticleSystemFlags::RESET);
 	float atlasWidth = 1.0f;
 	float atlasHeight = 1.0f;
-	float atlasSpeed = 1.0f;
+	float animationSpeed = 1.0f;
 	float desaturatePow = 1.0f;
 	float startScale = 1.0f;
 	float endScale = 1.0f;
@@ -59,7 +59,7 @@ public:
 	float GetLifeTime() const { return mParticleSystemConstants.lifetime; }
 	float GetAtlasWidth() const { return mParticleSystemConstants.atlasWidth; }
 	float GetAtlasHeight() const { return mParticleSystemConstants.atlasHeight; }
-	float GetAtlasSpeed() const { return mParticleSystemConstants.atlasSpeed; }
+	float GetAnimationSpeed() const { return mParticleSystemConstants.animationSpeed; }
 	float GetDesaturatePower() const { return mParticleSystemConstants.desaturatePow; }
 	float GetStartScale() const { return mParticleSystemConstants.startScale; }
 	float GetEndScale() const { return mParticleSystemConstants.endScale; }
@@ -78,7 +78,7 @@ public:
 	void SetLifeTime(float value) { mParticleSystemConstants.lifetime = value; }
 	void SetAtlasWidth(float width) { mParticleSystemConstants.atlasWidth = width; }
 	void SetAtlasHeight(float height) { mParticleSystemConstants.atlasHeight = height; }
-	void SetAtlasSpeed(float speed) { mParticleSystemConstants.atlasSpeed = speed; }
+	void SetAnimationSpeed(float speed) { mParticleSystemConstants.animationSpeed = speed; }
 	void SetDesaturatePower(float value) { mParticleSystemConstants.desaturatePow = value; }
 	void SetStartScale(float value) { mParticleSystemConstants.startScale = value; }
 	void SetEndScale(float value) { mParticleSystemConstants.endScale = value; }
