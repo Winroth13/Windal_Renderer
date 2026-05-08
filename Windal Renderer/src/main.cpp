@@ -128,12 +128,24 @@ public:
 			fireEntity.SetName("Fire");
 			fireEntity.transform.SetPosition(firePositions[i]);
 
+			/* Create Fire Pointlight */
+			{
+				auto& pointLightEntity = mScene->CreateEntity<PointLightEntity>();
+				pointLightEntity.transform.SetPosition(0, 0.5f, 0);
+				pointLightEntity.SetName("Fire Light");
+				pointLightEntity.Attach(&fireEntity);
+
+				pointLightEntity.SetColor({ 100 / 255.0f, 40 / 255.0f, 0 / 255.0f });
+				pointLightEntity.SetIntensity(0.7f);
+				pointLightEntity.SetAttenuation(0.1f);
+			}
+
 			/* Create Smoke Particle */
 			{
 				auto& smokeParticleEntity = mScene->CreateEntity<ParticleEntity>(28);
 				smokeParticleEntity.SetName("Smoke Particles");
 				smokeParticleEntity.Attach(&fireEntity);
-				smokeParticleEntity.transform.SetPosition(0.0f, 0.2f, 0.0f);
+				smokeParticleEntity.transform.SetPosition(0.0f, 0.35f, 0.0f);
 
 				auto particleSystem = smokeParticleEntity.GetParticleSystem();
 				auto colorTexture = std::make_shared<ImageTexture2D>("assets/fire/smoke_color.jpg");
@@ -174,7 +186,7 @@ public:
 				particleSystem->SetDesaturate(false);
 				particleSystem->SetAdditive(true);
 
-				particleSystem->SetLifeTime(0.820f);
+				particleSystem->SetLifeTime(1.2f);
 				particleSystem->SetSpawnRadius(0.12f);
 				particleSystem->SetStartScale(0.3f);
 				particleSystem->SetEndScale(0.105f);

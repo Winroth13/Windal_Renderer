@@ -21,7 +21,7 @@ void DirectionalLightEntity::RenderImguiSelf()
 	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
 	{
 		ImGui::ColorEdit3("Color", &mColor.x);
-		ImGui::DragFloat("Intensity", &mIntensity, 0.01f);
+		ImGui::DragFloat("Intensity", &mIntensity, 0.01f, 0.01f, 20.0f);
 
 		// Directiona light always uses its local coordinates
 		DirectX::XMFLOAT3 dir = transform.GetForwardDir3f();
