@@ -66,7 +66,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         }
         else
         {
-            particle.lifetime = 0;
+            particle.lifetime = particle.lifetime % lifetime; // This fixes the problem with dt jumping when moving the window
         }
 
         lifeRatio = particle.lifetime / lifetime;
