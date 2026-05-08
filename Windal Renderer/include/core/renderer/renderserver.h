@@ -43,7 +43,7 @@ public:
 
 	void PushAABB(AABB aabb, DirectX::XMFLOAT3 color);
 	void PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, DirectX::XMFLOAT3 color);
-	void PushParticleSystem(std::shared_ptr<ParticleSystem> particleSystem, const Transform transform);
+	void PushParticleSystem(std::shared_ptr<ParticleSystem> particleSystem, const DirectX::XMMATRIX transform);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMMATRIX view, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateFrustum(DirectX::BoundingFrustum frustum);

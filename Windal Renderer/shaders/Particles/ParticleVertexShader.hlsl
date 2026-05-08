@@ -1,8 +1,8 @@
 struct Particle
 {
     float3 position;
-    float scale;
     float3 tint;
+    float scale;
     float lifetime;
 };
 

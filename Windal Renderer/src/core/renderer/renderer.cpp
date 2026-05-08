@@ -659,23 +659,36 @@ void Renderer::Render()
 	RenderDeferred(mBackBufferUAV, mGBuffers, mFlags, mSceneCamera, mSceneFrustum);
 }
 
-void Renderer::BeginForward()
+void Renderer::BeginForward(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencilView)
 {
-	mImmediateContext->OMSetRenderTargets(1, &mBackBufferRenderTargetView, mGBuffers.GetDSV());
+	ID3D11RenderTargetView* rtv = renderTarget;
+	if (renderTarget == nullptr)
+	{
+		rtv = mBackBufferRenderTargetView;
+	}
+
+	ID3D11DepthStencilView* dsv = depthStencilView;
+	if (depthStencilView == nullptr)
+	{
+		dsv = mGBuffers.GetDSV();
+	}
+
+	mImmediateContext->OMSetRenderTargets(1, &rtv, dsv);
 }
 
 void Renderer::RenderForward()
 {
-	mParticleRenderer.Render(mImmediateContext, mRenderServer, mParticleSystemsData);
-	mAABBRenderer.Render(mImmediateContext, mAABBData);
-	mLineRenderer.Render(mImmediateContext, mLineData);
-
-	// Here you can do transparency :)
+	if (!((mFlags & RenderFlags::SHOW_GBUFFERS) == RenderFlags::SHOW_GBUFFERS))
+	{
+		mParticleRenderer.Render(mImmediateContext, mRenderServer, mParticleSystemsData);
+		mAABBRenderer.Render(mImmediateContext, mAABBData);
+		mLineRenderer.Render(mImmediateContext, mLineData);
+	}
 }
 
 void Renderer::EndForward()
 {
-	ID3D11RenderTargetView* nullView{};
+	ID3D11RenderTargetView* nullView = nullptr;
 	mImmediateContext->OMSetRenderTargets(1, &nullView, mGBuffers.GetDSV());
 }
 
@@ -856,8 +869,8 @@ void Renderer::RenderShadowMaps()
 		dirLight.viewProj = camera.GetViewProj();
 
 		UpdatePerViewBuffer(
-			{ 
-				dirLight.viewProj, 
+			{
+				dirLight.viewProj,
 				camera.GetView(),
 				camera.transform.GetPosition3f()
 			}
@@ -1001,6 +1014,13 @@ void Renderer::RenderCubeMaps()
 				cameraData,
 				frustumData
 			);
+
+			BeginForward(
+				cubemapData.cubemapTexture->GetRTV(j),
+				cubemapData.cubemapTexture->GetGBuffers().GetDSV()
+			);
+			mParticleRenderer.Render(mImmediateContext, mRenderServer, mParticleSystemsData);
+			EndForward();
 		}
 	}
 }

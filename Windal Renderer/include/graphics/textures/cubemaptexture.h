@@ -17,12 +17,14 @@ public:
 	inline const std::string& GetPath() const { return mPath; }
 
 	ID3D11UnorderedAccessView* GetUAV(size_t i) { return mUnorderedAccessViews[i]; }
+    ID3D11RenderTargetView* GetRTV(size_t i) { return mRenderTargetViews[i]; }
 	GBuffers& GetGBuffers() { return mGBuffers; }
 
 protected:
 	bool CreateSRV();
 	bool CreateTexture(char** data);
 	bool CreateUAVs();
+    bool CreateRTVs();
 	bool CreateGBuffers();
 
 private:
@@ -31,7 +33,8 @@ private:
 	uint32_t mHeight = 0;
 	uint32_t mChannels = 0;
 
-	ID3D11UnorderedAccessView** mUnorderedAccessViews;
+	ID3D11UnorderedAccessView** mUnorderedAccessViews = nullptr;
+    ID3D11RenderTargetView** mRenderTargetViews = nullptr;
 	D3D11_VIEWPORT mViewport;
 	GBuffers mGBuffers;
 };

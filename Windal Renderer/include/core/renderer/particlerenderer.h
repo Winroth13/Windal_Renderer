@@ -16,7 +16,7 @@ struct ID3D11DeviceContext;
 struct ParticleSystemData
 {
 	std::shared_ptr<ParticleSystem> system;
-	Transform transform;
+	DirectX::XMMATRIX transform;
 };
 
 class ParticleRenderer

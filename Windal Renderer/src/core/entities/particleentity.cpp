@@ -25,7 +25,7 @@ void ParticleEntity::UpdateSelf(double delta)
 void ParticleEntity::RenderSelf(RenderServer& renderServer)
 {
 	if (mParticleSystem->GetColorTexture() && mParticleSystem->GetAlphaTexture())
-		renderServer.PushParticleSystem(mParticleSystem, transform);
+		renderServer.PushParticleSystem(mParticleSystem, GetGlobalTransform());
 }
 
 void ParticleEntity::RenderImguiSelf()
@@ -75,6 +75,24 @@ void ParticleEntity::RenderImguiSelf()
 				if (ImGui::DragFloat("Velocity", &velocity, 0.01f, 0, FLT_MAX))
 				{
 					mParticleSystem->SetVelocity(velocity);
+				}
+			}
+
+			/* Start Tint */
+			{
+				DirectX::XMFLOAT3 startTint = mParticleSystem->GetStartTint();
+				if (ImGui::ColorEdit3("Start Tint", &startTint.x))
+				{
+					mParticleSystem->SetStartTint(startTint);
+				}
+			}
+
+			/* End Tint */
+			{
+				DirectX::XMFLOAT3 endTint = mParticleSystem->GetEndTint();
+				if (ImGui::ColorEdit3("End Tint", &endTint.x))
+				{
+					mParticleSystem->SetEndTint(endTint);
 				}
 			}
 
@@ -149,8 +167,6 @@ void ParticleEntity::RenderImguiSelf()
 				}
 				ImGui::TreePop();
 			}
-
-			
 		}
 
 		/* Desaturate */
@@ -187,7 +203,7 @@ void ParticleEntity::RenderImguiSelf()
 		{
 			if (ImGui::TreeNodeEx("Color Texture", TREE_NODE_FLAGS))
 			{
-				colorTex->RenderImgui(128, 128);
+				colorTex->RenderImgui(256, 256);
 				ImGui::TreePop();
 			}
 		}
@@ -197,7 +213,7 @@ void ParticleEntity::RenderImguiSelf()
 		{
 			if (ImGui::TreeNodeEx("Alpha Texture", TREE_NODE_FLAGS))
 			{
-				alphaTex->RenderImgui(128, 128);
+				alphaTex->RenderImgui(256, 256);
 				ImGui::TreePop();
 			}
 		}

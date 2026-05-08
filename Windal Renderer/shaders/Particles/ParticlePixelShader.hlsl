@@ -13,6 +13,8 @@ cbuffer PerParticleSystem : register(b0)
     float lifetime;
     float spawnRadius;
     float velocity;
+    float3 startTint;
+    float3 endTint;
     uint flags;
     float atlasWidth;
     float atlasHeight;
@@ -20,6 +22,7 @@ cbuffer PerParticleSystem : register(b0)
     float desaturatePow;
     float startScale;
     float endScale;
+    float2 pad0;
 };
 
 Texture2D diffuseTexture : register(t0);
@@ -86,7 +89,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     if ((flags & IS_DESATURATE) == IS_DESATURATE)
     {
         float3 desaturateColor = Desaturate(color);
-        color = lerp(color, desaturateColor, pow(lifeRatio, desaturatePow));
+        color = lerp(color, desaturateColor, pow(lifeRatio, abs(desaturatePow)));
     }
     
 	return float4(color, 1.0f);

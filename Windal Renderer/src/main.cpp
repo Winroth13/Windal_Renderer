@@ -113,28 +113,77 @@ public:
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
 
-		auto& particleEntity = mScene->CreateEntity<ParticleEntity>(28);
-		particleEntity.transform.SetPosition(1.42f, 1.231f, 6.168f);
+		/* Fires */
+		constexpr DirectX::XMFLOAT3 firePositions[4] =
+		{
+			{1.42f, 1.23f, 6.20f},
+			{-2.20f, 1.23f, 6.20f},
+			{1.42f, 1.23f, -4.87f},
+			{-2.20f, 1.23f, -4.87f}
+		};
 
-		auto particleSystem = particleEntity.GetParticleSystem();
+		for (int i = 0; i < 4; ++i)
+		{
+			auto& fireEntity = mScene->CreateEntity<Entity>();
+			fireEntity.SetName("Fire");
+			fireEntity.transform.SetPosition(firePositions[i]);
 
-		auto colorTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_atlas.jpg");
-		auto alphaTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_mask_atlas.jpg");
+			/* Create Smoke Particle */
+			{
+				auto& smokeParticleEntity = mScene->CreateEntity<ParticleEntity>(28);
+				smokeParticleEntity.SetName("Smoke Particles");
+				smokeParticleEntity.Attach(&fireEntity);
+				smokeParticleEntity.transform.SetPosition(0.0f, 0.2f, 0.0f);
 
-		particleSystem->SetColorTexture(colorTexture);
-		particleSystem->SetAlphaTexture(alphaTexture);
-		particleSystem->SetAtlasWidth(3);
-		particleSystem->SetAtlasHeight(3);
-		particleSystem->SetAnimated(true);
-		particleSystem->SetDesaturate(true);
-		particleSystem->SetAdditive(true);
+				auto particleSystem = smokeParticleEntity.GetParticleSystem();
+				auto colorTexture = std::make_shared<ImageTexture2D>("assets/fire/smoke_color.jpg");
+				auto alphaTexture = std::make_shared<ImageTexture2D>("assets/fire/smoke_mask.jpg");
 
-		particleSystem->SetLifeTime(1.5f);
-		particleSystem->SetSpawnRadius(0.12f);
-		particleSystem->SetStartScale(0.3f);
-		particleSystem->SetEndScale(0.105f);
-		particleSystem->SetDesaturatePower(1.5f);
-		particleSystem->SetVelocity(0.45f);
+				particleSystem->SetColorTexture(colorTexture);
+				particleSystem->SetAlphaTexture(alphaTexture);
+				particleSystem->SetAtlasWidth(13);
+				particleSystem->SetAtlasHeight(1);
+				particleSystem->SetAnimated(true);
+				particleSystem->SetDesaturate(false);
+				particleSystem->SetAdditive(false);
+
+				particleSystem->SetLifeTime(5.43f);
+				particleSystem->SetSpawnRadius(0.1f);
+				particleSystem->SetStartScale(0.3f);
+				particleSystem->SetEndScale(0.1f);
+				particleSystem->SetVelocity(0.24f);
+
+				particleSystem->SetStartTint(169 / 255.0f, 169 / 255.0f, 169 / 255.f);
+				particleSystem->SetEndTint(54 / 255.0f, 54 / 255.0f, 54 / 255.f);
+			}
+			/* Create Fire Particle */
+			{
+				auto& fireParticleEntity = mScene->CreateEntity<ParticleEntity>(28);
+				fireParticleEntity.SetName("Fire Particles");
+				fireParticleEntity.Attach(&fireEntity);
+
+				auto particleSystem = fireParticleEntity.GetParticleSystem();
+				auto colorTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_atlas.jpg");
+				auto alphaTexture = std::make_shared<ImageTexture2D>("assets/fire/fire_mask_atlas.jpg");
+
+				particleSystem->SetColorTexture(colorTexture);
+				particleSystem->SetAlphaTexture(alphaTexture);
+				particleSystem->SetAtlasWidth(3);
+				particleSystem->SetAtlasHeight(3);
+				particleSystem->SetAnimated(true);
+				particleSystem->SetDesaturate(false);
+				particleSystem->SetAdditive(true);
+
+				particleSystem->SetLifeTime(0.820f);
+				particleSystem->SetSpawnRadius(0.12f);
+				particleSystem->SetStartScale(0.3f);
+				particleSystem->SetEndScale(0.105f);
+				particleSystem->SetDesaturatePower(1.5f);
+				particleSystem->SetVelocity(0.45f);
+
+				particleSystem->SetEndTint(0, 0, 0);
+			}
+		}
 	};
 
 	void Shutdown() override

@@ -20,6 +20,37 @@ public:
 	void Render(RenderServer& renderServer);
 	void Shutdown();
 
+	template<typename T>
+	void SetEntityName(std::unique_ptr<T>& entity, std::string wishName)
+	{
+		if (mEntityNameCount.find(wishName) != mEntityNameCount.end())
+		{
+			mEntityNameCount[wishName]++;
+			wishName += " #" + std::to_string(mEntityNameCount[wishName]);
+		}
+		else
+		{
+			mEntityNameCount[wishName] = 1;
+		}
+
+		entity->mName = wishName;
+	}
+
+	void SetEntityName(Entity* entity, std::string wishName)
+	{
+		if (mEntityNameCount.find(wishName) != mEntityNameCount.end())
+		{
+			mEntityNameCount[wishName]++;
+			wishName += " #" + std::to_string(mEntityNameCount[wishName]);
+		}
+		else
+		{
+			mEntityNameCount[wishName] = 1;
+		}
+
+		entity->mName = wishName;
+	}
+
 	template<typename T, typename... Args>
 	T& CreateEntity(Args&&... args)
 	{
@@ -29,15 +60,7 @@ public:
 
 		ptr->mScene = this;
 
-		if (mEntityNameCount.find(ptr->mName) != mEntityNameCount.end())
-		{
-			mEntityNameCount[ptr->mName]++;
-			ptr->mName += " #" + std::to_string(mEntityNameCount[ptr->mName]);
-		}
-		else
-		{
-			mEntityNameCount[ptr->mName] = 1;
-		}
+		SetEntityName(ptr, ptr->mName);
 
 		T& reference = *ptr;
 		mEntities.emplace_back(std::move(ptr));

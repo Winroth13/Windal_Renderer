@@ -5,6 +5,8 @@ cbuffer PerParticleSystem : register(b0)
     float lifetime;
     float spawnRadius;
     float velocity;
+    float3 startTint;
+    float3 endTint;
     uint flags;
     float atlasWidth;
     float atlasHeight;
@@ -12,13 +14,14 @@ cbuffer PerParticleSystem : register(b0)
     float desaturatePow;
     float startScale;
     float endScale;
+    float2 pad0;
 };
 
 struct Particle
 {
     float3 position;
-    float scale;
     float3 tint;
+    float scale;
     float lifetime;
 };
 
@@ -54,7 +57,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
     
     particle.lifetime += deltaTime;
     particle.position.y += velocity * deltaTime;
-    particle.scale = lerp(startScale, endScale, lifeRatio);
     
     if (particle.lifetime > lifetime || (flags & RESET) == RESET)
     {
@@ -68,7 +70,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
         }
 
         lifeRatio = particle.lifetime / lifetime;
-        particle.scale = lerp(startScale, endScale, lifeRatio);
 
         float angle = random(float2(DTid.x + ticks, DTid.x + ticks)) * PI * 2;
         float radiusRatio = random(float2(DTid.x + ticks + 1, DTid.x + ticks + 1));
@@ -80,6 +81,9 @@ void main( uint3 DTid : SV_DispatchThreadID )
         particle.position.y = velocity * particle.lifetime;
         particle.position.z = z;
     }
+    
+    particle.scale = lerp(startScale, endScale, lifeRatio);
+    particle.tint = lerp(startTint, endTint, lifeRatio);
     
     Particles[DTid.x] = particle;
 }

@@ -30,6 +30,11 @@ CubemapTexture::CubemapTexture(uint32_t width, uint32_t height)
 	{
 		throw std::runtime_error("");
 	}
+
+	if (!CreateRTVs())
+	{
+		throw std::runtime_error("");
+	}
 }
 
 CubemapTexture::CubemapTexture(const std::array<std::string, 6>& paths)
@@ -76,21 +81,29 @@ CubemapTexture::CubemapTexture(const std::array<std::string, 6>& paths)
 	{
 		throw std::runtime_error("");
 	}
-
-	if (!CreateUAVs())
-	{
-		throw std::runtime_error("");
-	}
 }
 
 CubemapTexture::~CubemapTexture()
 {
-	/* Delete render target views */
-	for (size_t i = 0; i < 6; ++i)
+	/* Delete unordered access views */
+	if (mUnorderedAccessViews != nullptr)
 	{
-		mUnorderedAccessViews[i]->Release();
+		for (size_t i = 0; i < 6; ++i)
+		{
+			mUnorderedAccessViews[i]->Release();
+		}
+		delete[] mUnorderedAccessViews;
 	}
-	delete[] mUnorderedAccessViews;
+
+	/* Delete render target views */
+	if (mRenderTargetViews != nullptr)
+	{
+		for (size_t i = 0; i < 6; ++i)
+		{
+			mRenderTargetViews[i]->Release();
+		}
+		delete[] mRenderTargetViews;
+	}
 }
 
 void CubemapTexture::RenderImgui(const uint32_t width, const uint32_t height)
@@ -129,7 +142,7 @@ bool CubemapTexture::CreateTexture(char** data)
 	textureDesc.Height = mHeight;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 6;
@@ -194,6 +207,34 @@ bool CubemapTexture::CreateUAVs()
 			)
 		{
 			Logger::Error("Failed to create unordered access view for cubemap texture");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool CubemapTexture::CreateRTVs()
+{
+	/* Create render target views */
+	mRenderTargetViews = new ID3D11RenderTargetView * [6];
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	rtvDesc.Texture2DArray.MipSlice = 0;
+	rtvDesc.Texture2DArray.ArraySize = 1;
+
+	for (int i = 0; i < 6; ++i)
+	{
+		rtvDesc.Texture2DArray.FirstArraySlice = i;
+		if (FAILED(Renderer::GetDevice()->CreateRenderTargetView(
+			mTexture,
+			&rtvDesc,
+			&mRenderTargetViews[i]))
+			)
+		{
+			Logger::Error("Failed to create render target views for cubemap texture");
 			return false;
 		}
 	}

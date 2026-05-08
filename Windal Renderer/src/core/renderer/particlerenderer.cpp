@@ -94,8 +94,7 @@ void ParticleRenderer::Render(
 			ctx->OMSetDepthStencilState(nullptr, 0);
 		}
 
-		DirectX::XMMATRIX worldMatrix = p.transform.GetMatrix();
-		renderServer.UpdatePerObject(worldMatrix);
+		renderServer.UpdatePerObject(p.transform);
 
 		/* Bind Particle System Buffer */
 		ID3D11Buffer* systemBuffer = p.system->GetParticleSystemBuffer();
@@ -139,4 +138,6 @@ void ParticleRenderer::Render(
 	/* Reset Output Merger */
 	ctx->OMSetBlendState(nullptr, blendFactor, sampleMask);
 	ctx->OMSetDepthStencilState(nullptr, 0);
+
+	ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

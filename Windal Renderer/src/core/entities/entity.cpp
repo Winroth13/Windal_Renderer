@@ -1,11 +1,17 @@
 #include "core/entities/entity.h"
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
+#include "core/scene.h"
 
 #include <string>
 
+Entity::Entity()
+	: Entity("Entity")
+{
+}
+
 Entity::Entity(std::string name)
-	: mName(name)
+	:mName(name)
 {
 }
 
@@ -72,6 +78,11 @@ void Entity::RenderImgui()
 	ImGui::Checkbox("Visible", &mVisible);
 
 	RenderImguiSelf();
+}
+
+void Entity::SetName(const std::string& name)
+{
+	mScene->SetEntityName(this, name);
 }
 
 bool Entity::IsVisible()

@@ -207,7 +207,7 @@ public:
 	void BeginRender();
 	void Render();
 
-	void BeginForward();
+	void BeginForward(ID3D11RenderTargetView* renderTarget = nullptr, ID3D11DepthStencilView* depthStencilView = nullptr);
 	void RenderForward();
 	void EndForward();
 

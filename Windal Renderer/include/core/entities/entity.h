@@ -13,6 +13,7 @@ class Entity
 	friend class Scene;
 
 public:
+	Entity();
 	Entity(std::string name);
 
 	virtual ~Entity() = default;
@@ -23,7 +24,7 @@ public:
 	void RenderImgui();
 
 	std::string& GetName() { return mName; }
-	void SetName(const std::string& name) { mName = name; }
+	void SetName(const std::string& name);
 
 	bool IsVisible();
 	void SetVisible(const bool visible) { mVisible = visible; }
