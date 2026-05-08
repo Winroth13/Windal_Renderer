@@ -32,125 +32,153 @@ void ParticleEntity::RenderImguiSelf()
 {
 	if (ImGui::TreeNodeEx("Particle System", TREE_NODE_FLAGS))
 	{
+		float offset = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x;
+		ImGui::Indent(offset);
+
 		if (ImGui::Button("Reset"))
 		{
 			mParticleSystem->Reset();
 		}
-		
-		/* Count */
-		int count = (uint32_t)mParticleSystem->GetCount();
-		if (ImGui::DragInt("Count", &count, 0.1f, 1, INT32_MAX))
-		{
-			mParticleSystem->SetCount(count);
-			mParticleSystem->Reset();
-		}
 
-		/* Lifetime */
+		if (ImGui::TreeNodeEx("General", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
 		{
-			float lifeTime = mParticleSystem->GetLifeTime();
-			if (ImGui::DragFloat("Lifetime", &lifeTime, 0.01f, 0, FLT_MAX))
+			/* Count */
+			int count = (uint32_t)mParticleSystem->GetCount();
+			if (ImGui::DragInt("Count", &count, 0.1f, 1, INT32_MAX))
 			{
-				mParticleSystem->SetLifeTime(lifeTime);
+				mParticleSystem->SetCount(count);
 				mParticleSystem->Reset();
 			}
+
+			/* Lifetime */
+			{
+				float lifeTime = mParticleSystem->GetLifeTime();
+				if (ImGui::DragFloat("Lifetime", &lifeTime, 0.01f, 0, FLT_MAX))
+				{
+					mParticleSystem->SetLifeTime(lifeTime);
+					mParticleSystem->Reset();
+				}
+			}
+
+			/* Spawn Radius */
+			{
+				float spawnRadius = mParticleSystem->GetSpawnRadius();
+				if (ImGui::DragFloat("Spawn Radius", &spawnRadius, 0.01f, 0, FLT_MAX))
+				{
+					mParticleSystem->SetSpawnRadius(spawnRadius);
+				}
+			}
+
+			/* Velocity */
+			{
+				float velocity = mParticleSystem->GetVelocity();
+				if (ImGui::DragFloat("Velocity", &velocity, 0.01f, 0, FLT_MAX))
+				{
+					mParticleSystem->SetVelocity(velocity);
+				}
+			}
+
+			/* Start Scale */
+			{
+				float startScale = mParticleSystem->GetStartScale();
+				if (ImGui::DragFloat("Start Scale", &startScale, 0.01f, 0, FLT_MAX))
+				{
+					mParticleSystem->SetStartScale(startScale);
+				}
+			}
+
+			/* End Scale */
+			{
+				float endScale = mParticleSystem->GetEndScale();
+				if (ImGui::DragFloat("End Scale", &endScale, 0.01f, 0, FLT_MAX))
+				{
+					mParticleSystem->SetEndScale(endScale);
+				}
+			}
+
+			/* Additive */
+			{
+				bool isAdditive = mParticleSystem->IsAdditive();
+				if (ImGui::Checkbox("Additive", &isAdditive))
+				{
+					mParticleSystem->SetAdditive(isAdditive);
+				}
+			}
+
+			ImGui::TreePop();
 		}
 
-		/* Spawn Radius */
-		{
-			float spawnRadius = mParticleSystem->GetSpawnRadius();
-			if (ImGui::DragFloat("Spawn Radius", &spawnRadius, 0.01f, 0, FLT_MAX))
-			{
-				mParticleSystem->SetSpawnRadius(spawnRadius);
-			}
-		}
-
-		/* Velocity */
-		{
-			float velocity = mParticleSystem->GetVelocity();
-			if (ImGui::DragFloat("Velocity", &velocity, 0.01f, 0, FLT_MAX))
-			{
-				mParticleSystem->SetVelocity(velocity);
-			}
-		}
-
-		/* Start Scale */
-		{
-			float startScale = mParticleSystem->GetStartScale();
-			if (ImGui::DragFloat("Start Scale", &startScale, 0.01f, 0, FLT_MAX))
-			{
-				mParticleSystem->SetStartScale(startScale);
-			}
-		}
-
-		/* End Scale */
-		{
-			float endScale = mParticleSystem->GetEndScale();
-			if (ImGui::DragFloat("End Scale", &endScale, 0.01f, 0, FLT_MAX))
-			{
-				mParticleSystem->SetEndScale(endScale);
-			}
-		}
+		ImGui::Unindent(offset);
 
 		/* Animation */
 		{
 			bool isAnimated = mParticleSystem->IsAnimated();
-			if (ImGui::Checkbox("Animated", &isAnimated))
+			if (ImGui::Checkbox("##Animated", &isAnimated))
 			{
 				mParticleSystem->SetAnimated(isAnimated);
 			}
 
-			if (isAnimated)
-			{
-				/* Atlas Speed */
-				{
-					float atlasSpeed = mParticleSystem->GetAtlasSpeed();
-					if (ImGui::DragFloat("Atlas Speed", &atlasSpeed, 0.01f, 0, FLT_MAX))
-					{
-						mParticleSystem->SetAtlasSpeed(atlasSpeed);
-					}
-				}
+			ImGui::SameLine();
 
-				/* Atlas Size */
+			ImGuiTreeNodeFlags flags = isAnimated ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_Leaf;
+
+			if (ImGui::TreeNodeEx("Animated", flags | ImGuiTreeNodeFlags_Framed))
+			{
+				if (isAnimated)
 				{
-					float atlasWidth = mParticleSystem->GetAtlasWidth();
-					float atlasHeight = mParticleSystem->GetAtlasHeight();
-					int atlasSize[2] = { (int)atlasWidth, (int)atlasHeight };
-					if (ImGui::DragInt2("Atlas Size", &atlasSize[0], 0.05f, 1, INT32_MAX))
+					/* Atlas Speed */
 					{
-						mParticleSystem->SetAtlasWidth((float)atlasSize[0]);
-						mParticleSystem->SetAtlasHeight((float)atlasSize[1]);
+						float atlasSpeed = mParticleSystem->GetAtlasSpeed();
+						if (ImGui::DragFloat("Atlas Speed", &atlasSpeed, 0.01f, 0, FLT_MAX))
+						{
+							mParticleSystem->SetAtlasSpeed(atlasSpeed);
+						}
+					}
+
+					/* Atlas Size */
+					{
+						float atlasWidth = mParticleSystem->GetAtlasWidth();
+						float atlasHeight = mParticleSystem->GetAtlasHeight();
+						int atlasSize[2] = { (int)atlasWidth, (int)atlasHeight };
+						if (ImGui::DragInt2("Atlas Size", &atlasSize[0], 0.05f, 1, INT32_MAX))
+						{
+							mParticleSystem->SetAtlasWidth((float)atlasSize[0]);
+							mParticleSystem->SetAtlasHeight((float)atlasSize[1]);
+						}
 					}
 				}
+				ImGui::TreePop();
 			}
+
+			
 		}
 
 		/* Desaturate */
 		{
 			bool isDesaturate = mParticleSystem->IsDesaturate();
-			if (ImGui::Checkbox("Desaturate", &isDesaturate))
+			if (ImGui::Checkbox("##Desaturate", &isDesaturate))
 			{
 				mParticleSystem->SetDesaturate(isDesaturate);
 			}
 
-			if (isDesaturate)
+			ImGui::SameLine();
+
+			ImGuiTreeNodeFlags flags = isDesaturate ? ImGuiTreeNodeFlags_DefaultOpen : ImGuiTreeNodeFlags_Leaf;
+
+			if (ImGui::TreeNodeEx("Desaturate", flags | ImGuiTreeNodeFlags_Framed))
 			{
-				/* Desaturate Power */
+				if (isDesaturate)
 				{
-					float desaturatePower = mParticleSystem->GetDesaturatePower();
-					if (ImGui::DragFloat("Desaturate Power", &desaturatePower, 0.01f, 0, FLT_MAX))
+					/* Desaturate Power */
 					{
-						mParticleSystem->SetDesaturatePower(desaturatePower);
+						float desaturatePower = mParticleSystem->GetDesaturatePower();
+						if (ImGui::DragFloat("Desaturate Power", &desaturatePower, 0.01f, 0, FLT_MAX))
+						{
+							mParticleSystem->SetDesaturatePower(desaturatePower);
+						}
 					}
 				}
-			}
-		}
-
-		/* Additive */
-		{
-			bool isAdditive = mParticleSystem->IsAdditive();
-			if (ImGui::Checkbox("Additive", &isAdditive))
-			{
-				mParticleSystem->SetAdditive(isAdditive);
+				ImGui::TreePop();
 			}
 		}
 
