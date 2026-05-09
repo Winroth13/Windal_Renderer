@@ -100,7 +100,7 @@ float calcOmniShadowFactor(
     float closestDepth = texArr.SampleLevel(shadowMapSampler, float4(normalize(lightVector), index), 0);
     closestDepth *= FAR_PLANE;
     
-    if (currentDepth > (closestDepth + WORLD_SHADOW_MAP_BIAS))
+    if (currentDepth > (closestDepth + SHADOW_MAP_BIAS))
     {
         return 0.0f;
     }
