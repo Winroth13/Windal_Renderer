@@ -429,6 +429,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	{
 		mShadowMapVertexShader = std::make_unique<VertexShader>("resources/ShadowMapVertexShader.cso");
 		mShadowMapPixelShader = std::make_unique<PixelShader>("resources/ShadowMapPixelShader.cso");
+		mShadowMapLinearPixelShader = std::make_unique<PixelShader>("resources/ShadowMapLinearPixelShader.cso");
 
 		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS, 2048, 2048))
 		{
@@ -841,66 +842,86 @@ void Renderer::RenderShadowMaps()
 	/* Bind Shadow Map Vertex Shader */
 	BindVertexShader(mShadowMapVertexShader);
 
-	/* Unbind Pixel Shader to make it depth-only pass */
-	UnbindPixelShader();
-
 	/* Bind Input Layout */
 	mImmediateContext->IASetInputLayout(mShadowInputLayout);
 
-	/* Set Shadow Map Viewport for Directional Lights */
-	mImmediateContext->RSSetViewports(1, &mDirectionalLightsShadowMap.GetViewport());
-
 	/* Directional Lights */
-	for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
 	{
-		DirectionalLightData& dirLight = mDirectionalLightsData[i];
+		/* Set Shadow Map Viewport for Directional Lights */
+		mImmediateContext->RSSetViewports(1, &mDirectionalLightsShadowMap.GetViewport());
 
-		/* Bind Shadow Map Depth Stencil */
-		ID3D11DepthStencilView* dsv = mDirectionalLightsShadowMap.GetDSV(i);
-		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
-		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+		for (size_t i = 0; i < mDirectionalLightsData.size(); ++i)
+		{
+			ID3D11DepthStencilView* dsv = mDirectionalLightsShadowMap.GetDSV(i);
+			mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+			mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
-		Camera camera;
-		camera.SetOrthographicLens(50, 50, 1.0f, 60.0f); // TODO: experimentation got us these values, idk!
-		DirectX::XMFLOAT3 direction = dirLight.direction;
-		camera.transform.SetAngles(DirectionToAngles(direction));
+			DirectionalLightData& dirLight = mDirectionalLightsData[i];
 
-		direction.x *= -30;
-		direction.y *= -30;
-		direction.z *= -30;
-		camera.transform.SetPosition(direction);
+			Camera camera;
+			camera.SetOrthographicLens(50, 50, 0.1f, 100.0f); // TODO: experimentation got us these values, idk!
+			DirectX::XMFLOAT3 direction = dirLight.direction;
+			camera.transform.SetAngles(DirectionToAngles(direction));
 
-		camera.UpdateViewMatrix();
+			direction.x *= -50;
+			direction.y *= -50;
+			direction.z *= -50;
+			camera.transform.SetPosition(direction);
 
-		dirLight.viewProj = camera.GetViewProj();
+			camera.UpdateViewMatrix();
 
-		UpdatePerViewBuffer(
+			dirLight.viewProj = camera.GetViewProj();
+
+			UpdatePerViewBuffer(
+				{
+					dirLight.viewProj,
+					camera.GetView(),
+					camera.transform.GetPosition3f()
+				}
+			);
+
+			/* Draw static geometry to depth stencil */
+			for (size_t i = 0; i < mStaticGeometryData.size(); ++i)
 			{
-				dirLight.viewProj,
-				camera.GetView(),
-				camera.transform.GetPosition3f()
+				auto& geometryData = mStaticGeometryData[i];
+				auto& materialData = mStaticMaterialData[i];
+
+				if (materialData.material->HasAlpha())
+				{
+					BindPixelShader(mShadowMapPixelShader);
+				}
+				else
+				{
+					UnbindPixelShader();
+				}
+
+				RenderShadowMeshAndMaterial(geometryData, materialData);
 			}
-		);
 
-		/* Draw static geometry to depth stencil */
-		for (size_t i = 0; i < mStaticGeometryData.size(); ++i)
-		{
-			auto& geometryData = mStaticGeometryData[i];
-			auto& materialData = mStaticMaterialData[i];
-			RenderShadowMeshAndMaterial(geometryData, materialData);
-		}
+			/* Draw dynamic data to depth stencil */
+			for (size_t i = 0; i < mGeometryData.size(); ++i)
+			{
+				auto& geometryData = mGeometryData[i];
+				auto& materialData = mMaterialData[i];
 
-		/* Draw dynamic data to depth stencil */
-		for (size_t i = 0; i < mGeometryData.size(); ++i)
-		{
-			auto& geometryData = mGeometryData[i];
-			auto& materialData = mMaterialData[i];
-			RenderShadowMeshAndMaterial(geometryData, materialData);
+				if (materialData.material->HasAlpha())
+				{
+					BindPixelShader(mShadowMapPixelShader);
+				}
+				else
+				{
+					UnbindPixelShader();
+				}
+
+				RenderShadowMeshAndMaterial(geometryData, materialData);
+			}
 		}
 	}
 
 	/* Point Lights */
 	{
+		BindPixelShader(mShadowMapLinearPixelShader);
+
 		constexpr DirectX::XMFLOAT3 CAMERA_CUBEMAP_ANGLES[] =
 		{
 			{0, DirectX::XM_PI / 2, 0},					// Pos X
@@ -912,9 +933,10 @@ void Renderer::RenderShadowMaps()
 		};
 
 		mImmediateContext->RSSetViewports(1, &mPointLightsShadowMap.GetViewport());
+		ID3D11DepthStencilView* dsv = mPointLightsShadowMap.GetDSV();
 
 		Camera camera;
-		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 1000.0f);
+		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 100.0f);
 
 		for (size_t i = 0; i < mPointLightsData.size(); ++i)
 		{
@@ -925,10 +947,13 @@ void Renderer::RenderShadowMaps()
 
 			for (size_t face = 0; face < 6; ++face)
 			{
-				/* Bind Depth Stencil */
-				ID3D11DepthStencilView* dsv = mPointLightsShadowMap.GetDSV(i, face);
+				ID3D11RenderTargetView* rtv = mPointLightsShadowMap.GetRTV(i, face);
+
+				constexpr float DEPTH_CLEAR_COLOR[4] = { 1, 1, 1, 1 };
+
+				mImmediateContext->ClearRenderTargetView(rtv, DEPTH_CLEAR_COLOR);
 				mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
-				mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+				mImmediateContext->OMSetRenderTargets(1, &rtv, dsv);
 
 				/* Orient camera to face */
 				camera.transform.SetAngles(CAMERA_CUBEMAP_ANGLES[face]);
@@ -971,13 +996,11 @@ void Renderer::RenderShadowMaps()
 	/* Spot Lights */
 	{
 		mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
+
 		for (size_t i = 0; i < mSpotLightsData.size(); ++i)
 		{
 			SpotLightData& spotLight = mSpotLightsData[i];
-
-			/* Bind Shadow Map Depth Stencil */
 			ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
-
 			mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
 			mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
@@ -1011,6 +1034,16 @@ void Renderer::RenderShadowMaps()
 				if (IsGeometryVisible(geometryData, frustum))
 				{
 					MaterialData& materialData = mStaticMaterialData[i];
+
+					if (materialData.material->HasAlpha())
+					{
+						BindPixelShader(mShadowMapPixelShader);
+					}
+					else
+					{
+						UnbindPixelShader();
+					}
+
 					RenderShadowMeshAndMaterial(geometryData, materialData);
 				}
 			}
@@ -1022,6 +1055,16 @@ void Renderer::RenderShadowMaps()
 				if (IsGeometryVisible(geometryData, frustum))
 				{
 					MaterialData& materialData = mMaterialData[i];
+
+					if (materialData.material->HasAlpha())
+					{
+						BindPixelShader(mShadowMapPixelShader);
+					}
+					else
+					{
+						UnbindPixelShader();
+					}
+
 					RenderShadowMeshAndMaterial(geometryData, materialData);
 				}
 			}
@@ -1029,6 +1072,7 @@ void Renderer::RenderShadowMaps()
 	}
 
 	UnbindVertexShader();
+	UnbindPixelShader();
 	mImmediateContext->IASetInputLayout(nullptr);
 }
 
@@ -1053,7 +1097,7 @@ void Renderer::RenderCubeMaps()
 	for (size_t i = 0; i < mCubemapsData.size(); ++i)
 	{
 		auto& cubemapData = mCubemapsData[i];
-		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 1000.0f);
+		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 100.0f);
 
 		/* Render to each side */
 		for (size_t j = 0; j < 6; ++j)
@@ -1367,12 +1411,7 @@ bool Renderer::IsGeometryVisible(GeometryData& geometryData, const DirectX::Boun
 void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialData& materialData)
 {
 	auto& mat = materialData.material;
-
-	if (mat->HasAlpha())
-	{
-		BindTexture2D(mat->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
-		BindPixelShader(mShadowMapPixelShader);
-	}
+	BindMaterialSRV(mat, 0);
 
 	D3D11_CULL_MODE wishCullMode = mat->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
 	if (mRasterizerDesc.CullMode != wishCullMode)
@@ -1397,8 +1436,6 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 	BindMesh(geometryData.mesh);
 	UpdatePerObjectBuffer(geometryData.transform);
 	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
-
-	UnbindPixelShader();
 
 	/* Disable Tessellation */
 	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

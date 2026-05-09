@@ -8,17 +8,27 @@ OmnidirectionalShadowMap::OmnidirectionalShadowMap()
 
 OmnidirectionalShadowMap::~OmnidirectionalShadowMap()
 {
-	if (mDsvArray)
+	if (mRtvArray)
 	{
 		for (size_t i = 0; i < mMaxMaps * 6; ++i)
 		{
-			mDsvArray[i]->Release();
+			mRtvArray[i]->Release();
 		}
+	}
+
+	if (mDsv)
+	{
+		mDsv->Release();
 	}
 
 	if (mSrv)
 	{
 		mSrv->Release();
+	}
+
+	if (mDepthTexture)
+	{
+		mDepthTexture->Release();
 	}
 
 	if (mTexture)
@@ -29,6 +39,10 @@ OmnidirectionalShadowMap::~OmnidirectionalShadowMap()
 
 bool OmnidirectionalShadowMap::Create(size_t maxNumMaps, size_t textureWidth, size_t textureHeight)
 {
+	mMaxMaps = maxNumMaps;
+	mWidth = textureWidth;
+	mHeight = textureHeight;
+
 	/* Configure Viewport */
 	{
 		mViewport.TopLeftX = 0;
@@ -39,22 +53,22 @@ bool OmnidirectionalShadowMap::Create(size_t maxNumMaps, size_t textureWidth, si
 		mViewport.MaxDepth = 1;
 	}
 
-	/* Create Texture */
+	/* Create Depth Texture */
 	{
 		D3D11_TEXTURE2D_DESC desc = {};
 		desc.Width = static_cast<UINT>(textureWidth);;
 		desc.Height = static_cast<UINT>(textureHeight);
 		desc.MipLevels = 1;
-		desc.ArraySize = static_cast<UINT>(6 * maxNumMaps);
+		desc.ArraySize = 1;
 		desc.Format = DXGI_FORMAT_R32_TYPELESS;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+		desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		desc.CPUAccessFlags = 0;
-		desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+		desc.MiscFlags = 0;
 
-		HRESULT hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture);
+		HRESULT hr = Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mDepthTexture);
 
 		if (FAILED(hr))
 		{
@@ -63,13 +77,50 @@ bool OmnidirectionalShadowMap::Create(size_t maxNumMaps, size_t textureWidth, si
 		}
 	}
 
-	/* Depth Depth Stencil Views */
+	/* Create Texture */
 	{
-		mDsvArray = new ID3D11DepthStencilView* [maxNumMaps * 6];
+		D3D11_TEXTURE2D_DESC desc = {};
+		desc.Width = static_cast<UINT>(textureWidth);
+		desc.Height = static_cast<UINT>(textureHeight);
+		desc.MipLevels = 1;
+		desc.ArraySize = static_cast<UINT>(mMaxMaps) * 6;
+		desc.Format = DXGI_FORMAT_R32_FLOAT;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		desc.CPUAccessFlags = 0;
+		desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
+		if (FAILED(Renderer::GetDevice()->CreateTexture2D(&desc, nullptr, &mTexture)))
+		{
+			Logger::Error("Failed to create texture");
+			return false;
+		}
+	}
+
+	/* Depth Depth Stencil View */
+	{
 		D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
 		desc.Format = DXGI_FORMAT_D32_FLOAT;
 		desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+		desc.Texture2DArray.MipSlice = 0;
+		desc.Texture2DArray.ArraySize = 1;
+
+		if (FAILED(Renderer::GetDevice()->CreateDepthStencilView(mDepthTexture, &desc, &mDsv)))
+		{
+			Logger::Error("Failed to create depth stencil view");
+			return false;
+		}
+	}
+
+	/* Create Render Target Views */
+	{
+		mRtvArray = new ID3D11RenderTargetView * [maxNumMaps * 6];
+
+		D3D11_RENDER_TARGET_VIEW_DESC desc = {};
+		desc.Format = DXGI_FORMAT_R32_FLOAT;
+		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		desc.Texture2DArray.MipSlice = 0;
 		desc.Texture2DArray.ArraySize = 1;
 
@@ -77,13 +128,13 @@ bool OmnidirectionalShadowMap::Create(size_t maxNumMaps, size_t textureWidth, si
 		{
 			desc.Texture2DArray.FirstArraySlice = static_cast<UINT>(i);
 
-			if (FAILED(Renderer::GetDevice()->CreateDepthStencilView(
+			if (FAILED(Renderer::GetDevice()->CreateRenderTargetView(
 				mTexture,
 				&desc,
-				&mDsvArray[i]))
+				&mRtvArray[i]))
 				)
 			{
-				Logger::Error("Failed to create depth stencil view");
+				Logger::Error("Failed to create render target view");
 				return false;
 			}
 		}

@@ -84,7 +84,7 @@ sampler shadowMapSampler : register(s1);
 #define SHADOW_MAP_BIAS 0.01
 #define SHADOW_SAMPLES_DIMENTIONS 3
 
-#define FAR_PLANE 1000.0f
+#define FAR_PLANE 100.0f
 
 #define WORLD_SHADOW_MAP_BIAS SHADOW_MAP_BIAS * FAR_PLANE
 
@@ -100,7 +100,7 @@ float calcOmniShadowFactor(
     float closestDepth = texArr.SampleLevel(shadowMapSampler, float4(normalize(lightVector), index), 0);
     closestDepth *= FAR_PLANE;
     
-    if (currentDepth > (closestDepth))
+    if (currentDepth > (closestDepth + WORLD_SHADOW_MAP_BIAS))
     {
         return 0.0f;
     }

@@ -73,10 +73,10 @@ public:
         pointLightEntity1.transform.SetPosition(0, 1, 0);
         pointLightEntity1.SetVisible(true);
 
-        /*auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>();
+        auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>();
         sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
         sunEntity.SetIntensity(0.75f);
-        sunEntity.SetVisible(true);*/
+        sunEntity.SetVisible(true);
 
         auto& spotEntity = mScene->CreateEntity<SpotLightEntity>();
         spotEntity.SetColor({ 1.0, 0.0, 0.0 });

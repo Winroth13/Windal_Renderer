@@ -398,7 +398,7 @@
     <FxCompile Include="shaders\AABB\AABBPixelShader.hlsl" />
     <FxCompile Include="shaders\Line\LineVertexShader.hlsl" />
     <FxCompile Include="shaders\Line\LinePixelShader.hlsl" />
-    <FxCompile Include="shaders\Shadowmapping\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="shaders\Shadowmapping\ShadowMapLinearPixelShader.hlsl" />
     <FxCompile Include="shaders\Displacement\TessellationHullShader.hlsl" />
     <FxCompile Include="shaders\Displacement\DisplacementDomainShader.hlsl" />
     <FxCompile Include="shaders\Displacement\ShadowMapDisplacementDomainShader.hlsl" />
@@ -407,5 +407,6 @@
     <FxCompile Include="shaders\Particles\ParticleComputeShader.hlsl" />
     <FxCompile Include="shaders\Particles\ParticlePixelShader.hlsl" />
     <FxCompile Include="shaders\Particles\ParticleVertexShader.hlsl" />
+    <FxCompile Include="shaders\Shadowmapping\ShadowMapPixelShader.hlsl" />
   </ItemGroup>
 </Project>
