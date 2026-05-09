@@ -34,11 +34,13 @@
 class TestApp : public App
 {
 public:
+	float time = 0;
+
 	std::unique_ptr<Entity>* inspectorEntity = nullptr;
 	Entity* cameraEntity;
 	POINT previousMousePos;
 
-	//std::unique_ptr<Entity>* firePointLights[4];
+	std::vector<PointLightEntity*> firePointLights;
 
 	void Initialize() override
 	{
@@ -46,11 +48,11 @@ public:
 			std::array<std::string, 6>
 		{
 			"assets/skybox/posx.jpg",
-				"assets/skybox/negx.jpg",
-				"assets/skybox/posy.jpg",
-				"assets/skybox/negy.jpg",
-				"assets/skybox/posz.jpg",
-				"assets/skybox/negz.jpg"
+			"assets/skybox/negx.jpg",
+			"assets/skybox/posy.jpg",
+			"assets/skybox/negy.jpg",
+			"assets/skybox/posz.jpg",
+			"assets/skybox/negz.jpg"
 		}
 		);
 
@@ -69,11 +71,6 @@ public:
 		auto& enviromentEntity = mScene->CreateEntity<EnviromentEntity>();
 		int ambientDivisor = 1;
 		enviromentEntity.SetAmbientColor(108.f / (255 * ambientDivisor), 150.f / (255 * ambientDivisor), 177.f / (255 * ambientDivisor));
-
-		auto& pointLightEntity1 = mScene->CreateEntity<PointLightEntity>();
-		pointLightEntity1.SetColor({ 0, 1, 0 });
-		pointLightEntity1.transform.SetPosition(0, 1, 0);
-		pointLightEntity1.SetVisible(true);
 
 		auto& sunEntity = mScene->CreateEntity<DirectionalLightEntity>();
 		sunEntity.transform.SetAngles(DirectX::XMConvertToRadians(60), DirectX::XMConvertToRadians(-100), 0);
@@ -141,8 +138,6 @@ public:
 				pointLightEntity.SetColor({ 100 / 255.0f, 40 / 255.0f, 0 / 255.0f });
 				pointLightEntity.SetIntensity(0.7f);
 				pointLightEntity.SetAttenuation(0.1f);
-
-				//firePointLights[i] = 
 			}
 
 			/* Create Smoke Particle */
@@ -201,6 +196,16 @@ public:
 				particleSystem->SetEndTint(0, 0, 0);
 			}
 		}
+
+		for (auto& entity : mScene->GetEntities())
+		{
+			PointLightEntity* pointEntity = dynamic_cast<PointLightEntity*>(entity.get());
+
+			if (pointEntity != nullptr)
+			{
+				firePointLights.emplace_back(pointEntity);
+			}
+		}
 	};
 
 	void Shutdown() override
@@ -209,6 +214,28 @@ public:
 
 	void Update(double delta) override
 	{
+		time += (float)delta;
+
+		constexpr float AMPLITUDE = 0.3f;
+		constexpr float FREQ = 10.0f;
+		constexpr size_t OCTAVES = 3;
+
+		int i = 0;
+
+		for (auto& pointLight : firePointLights)
+		{
+			float ratio = 1.0f;
+			float freq = FREQ;
+			for (size_t octave = 0; octave < OCTAVES; octave++)
+			{
+				ratio *= (sin(time * freq + 10 * i)) / 2.0f;
+				freq /= 2.0f;
+			}
+
+			pointLight->SetAttenuation(ratio * AMPLITUDE + 0.1f);
+			i++;
+		}
+
 		/* Only handle input if window is focused */
 		if (GetFocus() != NULL)
 		{
