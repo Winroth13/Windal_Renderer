@@ -72,7 +72,7 @@ StructuredBuffer<SpotLight> spotLights : register(t2);
 StructuredBuffer<Material> materials : register(t3);
 
 Texture2DArray<float> directionalLightShadowMaps : register(t8);
-Texture2DArray<float> pointLightShadowMaps : register(t9);
+TextureCubeArray<float> pointLightShadowMaps : register(t9);
 Texture2DArray<float> spotLightShadowMaps : register(t10);
 
 sampler shadowMapSampler : register(s1);
@@ -84,6 +84,32 @@ sampler shadowMapSampler : register(s1);
 #define SHADOW_MAP_BIAS 0.01
 #define SHADOW_SAMPLES_DIMENTIONS 3
 
+#define FAR_PLANE 1000.0f
+
+#define WORLD_SHADOW_MAP_BIAS SHADOW_MAP_BIAS * FAR_PLANE
+
+float calcOmniShadowFactor(
+    float3 fragmentWorldPosition,
+    int index,
+    const TextureCubeArray<float> texArr
+)
+{
+    float3 lightVector = fragmentWorldPosition - pointLights[index].position;
+    float currentDepth = length(lightVector);
+    
+    float closestDepth = texArr.SampleLevel(shadowMapSampler, float4(normalize(lightVector), index), 0);
+    closestDepth *= FAR_PLANE;
+    
+    if (currentDepth > (closestDepth))
+    {
+        return 0.0f;
+    }
+    else
+    {
+        return 1.0f;
+    }
+}
+
 float calcShadowFactor(
     float3 fragmentWorldPosition,
     float4x4 lightViewProjMatrix,
@@ -92,7 +118,7 @@ float calcShadowFactor(
 {
     float4 lightClipPos = mul(lightViewProjMatrix, float4(fragmentWorldPosition, 1.0f));
     float3 NDC = lightClipPos.xyz / lightClipPos.w;
-    float fragmentDepth = NDC.z;
+    float currentDepth = NDC.z;
     
     float2 uv = float2((NDC.x * 0.5) + 0.5, (-NDC.y * 0.5) + 0.5);
     
@@ -112,8 +138,8 @@ float calcShadowFactor(
         {
             float2 offsets = float2(x * (1.0f / width), y * (1.0f / height));
             float3 uvc = float3(uv + offsets, index);
-            float depth = texArr.SampleLevel(shadowMapSampler, uvc, 0);
-            if (fragmentDepth > (depth + SHADOW_MAP_BIAS))
+            float closestDepth = texArr.SampleLevel(shadowMapSampler, uvc, 0);
+            if (currentDepth > (closestDepth + SHADOW_MAP_BIAS))
             {
                 factor += 0.0f;
             }
@@ -275,17 +301,24 @@ void main( uint3 DTid : SV_DispatchThreadID)
     /* Point lights */
     for (i = 0; i < numPointLights; ++i)
     {
-        totalLight += CalculateLightColor(
-            pointLights[i].color,
-            pointLights[i].intensity,
-            pointLights[i].attenuation,
-            length(worldPosition - pointLights[i].position),
-            worldPosition - pointLights[i].position,
-            worldPosition,
-            worldNormal,
-            texColor.rgb,
-            materialIndex
-        );
+        float shadowFactor = calcOmniShadowFactor(worldPosition, i, pointLightShadowMaps);
+        
+        if (shadowFactor != 0)
+        {
+            float3 color = CalculateLightColor(
+                pointLights[i].color,
+                pointLights[i].intensity,
+                pointLights[i].attenuation,
+                length(worldPosition - pointLights[i].position),
+                worldPosition - pointLights[i].position,
+                worldPosition,
+                worldNormal,
+                texColor.rgb,
+                materialIndex
+            );
+        
+            totalLight += color * shadowFactor;
+        }
     }
     
     /* Spot lights */
@@ -330,5 +363,10 @@ void main( uint3 DTid : SV_DispatchThreadID)
         }
     }
 
+    /*float3 cameraToFrag = normalize(worldPosition - cameraPos);
+    
+    float depth = pointLightShadowMaps.SampleLevel(shadowMapSampler, float4(cameraToFrag, 1), 0);
+    totalLight = float3(depth, depth, depth);*/
+    
     backBufferUAV[uint3(screenPos, 0)] = float4(totalLight.rgb, 1.0f);
 }

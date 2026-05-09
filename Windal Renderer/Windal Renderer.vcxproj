@@ -40,6 +40,7 @@
     <ClInclude Include="include\core\renderer\renderserver.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\quadtree.h" />
+    <ClInclude Include="include\graphics\omnidirectionalshadowmap.h" />
     <ClInclude Include="include\graphics\particlesystem.h" />
     <ClInclude Include="include\graphics\shaders\domainshader.h" />
     <ClInclude Include="include\graphics\shaders\geometryshader.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="src\core\renderer\renderer.cpp" />
     <ClCompile Include="src\core\renderer\renderserver.cpp" />
     <ClCompile Include="src\core\scene.cpp" />
+    <ClCompile Include="src\graphics\omnidirectionalshadowmap.cpp" />
     <ClCompile Include="src\graphics\particlesystem.cpp" />
     <ClCompile Include="src\graphics\shaders\domainshadercpp.cpp" />
     <ClCompile Include="src\graphics\shaders\geometryshader.cpp" />

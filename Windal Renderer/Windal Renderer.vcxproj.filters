@@ -207,6 +207,9 @@
     <ClInclude Include="include\core\entities\particleentity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\graphics\omnidirectionalshadowmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -375,6 +378,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\entities\particleentity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\omnidirectionalshadowmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

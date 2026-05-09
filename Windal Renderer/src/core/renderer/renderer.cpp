@@ -436,6 +436,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			return false;
 		}
 
+		if (!mPointLightsShadowMap.Create(MAX_POINT_LIGHTS, 256, 256))
+		{
+			Logger::Error("Failed to create point lights shadow map");
+			return false;
+		}
+
 		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS, 512, 512))
 		{
 			Logger::Error("Failed to create spot lights shadow map");
@@ -893,62 +899,131 @@ void Renderer::RenderShadowMaps()
 		}
 	}
 
-	/* Set Shadow Map Viewport for Spotlights */
-	mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
-
-	/* Spot Lights */
-	for (size_t i = 0; i < mSpotLightsData.size(); ++i)
+	/* Point Lights */
 	{
-		SpotLightData& spotLight = mSpotLightsData[i];
-
-		/* Bind Shadow Map Depth Stencil */
-		ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
-
-		mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
-		mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
-
-		float aspectRatio = mSpotLightsShadowMap.GetWidth() / (float)mSpotLightsShadowMap.GetHeight();
-
-		/* Update View Buffer */
-		Camera camera;
-		camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
-		Transform transform;
-		transform.SetAngles(DirectionToAngles(spotLight.direction));
-		transform.SetPosition(spotLight.position);
-		camera.transform = transform;
-		camera.UpdateViewMatrix();
-
-		spotLight.viewProj = camera.GetViewProj();
-
-		UpdatePerViewBuffer(
-			{
-				spotLight.viewProj,
-				camera.GetView(),
-				camera.transform.GetPosition3f()
-			}
-		);
-
-		DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
-
-		/* Draw static geometry to depth stencil */
-		for (auto& i : mStaticGeometryTree.GetVisibleElements(frustum))
+		constexpr DirectX::XMFLOAT3 CAMERA_CUBEMAP_ANGLES[] =
 		{
-			GeometryData& geometryData = mStaticGeometryData[i];
-			if (IsGeometryVisible(geometryData, frustum))
+			{0, DirectX::XM_PI / 2, 0},					// Pos X
+			{0, -DirectX::XM_PI / 2, 0},				// Neg X
+			{-DirectX::XM_PI / 2, 0, 0},				// Pos Y
+			{DirectX::XM_PI / 2, 0, 0},					// Neg Y
+			{0, 0, 0},									// Pos Z
+			{0, DirectX::XM_PI, 0},						// Neg Z
+		};
+
+		mImmediateContext->RSSetViewports(1, &mPointLightsShadowMap.GetViewport());
+
+		Camera camera;
+		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 1000.0f);
+
+		for (size_t i = 0; i < mPointLightsData.size(); ++i)
+		{
+			auto& pointLightData = mPointLightsData[i];
+
+			/* Move camera to center of cubemap */
+			camera.transform.SetPosition(pointLightData.position);
+
+			for (size_t face = 0; face < 6; ++face)
 			{
-				MaterialData& materialData = mStaticMaterialData[i];
-				RenderShadowMeshAndMaterial(geometryData, materialData);
+				/* Bind Depth Stencil */
+				ID3D11DepthStencilView* dsv = mPointLightsShadowMap.GetDSV(i, face);
+				mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+				mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+				/* Orient camera to face */
+				camera.transform.SetAngles(CAMERA_CUBEMAP_ANGLES[face]);
+				camera.UpdateViewMatrix();
+
+				CameraData cameraData = {};
+				cameraData.pos = camera.transform.GetPosition3f();
+				cameraData.view = camera.GetView();
+				cameraData.viewProj = camera.GetViewProj();
+
+				UpdatePerViewBuffer(cameraData);
+
+				DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
+
+				/* Draw static geometry to depth stencil */
+				for (auto& i : mStaticGeometryTree.GetVisibleElements(frustum))
+				{
+					GeometryData& geometryData = mStaticGeometryData[i];
+					if (IsGeometryVisible(geometryData, frustum))
+					{
+						MaterialData& materialData = mStaticMaterialData[i];
+						RenderShadowMeshAndMaterial(geometryData, materialData);
+					}
+				}
+
+				/* Draw dynamic data to depth stencil */
+				for (size_t i = 0; i < mGeometryData.size(); ++i)
+				{
+					GeometryData& geometryData = mGeometryData[i];
+					if (IsGeometryVisible(geometryData, frustum))
+					{
+						MaterialData& materialData = mMaterialData[i];
+						RenderShadowMeshAndMaterial(geometryData, materialData);
+					}
+				}
 			}
 		}
+	}
 
-		/* Draw dynamic data to depth stencil */
-		for (size_t i = 0; i < mGeometryData.size(); ++i)
+	/* Spot Lights */
+	{
+		mImmediateContext->RSSetViewports(1, &mSpotLightsShadowMap.GetViewport());
+		for (size_t i = 0; i < mSpotLightsData.size(); ++i)
 		{
-			GeometryData& geometryData = mGeometryData[i];
-			if (IsGeometryVisible(geometryData, frustum))
+			SpotLightData& spotLight = mSpotLightsData[i];
+
+			/* Bind Shadow Map Depth Stencil */
+			ID3D11DepthStencilView* dsv = mSpotLightsShadowMap.GetDSV(i);
+
+			mImmediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1, 0);
+			mImmediateContext->OMSetRenderTargets(0, nullptr, dsv);
+
+			float aspectRatio = mSpotLightsShadowMap.GetWidth() / (float)mSpotLightsShadowMap.GetHeight();
+
+			/* Update View Buffer */
+			Camera camera;
+			camera.SetPerspectiveLens(spotLight.angle * 2, aspectRatio, 0.1f, 100.0f);
+			Transform transform;
+			transform.SetAngles(DirectionToAngles(spotLight.direction));
+			transform.SetPosition(spotLight.position);
+			camera.transform = transform;
+			camera.UpdateViewMatrix();
+
+			spotLight.viewProj = camera.GetViewProj();
+
+			UpdatePerViewBuffer(
+				{
+					spotLight.viewProj,
+					camera.GetView(),
+					camera.transform.GetPosition3f()
+				}
+			);
+
+			DirectX::BoundingFrustum frustum = camera.GetBoundingFrustum();
+
+			/* Draw static geometry to depth stencil */
+			for (auto& i : mStaticGeometryTree.GetVisibleElements(frustum))
 			{
-				MaterialData& materialData = mMaterialData[i];
-				RenderShadowMeshAndMaterial(geometryData, materialData);
+				GeometryData& geometryData = mStaticGeometryData[i];
+				if (IsGeometryVisible(geometryData, frustum))
+				{
+					MaterialData& materialData = mStaticMaterialData[i];
+					RenderShadowMeshAndMaterial(geometryData, materialData);
+				}
+			}
+
+			/* Draw dynamic data to depth stencil */
+			for (size_t i = 0; i < mGeometryData.size(); ++i)
+			{
+				GeometryData& geometryData = mGeometryData[i];
+				if (IsGeometryVisible(geometryData, frustum))
+				{
+					MaterialData& materialData = mMaterialData[i];
+					RenderShadowMeshAndMaterial(geometryData, materialData);
+				}
 			}
 		}
 	}
@@ -978,12 +1053,7 @@ void Renderer::RenderCubeMaps()
 	for (size_t i = 0; i < mCubemapsData.size(); ++i)
 	{
 		auto& cubemapData = mCubemapsData[i];
-		camera.SetPerspectiveLens(
-			DirectX::XM_PI / 2,
-			cubemapData.cubemapTexture->GetAspect(),
-			0.1f,
-			1000.0f
-		);
+		camera.SetPerspectiveLens(DirectX::XM_PI / 2, 1, 0.1f, 1000.0f);
 
 		/* Render to each side */
 		for (size_t j = 0; j < 6; ++j)
@@ -1155,6 +1225,14 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 				mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &dirLightsSRV);
 			}
 
+			/* Bind Point Light Shadow Maps */
+			size_t nPointLights = mPointLightsData.size();
+			if (nPointLights > 0)
+			{
+				ID3D11ShaderResourceView* pointLightsSRV = mPointLightsShadowMap.GetSRV(nPointLights);
+				mImmediateContext->CSSetShaderResources(POINT_LIGHT_SHADOW_MAPS_SLOT, 1, &pointLightsSRV);
+			}
+
 			/* Bind Spot Light Shadow Maps */
 			size_t nSpotlights = mSpotLightsData.size();
 			if (nSpotlights > 0)
@@ -1171,6 +1249,7 @@ void Renderer::RenderDeferred(ID3D11UnorderedAccessView* backBuffer, GBuffers& b
 			/* Unbind Light Shadow Maps */
 			ID3D11ShaderResourceView* views = { nullptr };
 			mImmediateContext->CSSetShaderResources(SPOT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
+			mImmediateContext->CSSetShaderResources(POINT_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
 			mImmediateContext->CSSetShaderResources(DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT, 1, &views);
 
 			/* Unbind GBuffer Shader Views */
