@@ -367,7 +367,17 @@ public:
 						flags |= ImGuiTreeNodeFlags_Selected;
 					}
 
+					if (!entity->IsVisible())
+					{
+						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 150, 150, 255));
+					}
+
 					ImGui::TreeNodeEx(entity->GetName().c_str(), flags);
+
+					if (!entity->IsVisible())
+					{
+						ImGui::PopStyleColor(1);
+					}
 
 					if (ImGui::IsItemClicked())
 					{
