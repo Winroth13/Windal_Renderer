@@ -144,7 +144,7 @@ bool OmnidirectionalShadowMap::Create(size_t maxNumMaps, size_t textureWidth, si
 	{
 		mSrvDesc = {};
 		mSrvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		mSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		mSrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
 		mSrvDesc.TextureCube.MipLevels = 1;
 		mSrvDesc.TextureCubeArray.First2DArrayFace = 0;
 		mSrvDesc.TextureCubeArray.MipLevels = 1;
