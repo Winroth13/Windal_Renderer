@@ -9,7 +9,7 @@ public:
 	CubemapEntity(uint32_t dimensions);
 	~CubemapEntity() override;
 
-	void SetDynamic(bool isDynamic) { mIsDynamic = true; }
+	void SetDynamic(bool isDynamic) { mIsDynamic = isDynamic; }
 	std::shared_ptr<CubemapTexture> GetCubemapTexture() { return mCubemapTexture; }
 
 protected:
