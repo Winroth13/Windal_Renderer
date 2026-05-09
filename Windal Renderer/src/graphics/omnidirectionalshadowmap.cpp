@@ -14,6 +14,7 @@ OmnidirectionalShadowMap::~OmnidirectionalShadowMap()
 		{
 			mRtvArray[i]->Release();
 		}
+		delete[] mRtvArray;
 	}
 
 	if (mDsv)

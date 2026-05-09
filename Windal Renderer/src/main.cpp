@@ -38,6 +38,8 @@ public:
 	Entity* cameraEntity;
 	POINT previousMousePos;
 
+	//std::unique_ptr<Entity>* firePointLights[4];
+
 	void Initialize() override
 	{
 		auto skyCubemapTexture = std::make_shared<CubemapTexture>(
@@ -139,6 +141,8 @@ public:
 				pointLightEntity.SetColor({ 100 / 255.0f, 40 / 255.0f, 0 / 255.0f });
 				pointLightEntity.SetIntensity(0.7f);
 				pointLightEntity.SetAttenuation(0.1f);
+
+				//firePointLights[i] = 
 			}
 
 			/* Create Smoke Particle */

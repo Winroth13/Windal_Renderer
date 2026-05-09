@@ -437,7 +437,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 			return false;
 		}
 
-		if (!mPointLightsShadowMap.Create(MAX_POINT_LIGHTS, 256, 256))
+		if (!mPointLightsShadowMap.Create(MAX_POINT_LIGHTS, 512, 512))
 		{
 			Logger::Error("Failed to create point lights shadow map");
 			return false;
