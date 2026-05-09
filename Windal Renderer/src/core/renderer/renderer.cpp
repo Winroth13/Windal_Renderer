@@ -859,7 +859,7 @@ void Renderer::RenderShadowMaps()
 			DirectionalLightData& dirLight = mDirectionalLightsData[i];
 
 			Camera camera;
-			camera.SetOrthographicLens(50, 50, 0.1f, 100.0f); // TODO: experimentation got us these values, idk!
+			camera.SetOrthographicLens(100, 100, 0.1f, 100.0f); // TODO: experimentation got us these values, idk!
 			DirectX::XMFLOAT3 direction = dirLight.direction;
 			camera.transform.SetAngles(DirectionToAngles(direction));
 
@@ -867,6 +867,12 @@ void Renderer::RenderShadowMaps()
 			direction.y *= -50;
 			direction.z *= -50;
 			camera.transform.SetPosition(direction);
+
+			// Center on the scene camera
+			// (pos % 2) * 2 is to remove the shimmering effect due to moving the sahdow-texture all the time
+			camera.transform.MoveX(float(int(mSceneCamera.pos.x) % 2) * 2);
+			camera.transform.MoveY(float(int(mSceneCamera.pos.y) % 2) * 2);
+			camera.transform.MoveZ(float(int(mSceneCamera.pos.z) % 2) * 2);
 
 			camera.UpdateViewMatrix();
 

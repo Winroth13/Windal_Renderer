@@ -84,6 +84,7 @@ sampler shadowMapSampler : register(s1);
 #define SHADOW_MAP_BIAS 0.01
 #define SHADOW_SAMPLES_DIMENTIONS 6
 #define SHADOW_OFFSET_STRENGTH 0.003f
+#define DIRECTIONAL_SHADOW_OFFSET_STRENGTH 0.001f
 
 #define FAR_PLANE 100.0f
 #define LINEAR_SHADOW_MAP_BIAS 0.05
@@ -149,8 +150,17 @@ float calcShadowFactor(
     float3 fragmentWorldPosition,
     float4x4 lightViewProjMatrix,
     int index,
-    const Texture2DArray<float> texArr)
+    const Texture2DArray<float> texArr,
+    bool isDirectional = false
+)
 {
+    float offsetStrength;
+    
+    if (isDirectional)
+        offsetStrength = DIRECTIONAL_SHADOW_OFFSET_STRENGTH;
+    else
+        offsetStrength = SHADOW_OFFSET_STRENGTH;
+    
     const static float2 offsets[15] = 
     {
         float2(0.9268, 0.3755),     float2(0.5276, 0.8495),     float2(0.7642, -0.645),
@@ -183,7 +193,7 @@ float calcShadowFactor(
             uint offsetIndex = numSamples % 15;
 
             float2 realOffset = float2(x * (1.0f / width), y * (1.0f / height));
-            realOffset += offsets[offsetIndex] * SHADOW_OFFSET_STRENGTH;
+            realOffset += offsets[offsetIndex] * offsetStrength;
             float3 uvc = float3(uv + realOffset, index);
             float closestDepth = texArr.SampleLevel(shadowMapSampler, uvc, 0);
             if (currentDepth > (closestDepth + SHADOW_MAP_BIAS))
@@ -324,7 +334,8 @@ void main( uint3 DTid : SV_DispatchThreadID)
             worldPosition,
             directionalLights[i].viewProjMatrix,
             i,
-            directionalLightShadowMaps
+            directionalLightShadowMaps,
+            true
         );
         
         if (shadowFactor != 0)
