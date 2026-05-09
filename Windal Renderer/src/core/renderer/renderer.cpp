@@ -1435,6 +1435,7 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 
 	BindMesh(geometryData.mesh);
 	UpdatePerObjectBuffer(geometryData.transform);
+	UpdatePerMaterialBuffer(mat);
 	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
 
 	/* Disable Tessellation */
