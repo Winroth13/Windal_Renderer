@@ -369,7 +369,7 @@ public:
 
 					if (!entity->IsVisible())
 					{
-						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(150, 150, 150, 255));
+						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(150 / 255.0f, 150 / 255.0f, 150 / 255.0f, 1.0f));
 					}
 
 					ImGui::TreeNodeEx(entity->GetName().c_str(), flags);
