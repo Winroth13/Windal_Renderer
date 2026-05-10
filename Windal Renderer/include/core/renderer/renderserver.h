@@ -12,6 +12,7 @@ class Enviroment;
 class CubemapTexture;
 class Camera;
 class ParticleSystem;
+class Texture2D;
 
 struct ID3D11DeviceContext;
 struct AABB;
@@ -52,6 +53,12 @@ public:
 	void PushAABB(AABB aabb, DirectX::XMFLOAT3 color);
 	void PushLine(DirectX::XMFLOAT3 start, DirectX::XMFLOAT3 end, DirectX::XMFLOAT3 color);
 	void PushParticleSystem(std::shared_ptr<ParticleSystem> particleSystem, const DirectX::XMMATRIX transform);
+	void PushSprite(
+		std::shared_ptr<Texture2D> texture, 
+		const DirectX::XMMATRIX transform, 
+		const float scale, 
+		const DirectX::XMFLOAT3 tint
+	);
 
 	void UpdateCamera(const DirectX::XMMATRIX viewProj, const DirectX::XMMATRIX view, const DirectX::XMFLOAT3 cameraPos);
 	void UpdateFrustum(DirectX::BoundingFrustum frustum);
@@ -61,6 +68,9 @@ public:
 	void SetWireframe(bool value);
 	void SetShowGBuffer(bool value);
 	void SetShowBoundingBoxes(bool value);
+	void SetShowIcons(bool value);
+
+	bool GetShowIcons();
 
 private:
 	Renderer* mRenderer = nullptr;

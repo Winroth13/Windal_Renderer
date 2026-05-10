@@ -38,6 +38,7 @@
     <ClInclude Include="include\core\renderer\particlerenderer.h" />
     <ClInclude Include="include\core\renderer\renderer.h" />
     <ClInclude Include="include\core\renderer\renderserver.h" />
+    <ClInclude Include="include\core\renderer\spriterenderer.h" />
     <ClInclude Include="include\core\scene.h" />
     <ClInclude Include="include\core\quadtree.h" />
     <ClInclude Include="include\graphics\omnidirectionalshadowmap.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="src\core\renderer\aabbrenderer.cpp" />
     <ClCompile Include="src\core\renderer\linerenderer.cpp" />
     <ClCompile Include="src\core\renderer\particlerenderer.cpp" />
+    <ClCompile Include="src\core\renderer\spriterenderer.cpp" />
     <ClCompile Include="src\graphics\gbuffers.cpp" />
     <ClCompile Include="src\core\engine.cpp" />
     <ClCompile Include="src\core\entities\cameraentity.cpp" />
@@ -271,6 +273,28 @@
     <FxCompile Include="shaders\Displacement\ShadowMapTessellationHullShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\Sprites\SpriteGeometryShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shaders\Sprites\SpritePixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\Sprites\SpriteVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">

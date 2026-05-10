@@ -6,11 +6,13 @@
 #include "imgui/imgui.h"
 
 #include "core/logger.h"
+#include "graphics/textures/imagetexture2d.h"
 
 ParticleEntity::ParticleEntity(uint32_t count)
 	: Entity("Particle")
 {
 	mParticleSystem = std::make_shared<ParticleSystem>(count);
+	mIcon = std::make_shared<ImageTexture2D>("assets/sprites/particle.png");
 }
 
 ParticleEntity::~ParticleEntity()
@@ -26,6 +28,8 @@ void ParticleEntity::RenderSelf(RenderServer& renderServer)
 {
 	if (mParticleSystem->GetColorTexture() && mParticleSystem->GetAlphaTexture())
 		renderServer.PushParticleSystem(mParticleSystem, GetGlobalTransform());
+
+	renderServer.PushSprite(mIcon, GetGlobalTransform(), 0.2f, { 0.2f, 0.2f, 0.5f });
 }
 
 void ParticleEntity::RenderImguiSelf()

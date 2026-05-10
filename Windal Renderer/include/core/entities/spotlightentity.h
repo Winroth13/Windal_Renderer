@@ -23,6 +23,8 @@ protected:
 	virtual void RenderImguiSelf() override;
 
 private:
+	std::shared_ptr<Texture2D> mIcon;
+
 	DirectX::XMFLOAT3 mColor = { 1.0, 1.0, 1.0 };
 	float mAttenuation = 1.0f;
 	float mIntensity = 1.0f;

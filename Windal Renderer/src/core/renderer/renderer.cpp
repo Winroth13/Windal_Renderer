@@ -536,6 +536,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		return false;
 	}
 
+	if (!mSpriteRenderer.Create())
+	{
+		Logger::Error("Failed to create Sprite Renderer");
+		return false;
+	}
+
 	mStaticGeometryTree.Create(20, 20, 20, 30, 5);
 
 	/* Initialize Rasterizer Desc */
@@ -687,6 +693,11 @@ void Renderer::RenderForward()
 {
 	if (!((mFlags & RenderFlags::SHOW_GBUFFERS) == RenderFlags::SHOW_GBUFFERS))
 	{
+		if ((mFlags & RenderFlags::SHOW_ICONS) == RenderFlags::SHOW_ICONS)
+		{
+			mSpriteRenderer.Render(mImmediateContext, mRenderServer, mSpritesData);
+		}
+
 		mParticleRenderer.Render(mImmediateContext, mRenderServer, mParticleSystemsData);
 		mAABBRenderer.Render(mImmediateContext, mAABBData);
 		mLineRenderer.Render(mImmediateContext, mLineData);
@@ -804,6 +815,11 @@ void Renderer::PushLineData(const LineData& lineData)
 void Renderer::PushParticleSystemData(const ParticleSystemData& particleSystemData)
 {
 	mParticleSystemsData.push_back(particleSystemData);
+}
+
+void Renderer::PushSpriteData(const SpriteData& spriteData)
+{
+	mSpritesData.push_back(spriteData);
 }
 
 void Renderer::SetEnviromentData(const EnviromentData& enviromentData)
@@ -1900,6 +1916,11 @@ void Renderer::ClearFrameData()
 	/* Particle Systems */
 	{
 		mParticleSystemsData.clear();
+	}
+
+	/* Sprites */
+	{
+		mSpritesData.clear();
 	}
 
 	/* Cubemaps */

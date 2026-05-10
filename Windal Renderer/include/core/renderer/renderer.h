@@ -6,6 +6,7 @@
 #include "core/renderer/aabbrenderer.h"
 #include "core/renderer/linerenderer.h"
 #include "core/renderer/particlerenderer.h"
+#include "core/renderer/spriterenderer.h"
 
 #include "graphics/materials/material.h"
 #include "graphics/meshes/mesh.h"
@@ -76,7 +77,8 @@ enum RenderFlags
 	WIRE_FRAME = 1,
 	SHOW_GBUFFERS = 2,
 	USE_BLINN_PHONG = 4,
-	SHOW_BOUNDING_BOXES = 8
+	SHOW_BOUNDING_BOXES = 8,
+	SHOW_ICONS = 16
 };
 
 enum class ShaderType
@@ -248,6 +250,7 @@ public:
 	void PushAABBData(const AABBData& aabbData);
 	void PushLineData(const LineData& lineData);
 	void PushParticleSystemData(const ParticleSystemData& particleSystemData);
+	void PushSpriteData(const SpriteData& spriteData);
 
 	void SetEnviromentData(const EnviromentData& enviromentData);
 	void SetSceneCamera(const CameraData& cameraData);
@@ -327,6 +330,7 @@ private:
 	AABBRenderer mAABBRenderer;
 	LineRenderer mLineRenderer;
 	ParticleRenderer mParticleRenderer;
+	SpriteRenderer mSpriteRenderer;
 
 	/* Static Data */
 	std::vector<GeometryData> mStaticGeometryData;
@@ -365,6 +369,9 @@ private:
 
 	/* Particle System */
 	std::vector<ParticleSystemData> mParticleSystemsData;
+
+	/* Sprites */
+	std::vector<SpriteData> mSpritesData;
 
 	/* Cubemaps */
 	std::vector<CubemapData> mCubemapsData;

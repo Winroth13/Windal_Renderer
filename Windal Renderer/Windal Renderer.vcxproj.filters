@@ -210,6 +210,9 @@
     <ClInclude Include="include\graphics\omnidirectionalshadowmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\core\renderer\spriterenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="vendor\imgui\imgui.cpp">
@@ -383,6 +386,9 @@
     <ClCompile Include="src\graphics\omnidirectionalshadowmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\renderer\spriterenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\fallback.png">
@@ -408,5 +414,8 @@
     <FxCompile Include="shaders\Particles\ParticlePixelShader.hlsl" />
     <FxCompile Include="shaders\Particles\ParticleVertexShader.hlsl" />
     <FxCompile Include="shaders\Shadowmapping\ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="shaders\Sprites\SpriteVertexShader.hlsl" />
+    <FxCompile Include="shaders\Sprites\SpritePixelShader.hlsl" />
+    <FxCompile Include="shaders\Sprites\SpriteGeometryShader.hlsl" />
   </ItemGroup>
 </Project>

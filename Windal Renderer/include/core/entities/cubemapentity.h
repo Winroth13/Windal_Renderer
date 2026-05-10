@@ -18,6 +18,8 @@ protected:
 	virtual void RenderImguiSelf() override;
 
 private:
+	std::shared_ptr<Texture2D> mIcon;
+
 	bool mIsDynamic = false;
 	bool mShouldCapture = true;
 	std::shared_ptr<CubemapTexture> mCubemapTexture = nullptr;

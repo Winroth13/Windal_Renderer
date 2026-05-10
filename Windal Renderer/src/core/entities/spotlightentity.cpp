@@ -3,7 +3,12 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-SpotLightEntity::SpotLightEntity() : Entity("Spot Light") {}
+#include "graphics/textures/imagetexture2d.h"
+
+SpotLightEntity::SpotLightEntity() : Entity("Spot Light") 
+{
+	mIcon = std::make_shared<ImageTexture2D>("assets/sprites/spot_light.png");
+}
 
 SpotLightEntity::~SpotLightEntity() {}
 
@@ -21,6 +26,8 @@ void SpotLightEntity::RenderSelf(RenderServer& renderServer)
 		mIntensity,
 		mAttenuation
 	);
+
+	renderServer.PushSprite(mIcon, GetGlobalTransform(), 0.35f, mColor);
 }
 
 void SpotLightEntity::RenderImguiSelf()

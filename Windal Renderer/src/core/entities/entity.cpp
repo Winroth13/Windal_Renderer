@@ -35,7 +35,8 @@ void Entity::Render(RenderServer& renderServer)
 
 void Entity::RenderImgui()
 {
-	if (HasFlag(EntityFlags::STATIC))
+	bool isStatic = HasFlag(EntityFlags::STATIC);
+	if (isStatic)
 	{
 		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "This entity is static.");
 		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Most changes here will have no effect!");
@@ -88,7 +89,7 @@ void Entity::RenderImgui()
 
 	RenderImguiSelf();
 
-	if (HasFlag(EntityFlags::STATIC))
+	if (isStatic)
 		ImGui::PopStyleColor(3);
 }
 

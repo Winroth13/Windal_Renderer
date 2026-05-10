@@ -110,6 +110,21 @@ void RenderServer::PushParticleSystem(std::shared_ptr<ParticleSystem> particleSy
 	mRenderer->PushParticleSystemData(data);
 }
 
+void RenderServer::PushSprite(
+	std::shared_ptr<Texture2D> texture, 
+	const DirectX::XMMATRIX transform,
+	const float scale,
+	const DirectX::XMFLOAT3 tint
+)
+{
+	SpriteData data = {};
+	data.texture = texture;
+	data.transform = transform;
+	data.scale = scale;
+	data.tint = tint;
+	mRenderer->PushSpriteData(data);
+}
+
 void RenderServer::UpdateCamera(
 	const DirectX::XMMATRIX viewProj,
 	const DirectX::XMMATRIX view,
@@ -177,4 +192,21 @@ void RenderServer::SetShowBoundingBoxes(bool value)
 	{
 		mRenderer->SetFlags(mRenderer->GetFlags() & ~SHOW_BOUNDING_BOXES);
 	}
+}
+
+void RenderServer::SetShowIcons(bool value)
+{
+	if (value)
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() | SHOW_ICONS);
+	}
+	else
+	{
+		mRenderer->SetFlags(mRenderer->GetFlags() & ~SHOW_ICONS);
+	}
+}
+
+bool RenderServer::GetShowIcons()
+{
+	return (mRenderer->GetFlags() & SHOW_ICONS) == SHOW_ICONS;
 }

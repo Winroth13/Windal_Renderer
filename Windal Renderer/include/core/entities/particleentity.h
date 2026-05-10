@@ -17,5 +17,7 @@ protected:
 	virtual void RenderImguiSelf() override;
 
 private:
+	std::shared_ptr<Texture2D> mIcon;
+
 	std::shared_ptr<ParticleSystem> mParticleSystem = nullptr;
 };

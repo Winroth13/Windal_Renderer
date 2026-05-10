@@ -3,7 +3,12 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 
-DirectionalLightEntity::DirectionalLightEntity() : Entity("Directional Light") {}
+#include "graphics/textures/imagetexture2d.h"
+
+DirectionalLightEntity::DirectionalLightEntity() : Entity("Directional Light") 
+{
+	mIcon = std::make_shared<ImageTexture2D>("assets/sprites/directional_light.png");
+}
 
 DirectionalLightEntity::~DirectionalLightEntity() {}
 
@@ -14,6 +19,8 @@ void DirectionalLightEntity::UpdateSelf(double delta)
 void DirectionalLightEntity::RenderSelf(RenderServer& renderServer)
 {
 	renderServer.PushDirectionalLight(transform.GetForwardDir3f(), mColor, mIntensity);
+
+	renderServer.PushSprite(mIcon, GetGlobalTransform(), 0.35f, mColor);
 }
 
 void DirectionalLightEntity::RenderImguiSelf()
