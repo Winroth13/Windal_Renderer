@@ -48,17 +48,21 @@ public:
 			std::array<std::string, 6>
 		{
 			"assets/skybox/posx.jpg",
-			"assets/skybox/negx.jpg",
-			"assets/skybox/posy.jpg",
-			"assets/skybox/negy.jpg",
-			"assets/skybox/posz.jpg",
-			"assets/skybox/negz.jpg"
+				"assets/skybox/negx.jpg",
+				"assets/skybox/posy.jpg",
+				"assets/skybox/negy.jpg",
+				"assets/skybox/posz.jpg",
+				"assets/skybox/negz.jpg"
 		}
 		);
 
 		auto vShader = std::make_shared<VertexShader>("resources/VertexShader.cso");
 
 		auto sponza = std::make_shared<OBJModel>("assets/sponza/sponza_optimized.obj", vShader, true);
+		std::shared_ptr<Material> sponzaBricks = sponza->GetMaterialByName("bricks");
+		sponzaBricks->SetMaxTessFactor(50.0f);
+		sponzaBricks->SetMaxTessDistance(15.0f);
+		sponzaBricks->SetMinTessDistance(30.0f);
 		auto& entity = mScene->CreateEntity<ModelEntity>(sponza);
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.070f, 0.070f, 0.070f);

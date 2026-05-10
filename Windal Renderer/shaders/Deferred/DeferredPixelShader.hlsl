@@ -21,7 +21,7 @@ cbuffer cbPerView : register(b1)
     float4x4 viewProjMatrix;
     float4x4 viewMatrix;
     float3 cameraPos;
-    float pad1;
+    float pad0;
 };
 
 cbuffer cbPerMaterial : register(b3)
@@ -32,12 +32,16 @@ cbuffer cbPerMaterial : register(b3)
     float reflectiveness;
     float3 specularCoefficient;
     uint materialFlags;
+    float maxTessFactor;
+    float maxTessDistance;
+    float minTessDistance;
+    float pad1;
 }
 
 cbuffer cbMateralIndex : register(b4)
 {
     uint materialIndex;
-    float3 pad0;
+    float3 pad2;
 };
 
 Texture2D diffuseTexture : register(t3);

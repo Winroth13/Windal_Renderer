@@ -39,6 +39,36 @@ void Model::AddMaterial(std::shared_ptr<Material> material)
 	mMaterials.emplace_back(material);
 }
 
+std::shared_ptr<Mesh> Model::GetMeshByName(std::string name)
+{
+	for (auto& mesh : mMeshes)
+	{
+		if (mesh->GetName() == name)
+		{
+			return mesh;
+		}
+	}
+
+	Logger::Warn("Failed to get mesh of name " + name);
+
+	return nullptr;
+}
+
+std::shared_ptr<Material> Model::GetMaterialByName(std::string name)
+{
+	for (auto& material : mMaterials)
+	{
+		if (material->GetName() == name)
+		{
+			return material;
+		}
+	}
+
+	Logger::Warn("Failed to get material of name " + name);
+
+	return nullptr;
+}
+
 size_t Model::GetNumIndicies(size_t index)
 {
 	return mMeshes[index]->GetNumIndicies();

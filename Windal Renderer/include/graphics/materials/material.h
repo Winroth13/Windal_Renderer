@@ -38,6 +38,9 @@ public:
 	void SetSpecularCoefficient(const float r, const float g, const float b);
 	void SetPhongExponent(const float phongExponent);
 	void SetReflectiveness(const float reflectiveness);
+	void SetMaxTessFactor(const float maxTessFactor);
+	void SetMaxTessDistance(const float maxTessDistance);
+	void SetMinTessDistance(const float minTessDistance);
 
 	void SetCubemapTexture(std::shared_ptr<CubemapTexture> cubemapTexture) { mCubemapTexture = cubemapTexture; }
 	void SetNormalMap(std::shared_ptr<Texture2D> normalMap);
@@ -56,6 +59,9 @@ public:
 
 	inline float& GetPhongExponent() { return mPhongExponent; }
 	inline float& GetReflectiveness() { return mReflectiveness; }
+	inline float& GetMaxTessFactor() { return mMaxTessFactor; }
+	inline float& GetMaxTessDistance() { return mMaxTessDistance; }
+	inline float& GetMinTessDistance() { return mMinTessDistance; }
 
 	bool HasAlpha() const;
 	bool HasDisplacement() const;
@@ -69,6 +75,9 @@ private:
 	bool mIsDirty = true;
 	float mPhongExponent = 8;
 	float mReflectiveness = 0;
+	float mMaxTessFactor = 1.0f;
+	float mMaxTessDistance = 0.0f;
+	float mMinTessDistance = 1.0f;
 
 	std::string mName;
 

@@ -37,24 +37,38 @@ cbuffer cbPerObject : register(b2)
     float4x4 worldInvTransposeMatrix;
 };
 
+cbuffer cbPerMaterial : register(b3)
+{
+    float3 ambientCoefficient;
+    float phongExponent;
+    float3 diffuseCoefficient;
+    float reflectiveness;
+    float3 specularCoefficient;
+    uint materialFlags;
+    float maxTessFactor;
+    float maxTessDistance;
+    float minTessDistance;
+    float pad0;
+}
+
 #define NUM_CONTROL_POINTS 3
 
 PatchConstantOutput CalcHSPatchConstants(InputPatch<VertexShaderOutput, NUM_CONTROL_POINTS> ip)
 {
     PatchConstantOutput output;
 
-    const float MAX_TESS_FACTOR = 50.0f;
     const float MIN_TESS_FACTOR = 1.0f;
-    const float MIN_TESS_DISTANCE = 20.0f;
     
     float3 objectPos = worldMatrix._41_42_43;
     float3 viewDir = objectPos - cameraPos;
     float distance = length(viewDir);
+    float tessFalloffDistance = distance - maxTessDistance;
+    float tessFalloffFactor = minTessDistance - maxTessDistance;
     
     float tessFactor = lerp(
-        MAX_TESS_FACTOR,
-        MIN_TESS_FACTOR, 
-        clamp(distance / MIN_TESS_DISTANCE, 0, 1)
+        maxTessFactor,
+        MIN_TESS_FACTOR,
+        clamp(tessFalloffDistance / tessFalloffFactor, 0, 1)
     );
 
     output.EdgeTessFactor[0] = tessFactor;

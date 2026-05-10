@@ -123,6 +123,10 @@ struct PerMaterial
 	float reflectiveness;
 	DirectX::XMFLOAT3 specularCoefficient;
 	uint32_t materialFlags;
+	float maxTessFactor;
+	float maxTessDistance;
+	float minTessDistance;
+	float pad0;
 };
 
 struct MaterialIndexBuffer
