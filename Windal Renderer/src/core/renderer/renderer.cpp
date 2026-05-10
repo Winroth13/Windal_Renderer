@@ -9,6 +9,51 @@
 #include "graphics/camera.h"
 #include "math/mathfunctions.h"
 
+#define MAX_DIRECTIONAL_LIGHTS 8
+#define MAX_POINT_LIGHTS 8
+#define MAX_SPOT_LIGHTS 8
+
+#define MAX_MATERIALS 64
+
+/* Constant Buffers */
+#define PER_FRAME 0
+#define PER_VIEW 1
+#define PER_OBJECT 2
+#define PER_MATERIAL 3
+#define MATERIAL_INDEX 4
+
+/* Light Structured Buffers */
+#define DIRECTIONAL_LIGHT_SLOT 0
+#define POINT_LIGHT_SLOT 1
+#define SPOT_LIGHT_SLOT 2
+
+/* Texture Slots */
+#define DIFFUSE_TEXTURE_SLOT 3
+#define CUBEMAP_TEXTURE_SLOT 4
+#define NORMALMAP_TEXTURE_SLOT 5
+#define DISPLACEMENT_TEXTURE_SLOT 6
+#define ALPHA_TEXTURE_SLOT 7
+
+/* Shadow Maps */
+#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 8
+#define POINT_LIGHT_SHADOW_MAPS_SLOT 9
+#define SPOT_LIGHT_SHADOW_MAPS_SLOT 10
+
+/* Shadow Map Dimentions */
+constexpr int DIRECTIONAL_SHADOW_MAP_DIMENTIONS = 2048;
+constexpr int POINT_SHADOW_MAP_DIMENTIONS = 512;
+constexpr int SPOT_SHADOW_MAP_DIMENTIONS = 512;
+
+/* Materials */
+#define DEFERRED_MATERIALS_SLOT 3
+
+/* GBuffers */
+#define GBUFFER_START_SLOT 11
+
+/* Samplers */
+#define DEFAULT_SAMPLER_SLOT 0
+#define SHADOW_MAP_SAMPLER_SLOT 1
+
 Renderer::Renderer() :
 	mSwapChain(nullptr),
 	mBackBufferRenderTargetView(nullptr),
@@ -431,19 +476,31 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		mShadowMapPixelShader = std::make_unique<PixelShader>("resources/ShadowMapPixelShader.cso");
 		mShadowMapLinearPixelShader = std::make_unique<PixelShader>("resources/ShadowMapLinearPixelShader.cso");
 
-		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS, 2048, 2048))
+		if (!mDirectionalLightsShadowMap.Create(
+			MAX_DIRECTIONAL_LIGHTS,
+			DIRECTIONAL_SHADOW_MAP_DIMENTIONS,
+			DIRECTIONAL_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create directional lights shadow map");
 			return false;
 		}
 
-		if (!mPointLightsShadowMap.Create(MAX_POINT_LIGHTS, 512, 512))
+		if (!mPointLightsShadowMap.Create(
+			MAX_POINT_LIGHTS,
+			POINT_SHADOW_MAP_DIMENTIONS,
+			POINT_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create point lights shadow map");
 			return false;
 		}
 
-		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS, 512, 512))
+		if (!mSpotLightsShadowMap.Create(
+			MAX_SPOT_LIGHTS,
+			SPOT_SHADOW_MAP_DIMENTIONS,
+			SPOT_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create spot lights shadow map");
 			return false;
@@ -949,7 +1006,7 @@ void Renderer::RenderShadowMaps()
 			auto& pointLightData = mPointLightsData[i];
 
 			/* Only draw shadows if told so! */
-			if (!pointLightData.shadows)
+			if (!pointLightData.updateShadows)
 			{
 				continue;
 			}

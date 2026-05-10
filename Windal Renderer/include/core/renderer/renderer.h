@@ -31,46 +31,6 @@
 #include <array>
 #include <unordered_map>
 
-#define MAX_DIRECTIONAL_LIGHTS 8
-#define MAX_POINT_LIGHTS 8
-#define MAX_SPOT_LIGHTS 8
-
-#define MAX_MATERIALS 64
-
-/* Constant Buffers */
-#define PER_FRAME 0
-#define PER_VIEW 1
-#define PER_OBJECT 2
-#define PER_MATERIAL 3
-#define MATERIAL_INDEX 4
-
-/* Light Structured Buffers */
-#define DIRECTIONAL_LIGHT_SLOT 0
-#define POINT_LIGHT_SLOT 1
-#define SPOT_LIGHT_SLOT 2
-
-/* Texture Slots */
-#define DIFFUSE_TEXTURE_SLOT 3
-#define CUBEMAP_TEXTURE_SLOT 4
-#define NORMALMAP_TEXTURE_SLOT 5
-#define DISPLACEMENT_TEXTURE_SLOT 6
-#define ALPHA_TEXTURE_SLOT 7
-
-/* Shadow Maps */
-#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 8
-#define POINT_LIGHT_SHADOW_MAPS_SLOT 9
-#define SPOT_LIGHT_SHADOW_MAPS_SLOT 10
-
-/* Materials */
-#define DEFERRED_MATERIALS_SLOT 3
-
-/* GBuffers */
-#define GBUFFER_START_SLOT 11
-
-/* Samplers */
-#define DEFAULT_SAMPLER_SLOT 0
-#define SHADOW_MAP_SAMPLER_SLOT 1
-
 enum RenderFlags
 {
 	WIRE_FRAME = 1,
@@ -150,7 +110,7 @@ struct PointLightData
 	float attenuation;
 	DirectX::XMFLOAT3 color;
 	float intensity;
-	bool shadows;
+	bool updateShadows;
 };
 
 struct PointLightBuffer
