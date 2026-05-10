@@ -536,7 +536,7 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		return false;
 	}
 
-	mStaticGeometryTree.Create(20, 20, 20);
+	mStaticGeometryTree.Create(20, 20, 20, 30, 5);
 
 	/* Initialize Rasterizer Desc */
 	mRasterizerDesc.CullMode = D3D11_CULL_BACK;
