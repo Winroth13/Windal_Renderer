@@ -9,50 +9,50 @@
 #include "graphics/camera.h"
 #include "math/mathfunctions.h"
 
-#define MAX_DIRECTIONAL_LIGHTS 8
-#define MAX_POINT_LIGHTS 8
-#define MAX_SPOT_LIGHTS 8
+constexpr unsigned int MAX_DIRECTIONAL_LIGHTS = 8;
+constexpr unsigned int MAX_POINT_LIGHTS = 8;
+constexpr unsigned int MAX_SPOT_LIGHTS = 8;
 
-#define MAX_MATERIALS 64
+constexpr unsigned int MAX_MATERIALS = 64;
 
 /* Constant Buffers */
-#define PER_FRAME 0
-#define PER_VIEW 1
-#define PER_OBJECT 2
-#define PER_MATERIAL 3
-#define MATERIAL_INDEX 4
+constexpr UINT PER_FRAME = 0;
+constexpr UINT PER_VIEW = 1;
+constexpr UINT PER_OBJECT = 2;
+constexpr UINT PER_MATERIAL = 3;
+constexpr UINT MATERIAL_INDEX = 4;
 
 /* Light Structured Buffers */
-#define DIRECTIONAL_LIGHT_SLOT 0
-#define POINT_LIGHT_SLOT 1
-#define SPOT_LIGHT_SLOT 2
+constexpr UINT DIRECTIONAL_LIGHT_SLOT = 0;
+constexpr UINT POINT_LIGHT_SLOT = 1;
+constexpr UINT SPOT_LIGHT_SLOT = 2;
 
 /* Texture Slots */
-#define DIFFUSE_TEXTURE_SLOT 3
-#define CUBEMAP_TEXTURE_SLOT 4
-#define NORMALMAP_TEXTURE_SLOT 5
-#define DISPLACEMENT_TEXTURE_SLOT 6
-#define ALPHA_TEXTURE_SLOT 7
+constexpr UINT DIFFUSE_TEXTURE_SLOT = 3;
+constexpr UINT CUBEMAP_TEXTURE_SLOT = 4;
+constexpr UINT NORMALMAP_TEXTURE_SLOT = 5;
+constexpr UINT DISPLACEMENT_TEXTURE_SLOT = 6;
+constexpr UINT ALPHA_TEXTURE_SLOT = 7;
 
 /* Shadow Maps */
-#define DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT 8
-#define POINT_LIGHT_SHADOW_MAPS_SLOT 9
-#define SPOT_LIGHT_SHADOW_MAPS_SLOT 10
+constexpr UINT DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT = 8;
+constexpr UINT POINT_LIGHT_SHADOW_MAPS_SLOT = 9;
+constexpr UINT SPOT_LIGHT_SHADOW_MAPS_SLOT = 10;
 
 /* Shadow Map Dimentions */
-constexpr int DIRECTIONAL_SHADOW_MAP_DIMENTIONS = 2048;
-constexpr int POINT_SHADOW_MAP_DIMENTIONS = 512;
-constexpr int SPOT_SHADOW_MAP_DIMENTIONS = 512;
+constexpr unsigned int DIRECTIONAL_SHADOW_MAP_DIMENTIONS = 2048;
+constexpr unsigned int POINT_SHADOW_MAP_DIMENTIONS = 512;
+constexpr unsigned int SPOT_SHADOW_MAP_DIMENTIONS = 512;
 
 /* Materials */
-#define DEFERRED_MATERIALS_SLOT 3
+constexpr UINT DEFERRED_MATERIALS_SLOT = 3;
 
 /* GBuffers */
-#define GBUFFER_START_SLOT 11
+constexpr UINT GBUFFER_START_SLOT = 11;
 
 /* Samplers */
-#define DEFAULT_SAMPLER_SLOT 0
-#define SHADOW_MAP_SAMPLER_SLOT 1
+constexpr UINT DEFAULT_SAMPLER_SLOT = 0;
+constexpr UINT SHADOW_MAP_SAMPLER_SLOT = 1;
 
 Renderer::Renderer() :
 	mSwapChain(nullptr),
