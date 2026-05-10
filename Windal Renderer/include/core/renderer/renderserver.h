@@ -36,7 +36,15 @@ public:
 	void PushMaterial(std::shared_ptr<Material> material, bool isStatic = false);
 
 	void PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
-	void PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity);
+
+	void PushPointLight(
+		DirectX::XMFLOAT3 position,
+		DirectX::XMFLOAT3 color,
+		float attenuation,
+		float intensity,
+		bool shadows
+	);
+
 	void PushSpotLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float angle, float intensity, float attenuation);
 
 	void PushCubemap(DirectX::XMFLOAT3 position, std::shared_ptr<CubemapTexture> cubemapTexture);

@@ -146,6 +146,15 @@ struct PointLightData
 	float attenuation;
 	DirectX::XMFLOAT3 color;
 	float intensity;
+	bool shadows;
+};
+
+struct PointLightBuffer
+{
+	DirectX::XMFLOAT3 position;
+	float attenuation;
+	DirectX::XMFLOAT3 color;
+	float intensity;
 };
 
 struct SpotLightData

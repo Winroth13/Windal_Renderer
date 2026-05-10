@@ -13,11 +13,34 @@ void PointLightEntity::UpdateSelf(double delta)
 
 void PointLightEntity::RenderSelf(RenderServer& renderServer)
 {
-	renderServer.PushPointLight(GetGlobalPosition(), mColor, mAttenuation, mIntensity);
+	bool updateShadows = true;
+
+	if (HasFlag(EntityFlags::STATIC))
+	{
+		if (mShouldUpdateShadows)
+		{
+			updateShadows = true;
+			mShouldUpdateShadows = false;
+		}
+		else
+		{
+			updateShadows = false;
+		}
+	}
+
+	renderServer.PushPointLight(GetGlobalPosition(), mColor, mAttenuation, mIntensity, updateShadows);
 }
 
 void PointLightEntity::RenderImguiSelf()
 {
+	if (HasFlag(EntityFlags::STATIC))
+	{
+		if (ImGui::Button("Update"))
+		{
+			mShouldUpdateShadows = true;
+		}
+	}
+
 	if (ImGui::TreeNodeEx("Light Properties", TREE_NODE_FLAGS))
 	{
 		ImGui::ColorEdit3("Color", &mColor.x);

@@ -46,13 +46,20 @@ void RenderServer::PushDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XM
 	mRenderer->PushDirectionalLightData(data);
 }
 
-void RenderServer::PushPointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float attenuation, float intensity)
+void RenderServer::PushPointLight(
+	DirectX::XMFLOAT3 position,
+	DirectX::XMFLOAT3 color, 
+	float attenuation, 
+	float intensity, 
+	bool shadows
+)
 {
 	PointLightData data = {};
 	data.position = position;
 	data.color = color;
 	data.attenuation = attenuation;
 	data.intensity = intensity;
+	data.shadows = shadows;
 	mRenderer->PushPointLightData(data);
 }
 
