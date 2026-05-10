@@ -43,7 +43,7 @@ PatchConstantOutput CalcHSPatchConstants(InputPatch<VertexShaderOutput, NUM_CONT
 {
     PatchConstantOutput output;
 
-    const float MAX_TESS_FACTOR = 100.0f;
+    const float MAX_TESS_FACTOR = 50.0f;
     const float MIN_TESS_FACTOR = 1.0f;
     const float MIN_TESS_DISTANCE = 20.0f;
     
