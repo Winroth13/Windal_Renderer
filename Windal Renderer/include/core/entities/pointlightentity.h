@@ -24,4 +24,5 @@ private:
 	DirectX::XMFLOAT3 mColor = { 1.0, 1.0, 1.0 };
 	float mAttenuation = 1.0f;
 	float mIntensity = 1.0f;
+	bool mShouldUpdateShadows = true;
 };

@@ -288,12 +288,12 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	/* Create Point Light Buffers */
 	{
 		D3D11_BUFFER_DESC pointLightsBufferDesc = {};
-		pointLightsBufferDesc.ByteWidth = sizeof(PointLightData) * MAX_POINT_LIGHTS;
+		pointLightsBufferDesc.ByteWidth = sizeof(PointLightBuffer) * MAX_POINT_LIGHTS;
 		pointLightsBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		pointLightsBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		pointLightsBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		pointLightsBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		pointLightsBufferDesc.StructureByteStride = sizeof(PointLightData);
+		pointLightsBufferDesc.StructureByteStride = sizeof(PointLightBuffer);
 
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = 0;
@@ -947,6 +947,12 @@ void Renderer::RenderShadowMaps()
 		for (size_t i = 0; i < mPointLightsData.size(); ++i)
 		{
 			auto& pointLightData = mPointLightsData[i];
+
+			/* Only draw shadows if told so! */
+			if (!pointLightData.shadows)
+			{
+				continue;
+			}
 
 			/* Move camera to center of cubemap */
 			camera.transform.SetPosition(pointLightData.position);
@@ -1787,8 +1793,21 @@ void Renderer::BindPointLights(ShaderType shaderType)
 		throw std::runtime_error("");
 	}
 
-	size_t numBytes = mPointLightsData.size() * sizeof(PointLightData);
-	memcpy_s(mappedResource.pData, numBytes, mPointLightsData.data(), numBytes);
+	size_t numBytes = mPointLightsData.size() * sizeof(PointLightBuffer);
+
+	std::vector<PointLightBuffer> pointLightBuffers;
+	pointLightBuffers.reserve(mPointLightsData.size());
+	for (auto& data : mPointLightsData)
+	{
+		PointLightBuffer buffer = {};
+		buffer.attenuation = data.attenuation;
+		buffer.color = data.color;
+		buffer.intensity = data.intensity;
+		buffer.position = data.position;
+		pointLightBuffers.emplace_back(buffer);
+	}
+
+	memcpy_s(mappedResource.pData, numBytes, pointLightBuffers.data(), numBytes);
 	mImmediateContext->Unmap(mPointLightsBuffer, 0);
 
 	switch (shaderType)

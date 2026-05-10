@@ -138,6 +138,7 @@ public:
 				pointLightEntity.transform.SetPosition(0, 0.5f, 0);
 				pointLightEntity.SetName("Fire Light");
 				pointLightEntity.Attach(&fireEntity);
+				pointLightEntity.SetFlag(EntityFlags::STATIC, true);
 
 				pointLightEntity.SetColor({ 100 / 255.0f, 40 / 255.0f, 0 / 255.0f });
 				pointLightEntity.SetIntensity(0.7f);
