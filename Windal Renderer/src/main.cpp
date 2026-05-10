@@ -84,24 +84,33 @@ public:
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
-		spotEntity.transform.SetPosition(-2.207, 5.579, -3.201);
+		spotEntity.transform.SetPosition(-2.5f, 5.679f, -3.201f);
 		spotEntity.transform.SetAngles(
-			DirectX::XMConvertToRadians(53), 
+			DirectX::XMConvertToRadians(-23), 
 			DirectX::XMConvertToRadians(90), 
 			DirectX::XMConvertToRadians(0)
 		);
-		spotEntity.SetIntensity(6);
-		spotEntity.SetVisible(false);
+		spotEntity.SetIntensity(20);
 
 		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>();
-		spotEntity2.SetColor({ 1.0, 1.0, 1.0 });
-		spotEntity2.transform.SetPosition(-0.975, 7.691, -3.625);
+		spotEntity2.SetColor({ 1.0f, 1.0f, 1.0f });
+		spotEntity2.transform.SetPosition(-0.975f, 7.691f, -3.625f);
 		spotEntity2.transform.SetAngles(
-			DirectX::XMConvertToRadians(-9), 
-			DirectX::XMConvertToRadians(39), 
+			DirectX::XMConvertToRadians(-9.0f), 
+			DirectX::XMConvertToRadians(39.0f), 
 			0
 		);
 		spotEntity2.SetIntensity(3);
+
+		auto& spotEntity3 = mScene->CreateEntity<SpotLightEntity>();
+		spotEntity3.SetColor({ 1.0f, 0.0f, 1.0f });
+		spotEntity3.transform.SetPosition(-0.053f, 0.638f, 12.0f);
+		spotEntity3.transform.SetAngles(
+			DirectX::XMConvertToRadians(-13.0f),
+			DirectX::XMConvertToRadians(88.0f),
+			0
+		);
+		spotEntity3.SetIntensity(24);
 
 		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
 		cubemapEntity.SetDynamic(true);
@@ -121,7 +130,7 @@ public:
 
 		auto& sphereEntity = mScene->CreateEntity<ModelEntity>(sphere);
 		sphereEntity.SetName("Sphere");
-		sphereEntity.transform.SetPosition(-0.084f, 4.934f, -2.6);
+		sphereEntity.transform.SetPosition(-0.084f, 4.934f, -2.6f);
 
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
@@ -250,7 +259,7 @@ public:
 			i++;
 		}
 
-		spinningCube->transform.RotateY((3.14f / 2.0f) * (float)delta * 0.5);
+		spinningCube->transform.RotateY((3.14f / 2.0f) * (float)delta * 0.5f);
 
 		/* Only handle input if window is focused */
 		if (GetFocus() != NULL)
@@ -377,7 +386,7 @@ public:
 						changed = true;
 					}
 
-					if (ImGui::RadioButton("GBuffers", mViewportDebugMode == 2))
+					if (ImGui::RadioButton("G-Buffers", mViewportDebugMode == 2))
 					{
 						mViewportDebugMode = 2;
 						changed = true;
