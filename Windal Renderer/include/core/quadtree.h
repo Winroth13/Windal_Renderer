@@ -4,9 +4,6 @@
 #include <DirectXCollision.h>
 #include <unordered_set>
 
-constexpr size_t QUAD_TREE_MAX_ELEMENTS_IN_NODE = 50;
-constexpr size_t QUAD_TREE_MAX_NODE_DEPTH = 5;
-
 template<typename T>
 class QuadTree
 {
@@ -25,7 +22,7 @@ public:
 	{
 	}
 
-	void Create(float xDimension, float yDimension, float zDimension)
+	void Create(float xDimension, float yDimension, float zDimension, int elementsPerNode, int maxHeight)
 	{
 		DirectX::BoundingBox bounds;
 		bounds.Center = { 0, 0, 0 };
@@ -34,6 +31,8 @@ public:
 		root = std::make_unique<Node>();
 		root->bounds = bounds;
 		root->depth = 0;
+		root->elementsPerNode = elementsPerNode;
+		root->maxHeight = maxHeight;
 	}
 
 	void Clear()
@@ -41,7 +40,9 @@ public:
 		Create(
 			root->bounds.Extents.x,
 			root->bounds.Extents.y,
-			root->bounds.Extents.z
+			root->bounds.Extents.z,
+			root->elementsPerNode,
+			root->maxHeight
 		);
 	}
 
@@ -84,8 +85,10 @@ private:
 		DirectX::BoundingBox bounds;
 		std::unique_ptr<Node> children[4] = { nullptr };
 		size_t depth;
+		int elementsPerNode;
+		int maxHeight;
 
-		bool IsFull() { return objects.size() >= QUAD_TREE_MAX_ELEMENTS_IN_NODE; }
+		bool IsFull() { return objects.size() >= elementsPerNode; }
 		bool IsParent() { return children[0] != nullptr; }
 		bool IsLeaf() { return !IsParent(); }
 	};
@@ -122,7 +125,7 @@ private:
 
 		if (node->IsLeaf()) // Check if collided node is a leaf node
 		{
-			if (!node->IsFull() || node->depth == QUAD_TREE_MAX_NODE_DEPTH) // Node has space or is at max depth
+			if (!node->IsFull() || node->depth == node->maxHeight) // Node has space or is at max depth
 			{
 				// Add object and its bounding volume node
 				Object object = {};
@@ -158,6 +161,8 @@ private:
 
 					node->children[i]->bounds = childBoundingBox;
 					node->children[i]->depth = node->depth + 1;
+					node->children[i]->elementsPerNode = node->elementsPerNode;
+					node->children[i]->maxHeight = node->maxHeight;
 
 					// Old objects
 					for (Object& object : node->objects)
