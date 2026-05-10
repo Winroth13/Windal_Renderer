@@ -38,6 +38,7 @@ public:
 
 	std::unique_ptr<Entity>* inspectorEntity = nullptr;
 	Entity* cameraEntity;
+	Entity* spinningCube;
 	POINT previousMousePos;
 
 	std::vector<PointLightEntity*> firePointLights;
@@ -83,17 +84,24 @@ public:
 
 		auto& spotEntity = mScene->CreateEntity<SpotLightEntity>();
 		spotEntity.SetColor({ 1.0, 0.0, 0.0 });
-		spotEntity.transform.SetPosition(0, 2, 0);
-		spotEntity.transform.SetAngles(0, (float)3.14 / 2, 0);
-		spotEntity.SetIntensity(32);
+		spotEntity.transform.SetPosition(-2.207, 5.579, -3.201);
+		spotEntity.transform.SetAngles(
+			DirectX::XMConvertToRadians(53), 
+			DirectX::XMConvertToRadians(90), 
+			DirectX::XMConvertToRadians(0)
+		);
+		spotEntity.SetIntensity(6);
 		spotEntity.SetVisible(false);
 
 		auto& spotEntity2 = mScene->CreateEntity<SpotLightEntity>();
-		spotEntity2.SetColor({ 0.0, 1.0, 0.0 });
-		spotEntity2.transform.SetPosition(0, 2, 0);
-		spotEntity2.transform.SetAngles(0, 0, 0);
-		spotEntity2.SetIntensity(32);
-		spotEntity2.SetVisible(false);
+		spotEntity2.SetColor({ 1.0, 1.0, 1.0 });
+		spotEntity2.transform.SetPosition(-0.975, 7.691, -3.625);
+		spotEntity2.transform.SetAngles(
+			DirectX::XMConvertToRadians(-9), 
+			DirectX::XMConvertToRadians(39), 
+			0
+		);
+		spotEntity2.SetIntensity(3);
 
 		auto& cubemapEntity = mScene->CreateEntity<CubemapEntity>(512);
 		cubemapEntity.SetDynamic(true);
@@ -107,12 +115,13 @@ public:
 
 		auto& cubeEntity = mScene->CreateEntity<ModelEntity>(cube);
 		cubeEntity.SetName("Cube");
-		cubeEntity.transform.SetPosition(2, 0, 0);
+		cubeEntity.transform.SetPosition(0, 2, 0);
 		cubeEntity.transform.SetScale(0.5, 0.5, 0.5);
+		spinningCube = &cubeEntity;
 
 		auto& sphereEntity = mScene->CreateEntity<ModelEntity>(sphere);
 		sphereEntity.SetName("Sphere");
-		sphereEntity.transform.SetPosition(-1, 2, 0);
+		sphereEntity.transform.SetPosition(-0.084f, 4.934f, -2.6);
 
 		cubemapEntity.Attach(&sphereEntity);
 		cubeEntity.Attach(&sphereEntity);
@@ -240,6 +249,8 @@ public:
 			pointLight->SetAttenuation(ratio * AMPLITUDE + 0.1f);
 			i++;
 		}
+
+		spinningCube->transform.RotateY((3.14f / 2.0f) * (float)delta * 0.5);
 
 		/* Only handle input if window is focused */
 		if (GetFocus() != NULL)
