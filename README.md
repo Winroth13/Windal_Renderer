@@ -12,6 +12,10 @@ Space/Ctrl - Up & Down
 
 Shift - x3 Movement speed
 
+RMB - Hold to rotate using mouse movement
+
+Arrow Keys - Rotate
+
 Esc - Deselect entity
 
 T - Toggle translation gizmos
