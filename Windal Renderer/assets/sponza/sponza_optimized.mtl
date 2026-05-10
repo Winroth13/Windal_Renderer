@@ -300,3 +300,15 @@ illum 2
 map_Kd textures/vase_round.tga
 norm textures/vase_round_ddn.tga
 map_Ka textures/vase_round.tga
+
+newmtl bricks_low
+Ns 7.843137
+Ka 1.000000 1.000000 1.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.300000 0.300000 0.300000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd textures/spnza_bricks_a_diff.tga
+norm textures/spnza_bricks_a_ddn.tga
+map_Ka textures/spnza_bricks_a_diff.tga
