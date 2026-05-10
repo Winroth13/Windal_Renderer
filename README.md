@@ -96,13 +96,13 @@ Both the fires and their smoke are created using particle systems.
 
 ### Dynamic Cube Mapping
 
-Renders the world from a set point in space to later use for reflections. Can be pausd like point light shadow maps unchecking `Dynamic`. is not paused by default.
+Renders the world from a set point in space to later use for reflections. Can be paused like point light shadow maps by unchecking `Dynamic`. Is not paused by default.
 
 There is a sphere using a dynamic cube map right above the starting location of the camera.
 
 ### Tessellation (Displacement Mapping)
 
-Some materials use a displacement map to offset its geometry using a hull and domain shader. The amount of tessellation is determined by the distance to the camera, meanig they are more detailed when the camera is close and saves on computation when far away.
+Some materials generate additional geometry in the hull shader and use a displacement map to displace it in the domain shader. The amount of tessellation is determined by the distance to the camera, meaning they are more detailed when the camera is close and saves on computation when far away.
 
 The inner brick walls of the Sponza-model use displacement mapping.
 
