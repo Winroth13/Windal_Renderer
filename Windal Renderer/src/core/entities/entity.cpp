@@ -35,6 +35,15 @@ void Entity::Render(RenderServer& renderServer)
 
 void Entity::RenderImgui()
 {
+	if (HasFlag(EntityFlags::STATIC))
+	{
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "This entity is static.");
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Most changes here will have no effect!");
+		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(1.0f, 1.0f, 0, 0.25f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.0f, 1.0f, 0, 0.25f));
+		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.0f, 1.0f, 0, 0.25f));
+	}
+
 	if (ImGui::TreeNodeEx("Transform", TREE_NODE_FLAGS))
 	{
 		DirectX::XMFLOAT3 position = transform.GetPosition3f();
@@ -78,6 +87,9 @@ void Entity::RenderImgui()
 	ImGui::Checkbox("Visible", &mVisible);
 
 	RenderImguiSelf();
+
+	if (HasFlag(EntityFlags::STATIC))
+		ImGui::PopStyleColor(3);
 }
 
 void Entity::SetName(const std::string& name)
@@ -158,4 +170,21 @@ DirectX::XMFLOAT3 Entity::GetGlobalForwardDir()
 	}
 
 	return globalTransform.GetForwardDir3f();
+}
+
+bool Entity::HasFlag(const EntityFlags flag) const
+{
+	return (mFlags & static_cast<uint32_t>(flag)) == static_cast<uint32_t>(flag);
+}
+
+void Entity::SetFlag(const EntityFlags flag, bool enabled)
+{
+	if (enabled)
+	{
+		mFlags |= static_cast<uint32_t>(flag);
+	}
+	else
+	{
+		mFlags &= ~static_cast<uint32_t>(flag);
+	}
 }

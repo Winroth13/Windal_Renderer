@@ -8,6 +8,12 @@
 
 class Scene;
 
+enum class EntityFlags : uint32_t
+{
+	NONE = 0,
+	STATIC = 1,
+};
+
 class Entity
 {
 	friend class Scene;
@@ -38,6 +44,9 @@ public:
 	Entity* GetAttachEntity() { return mAttach; }
 	const bool HasAttach() { return mAttach != nullptr; }
 
+	bool HasFlag(const EntityFlags flag) const;
+	void SetFlag(const EntityFlags flag, bool enabled);
+
 public:
 	Transform transform;
 
@@ -51,9 +60,10 @@ protected:
 
 	std::string mName;
 	bool mVisible = true;
+	uint32_t mFlags = 0;
 
 	Entity* mAttach = nullptr;
 
 private:
-	Scene* mScene;
+	Scene* mScene = nullptr;
 };

@@ -63,7 +63,7 @@ public:
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.070f, 0.070f, 0.070f);
 		entity.transform.SetAngles(0, DirectX::XM_PI / 2, 0);
-		entity.SetStatic(true);
+		entity.SetFlag(EntityFlags::STATIC, true);
 
 		cameraEntity = &mScene->CreateEntity<CameraEntity>();
 		cameraEntity->transform.SetPosition(0, 1, 0);

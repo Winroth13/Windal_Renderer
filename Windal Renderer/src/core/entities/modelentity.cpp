@@ -21,7 +21,7 @@ ModelEntity::~ModelEntity() {}
 void ModelEntity::BeginSelf(RenderServer& renderServer)
 {
 	/* Push static geometry on scene begin */
-	if (mStatic)
+	if (HasFlag(EntityFlags::STATIC))
 	{
 		for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
 		{
@@ -40,7 +40,7 @@ void ModelEntity::UpdateSelf(double delta)
 
 void ModelEntity::RenderSelf(RenderServer& renderServer)
 {
-	if (!mStatic)
+	if (!HasFlag(EntityFlags::STATIC))
 	{
 		for (size_t meshIndex = 0; meshIndex < mModel->GetMeshCount(); ++meshIndex)
 		{
@@ -55,16 +55,5 @@ void ModelEntity::RenderSelf(RenderServer& renderServer)
 
 void ModelEntity::RenderImguiSelf()
 {
-	if (mStatic)
-	{
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "This model is static! No changes here will take effect!");
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(1.0f, 1.0f, 0, 0.25f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.0f, 1.0f, 0, 0.25f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.0f, 1.0f, 0, 0.25f));
-	}
-
 	mModel->RenderImgui();
-
-	if (mStatic)
-		ImGui::PopStyleColor(3);
 }
