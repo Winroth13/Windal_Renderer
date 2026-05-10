@@ -9,6 +9,51 @@
 #include "graphics/camera.h"
 #include "math/mathfunctions.h"
 
+constexpr unsigned int MAX_DIRECTIONAL_LIGHTS = 8;
+constexpr unsigned int MAX_POINT_LIGHTS = 8;
+constexpr unsigned int MAX_SPOT_LIGHTS = 8;
+
+constexpr unsigned int MAX_MATERIALS = 64;
+
+/* Constant Buffers */
+constexpr UINT PER_FRAME = 0;
+constexpr UINT PER_VIEW = 1;
+constexpr UINT PER_OBJECT = 2;
+constexpr UINT PER_MATERIAL = 3;
+constexpr UINT MATERIAL_INDEX = 4;
+
+/* Light Structured Buffers */
+constexpr UINT DIRECTIONAL_LIGHT_SLOT = 0;
+constexpr UINT POINT_LIGHT_SLOT = 1;
+constexpr UINT SPOT_LIGHT_SLOT = 2;
+
+/* Texture Slots */
+constexpr UINT DIFFUSE_TEXTURE_SLOT = 3;
+constexpr UINT CUBEMAP_TEXTURE_SLOT = 4;
+constexpr UINT NORMALMAP_TEXTURE_SLOT = 5;
+constexpr UINT DISPLACEMENT_TEXTURE_SLOT = 6;
+constexpr UINT ALPHA_TEXTURE_SLOT = 7;
+
+/* Shadow Maps */
+constexpr UINT DIRECTIONAL_LIGHT_SHADOW_MAPS_SLOT = 8;
+constexpr UINT POINT_LIGHT_SHADOW_MAPS_SLOT = 9;
+constexpr UINT SPOT_LIGHT_SHADOW_MAPS_SLOT = 10;
+
+/* Shadow Map Dimentions */
+constexpr unsigned int DIRECTIONAL_SHADOW_MAP_DIMENTIONS = 2048;
+constexpr unsigned int POINT_SHADOW_MAP_DIMENTIONS = 512;
+constexpr unsigned int SPOT_SHADOW_MAP_DIMENTIONS = 512;
+
+/* Materials */
+constexpr UINT DEFERRED_MATERIALS_SLOT = 3;
+
+/* GBuffers */
+constexpr UINT GBUFFER_START_SLOT = 11;
+
+/* Samplers */
+constexpr UINT DEFAULT_SAMPLER_SLOT = 0;
+constexpr UINT SHADOW_MAP_SAMPLER_SLOT = 1;
+
 Renderer::Renderer() :
 	mSwapChain(nullptr),
 	mBackBufferRenderTargetView(nullptr),
@@ -431,19 +476,31 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		mShadowMapPixelShader = std::make_unique<PixelShader>("resources/ShadowMapPixelShader.cso");
 		mShadowMapLinearPixelShader = std::make_unique<PixelShader>("resources/ShadowMapLinearPixelShader.cso");
 
-		if (!mDirectionalLightsShadowMap.Create(MAX_DIRECTIONAL_LIGHTS, 2048, 2048))
+		if (!mDirectionalLightsShadowMap.Create(
+			MAX_DIRECTIONAL_LIGHTS,
+			DIRECTIONAL_SHADOW_MAP_DIMENTIONS,
+			DIRECTIONAL_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create directional lights shadow map");
 			return false;
 		}
 
-		if (!mPointLightsShadowMap.Create(MAX_POINT_LIGHTS, 512, 512))
+		if (!mPointLightsShadowMap.Create(
+			MAX_POINT_LIGHTS,
+			POINT_SHADOW_MAP_DIMENTIONS,
+			POINT_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create point lights shadow map");
 			return false;
 		}
 
-		if (!mSpotLightsShadowMap.Create(MAX_SPOT_LIGHTS, 512, 512))
+		if (!mSpotLightsShadowMap.Create(
+			MAX_SPOT_LIGHTS,
+			SPOT_SHADOW_MAP_DIMENTIONS,
+			SPOT_SHADOW_MAP_DIMENTIONS
+		))
 		{
 			Logger::Error("Failed to create spot lights shadow map");
 			return false;
@@ -965,7 +1022,7 @@ void Renderer::RenderShadowMaps()
 			auto& pointLightData = mPointLightsData[i];
 
 			/* Only draw shadows if told so! */
-			if (!pointLightData.shadows)
+			if (!pointLightData.updateShadows)
 			{
 				continue;
 			}
@@ -1457,6 +1514,7 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 		BindHullShader(mShadowTessellationHullShader);
+		BindPerMaterialBuffer(ShaderType::HULL);
 		BindDomainShader(mShadowDisplacementDomainShader);
 		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
 	}
@@ -1523,6 +1581,7 @@ void Renderer::RenderDeferredMeshAndMaterial(
 		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
 		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 		BindHullShader(mTessellationHullShader);
+		BindPerMaterialBuffer(ShaderType::HULL);
 		BindDomainShader(mDisplacementDomainShader);
 		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
 	}
@@ -1568,6 +1627,10 @@ void Renderer::UpdatePerMaterialBuffer(std::shared_ptr<Material> material)
 	perMatBuffer.phongExponent = material->GetPhongExponent();
 	perMatBuffer.reflectiveness = material->GetReflectiveness();
 	perMatBuffer.materialFlags = material->GetFlags();
+	perMatBuffer.maxTessFactor = material->GetMaxTessFactor();
+	perMatBuffer.maxTessDistance = material->GetMaxTessDistance();
+	perMatBuffer.minTessDistance = material->GetMinTessDistance();
+
 	mImmediateContext->UpdateSubresource(mPerMaterialBuffer, 0, NULL, &perMatBuffer, 0, 0);
 }
 
@@ -1638,6 +1701,9 @@ void Renderer::BindPerMaterialBuffer(ShaderType shaderType)
 	{
 	case ShaderType::VERTEX:
 		mImmediateContext->VSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);
+		break;
+	case ShaderType::HULL:
+		mImmediateContext->HSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);
 		break;
 	case ShaderType::PIXEL:
 		mImmediateContext->PSSetConstantBuffers(PER_MATERIAL, 1, &mPerMaterialBuffer);

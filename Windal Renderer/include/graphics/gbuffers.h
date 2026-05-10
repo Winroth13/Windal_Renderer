@@ -2,8 +2,6 @@
 #include <vector>
 #include <d3d11.h>
 
-constexpr size_t GBUFFER_START_SLOT = 7;
-
 enum class GBufferType
 {
 	POSITION,

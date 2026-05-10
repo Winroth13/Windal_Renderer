@@ -72,6 +72,24 @@ void Material::SetReflectiveness(const float reflectiveness)
 	mIsDirty = true;
 }
 
+void Material::SetMaxTessFactor(const float maxTessFactor)
+{
+	mMaxTessFactor = maxTessFactor;
+	mIsDirty = true;
+}
+
+void Material::SetMaxTessDistance(const float maxTessDistance)
+{
+	mMaxTessDistance = maxTessDistance;
+	mIsDirty = true;
+}
+
+void Material::SetMinTessDistance(const float minTessDistance)
+{
+	mMinTessDistance = minTessDistance;
+	mIsDirty = true;
+}
+
 void Material::SetNormalMap(std::shared_ptr<Texture2D> normalMap)
 {
 	mNormalMap = normalMap;
@@ -183,8 +201,8 @@ void Material::RenderImgui()
 
 bool Material::HasAlpha() const
 {
-	return 
-		(mFlags & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP)) == 
+	return
+		(mFlags & static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP)) ==
 		static_cast<uint32_t>(MaterialFlags::HAS_ALPHA_MAP);
 }
 

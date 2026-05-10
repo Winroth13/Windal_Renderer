@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <string>
 
 class Material;
 class Mesh;
@@ -22,6 +23,9 @@ public:
 
 	std::shared_ptr<Mesh> GetMesh(size_t index) { return mMeshes[index]; }
 	std::shared_ptr<Material> GetMaterial(size_t index) { return mMaterials[mMaterialIndicies[index]]; }
+
+	std::shared_ptr<Mesh> GetMeshByName(std::string name);
+	std::shared_ptr<Material> GetMaterialByName(std::string name);
 
 	size_t GetNumIndicies(size_t index);
 	const size_t GetMeshCount() { return mMeshes.size(); }

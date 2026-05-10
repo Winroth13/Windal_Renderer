@@ -41,7 +41,11 @@ struct Material
     float3 diffuseCoefficient;
     float reflectiveness;
     float3 specularCoefficient;
-    float pad0;
+    uint materialFlags;
+    float maxTessFactor;
+    float maxTessDistance;
+    float minTessDistance;
+    float pad1;
 };
 
 // Constant buffers
