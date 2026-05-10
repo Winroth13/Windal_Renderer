@@ -121,3 +121,7 @@ The entire Sponza-model is static. You can see the quadtree by enabling bounding
 Most of the materials in the scene uses normal maps to offset their normals and create the illusion of more detailed geometry.
 
 They are the most visible when looking at the Normal-buffer using `Debug -> Viewport -> G-Buffers`, looking at the cube-mapped sphere or the rotating brick cube, both right above the starting location of the camera.
+
+## Important
+
+All debug messages are shown in the seperate terminal window. Closing the terminal window also closes the renderer, but beware that it generates false memory leaks if you are using a debugger.
