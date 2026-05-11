@@ -120,16 +120,16 @@ DirectX::XMMATRIX Entity::GetGlobalTransform()
 
 DirectX::XMFLOAT3 Entity::GetGlobalPosition()
 {
-	if (mAttach != nullptr)
-	{
-		DirectX::XMFLOAT4X4 matrix;
-		DirectX::XMStoreFloat4x4(&matrix, GetGlobalTransform());
-		return { matrix._41, matrix._42, matrix._43 };
-	}
-	else
-	{
-		return transform.GetPosition3f();
-	}
+	DirectX::XMVECTOR translation;
+	DirectX::XMVECTOR rotation;
+	DirectX::XMVECTOR scale;
+
+	DirectX::XMMatrixDecompose(&scale, &rotation, &translation, GetGlobalTransform());
+
+	DirectX::XMFLOAT3 position = { 0, 0, 0 };
+	DirectX::XMStoreFloat3(&position, translation);
+
+	return position;
 }
 
 DirectX::XMFLOAT3 Entity::GetGlobalAngles()
