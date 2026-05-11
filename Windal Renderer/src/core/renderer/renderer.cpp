@@ -942,10 +942,10 @@ void Renderer::RenderShadowMaps()
 			camera.transform.SetPosition(direction);
 
 			// Center on the scene camera
-			// (pos % 2) * 2 is to remove the shimmering effect due to moving the sahdow-texture all the time
-			camera.transform.MoveX(float(int(mSceneCamera.pos.x) % 2) * 2);
-			camera.transform.MoveY(float(int(mSceneCamera.pos.y) % 2) * 2);
-			camera.transform.MoveZ(float(int(mSceneCamera.pos.z) % 2) * 2);
+			// Truncating is to remove the shimmering effect due to moving the shadow-texture all the time
+			camera.transform.MoveX((float)(int)mSceneCamera.pos.x);
+			camera.transform.MoveY((float)(int)mSceneCamera.pos.y);
+			camera.transform.MoveZ((float)(int)mSceneCamera.pos.z);
 
 			camera.UpdateViewMatrix();
 
