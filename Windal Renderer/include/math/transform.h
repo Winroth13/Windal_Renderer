@@ -98,6 +98,4 @@ private:
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	bool mIsDirty = false;
-
-	DirectX::XMFLOAT3 AnglesFromMatrix(DirectX::XMFLOAT4X4& matrix);
 };

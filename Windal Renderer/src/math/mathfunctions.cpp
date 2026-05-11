@@ -2,6 +2,8 @@
 #include <iostream>
 #include <sstream>
 
+using namespace DirectX;
+
 DirectX::XMFLOAT3 DirectionToAngles(DirectX::XMFLOAT3 direction)
 {
 	return DirectX::XMFLOAT3(
@@ -24,4 +26,30 @@ std::string VectorToString(const DirectX::XMVECTOR vector)
 	DirectX::XMStoreFloat3(&float3, vector);
 
 	return Float3ToString(float3);
+}
+
+XMFLOAT3 EulerFromQuaternion(const XMFLOAT4& quaternion)
+{
+	XMMATRIX matrix = XMMatrixRotationQuaternion(XMLoadFloat4(&quaternion));
+	XMFLOAT4X4 matrixf;
+	XMStoreFloat4x4(&matrixf, matrix);
+
+	float pitch = asinf(-matrixf._32);
+	float yaw = atan2f(matrixf._31, matrixf._33);
+	float roll;
+	if (fabsf(pitch) != XM_PIDIV2) // Prevent Gimbal Lock
+		roll = atan2f(matrixf._12, matrixf._22);
+	else
+		roll = 0;
+
+	return XMFLOAT3(pitch, yaw, roll);
+}
+
+XMFLOAT3 AnglesFromMatrix(XMMATRIX matrix)
+{
+	XMVECTOR scale, rotation, translation;
+	XMMatrixDecompose(&scale, &rotation, &translation, matrix);
+	XMFLOAT4 quaternion;
+	XMStoreFloat4(&quaternion, rotation);
+	return EulerFromQuaternion(quaternion);
 }

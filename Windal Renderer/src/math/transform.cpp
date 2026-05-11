@@ -1,5 +1,6 @@
 #include "math/transform.h"
 #include "core/logger.h"
+#include "math/mathfunctions.h"
 
 using namespace DirectX;
 
@@ -245,16 +246,13 @@ void Transform::LookAt(
 	DirectX::FXMVECTOR up
 )
 {
-	XMStoreFloat4x4(
-		&mMatrix,
+	mAngles = AnglesFromMatrix(
 		XMMatrixLookAtLH(
 			position,
 			target,
 			up
 		)
 	);
-
-	mAngles = AnglesFromMatrix(mMatrix);
 
 	mIsDirty = false;
 }
@@ -384,12 +382,4 @@ void Transform::RotateZ(float angle)
 {
 	mAngles.z += angle;
 	mIsDirty = true;
-}
-
-XMFLOAT3 Transform::AnglesFromMatrix(XMFLOAT4X4& matrix)
-{
-	float pitch = (float)atan2(-matrix._31, sqrt(matrix._32 * matrix._32 + matrix._33 * matrix._33));
-	float yaw = (float)atan2(matrix._21, matrix._11);
-	float roll = (float)atan2(matrix._32, matrix._33);
-	return XMFLOAT3(pitch, yaw, roll);
 }

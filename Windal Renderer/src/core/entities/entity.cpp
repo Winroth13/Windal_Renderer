@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 #include "core/imguiflags.h"
 #include "core/scene.h"
+#include "math/mathfunctions.h"
 
 #include <string>
 
@@ -133,15 +134,7 @@ DirectX::XMFLOAT3 Entity::GetGlobalPosition()
 
 DirectX::XMFLOAT3 Entity::GetGlobalAngles()
 {
-	DirectX::XMFLOAT3 rotation = transform.GetAngles3f();
-	if (mAttach != nullptr)
-	{
-		DirectX::XMFLOAT3 attachRot = mAttach->GetGlobalAngles();
-		rotation.x += attachRot.x;
-		rotation.y += attachRot.y;
-		rotation.z += attachRot.z;
-	}
-	return rotation;
+	return AnglesFromMatrix(GetGlobalTransform());
 }
 
 DirectX::XMFLOAT3 Entity::GetGlobalScale()
