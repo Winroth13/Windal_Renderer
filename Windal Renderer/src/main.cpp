@@ -312,11 +312,11 @@ public:
 				/* Clamp pitch */
 				if (cameraEntity->transform.GetAngles3f().x > DirectX::XM_PIDIV2)
 				{
-					cameraEntity->transform.SetPitch(DirectX::XM_PIDIV2);
+					cameraEntity->transform.SetPitch(DirectX::XM_PIDIV2 - 0.001f);
 				}
 				else if (cameraEntity->transform.GetAngles3f().x < -DirectX::XM_PIDIV2)
 				{
-					cameraEntity->transform.SetPitch(-DirectX::XM_PIDIV2);
+					cameraEntity->transform.SetPitch(-DirectX::XM_PIDIV2 + 0.001f);
 				}
 			}
 
