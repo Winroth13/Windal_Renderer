@@ -31,6 +31,10 @@
 
 #include "core/quadtree.h"
 
+/*
+	Makes the process use a dedicated GPU if available,
+	for some reason integrated is the standard
+*/
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
 	__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
