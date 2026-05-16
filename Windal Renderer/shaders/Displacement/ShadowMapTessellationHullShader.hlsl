@@ -44,7 +44,7 @@ cbuffer cbPerMaterial : register(b3)
     float maxTessFactor;
     float maxTessDistance;
     float minTessDistance;
-    float pad0;
+    float dispStrength;
 }
 
 #define NUM_CONTROL_POINTS 3
@@ -60,6 +60,8 @@ PatchConstantOutput CalcHSPatchConstants(InputPatch<VertexShaderOutput, NUM_CONT
     float distance = length(viewDir);
     float tessFalloffDistance = distance - maxTessDistance;
     float tessFalloffFactor = minTessDistance - maxTessDistance;
+    if (tessFalloffFactor == 0) // Prevent division by zero
+        tessFalloffFactor = 1;
     
     float tessFactor = lerp(
         maxTessFactor,

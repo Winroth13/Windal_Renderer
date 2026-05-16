@@ -64,6 +64,7 @@ public:
 		sponzaBricks->SetMaxTessFactor(50.0f);
 		sponzaBricks->SetMaxTessDistance(15.0f);
 		sponzaBricks->SetMinTessDistance(30.0f);
+		sponzaBricks->SetDispStrength(0.05f);
 		auto& entity = mScene->CreateEntity<ModelEntity>(sponza);
 		entity.SetName("Sponza");
 		entity.transform.SetScale(0.070f, 0.070f, 0.070f);
