@@ -472,7 +472,6 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 
 	/* Create Shadow Maps */
 	{
-		mShadowMapVertexShader = std::make_unique<VertexShader>("resources/ShadowMapVertexShader.cso");
 		mShadowMapPixelShader = std::make_unique<PixelShader>("resources/ShadowMapPixelShader.cso");
 		mShadowMapLinearPixelShader = std::make_unique<PixelShader>("resources/ShadowMapLinearPixelShader.cso");
 
@@ -504,30 +503,6 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 		{
 			Logger::Error("Failed to create spot lights shadow map");
 			return false;
-		}
-
-		/* Create Input Layout */
-		{
-			D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
-			{
-				{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			};
-
-			HRESULT hr = Renderer::GetDevice()->CreateInputLayout(
-				inputDesc,
-				3,
-				mShadowMapVertexShader->GetByteCode().c_str(),
-				mShadowMapVertexShader->GetByteCode().length(),
-				&mShadowInputLayout
-			);
-
-			if (FAILED(hr))
-			{
-				Logger::Error("Failed to create shadow map input layout");
-				return false;
-			}
 		}
 
 		/* Create Sampler */
@@ -570,9 +545,6 @@ bool Renderer::Create(DirectX::XMFLOAT4 clearColor, Window* window)
 	{
 		mTessellationHullShader = std::make_unique<HullShader>("resources/TessellationHullShader.cso");
 		mDisplacementDomainShader = std::make_unique<DomainShader>("resources/DisplacementDomainShader.cso");
-
-		mShadowTessellationHullShader = std::make_unique<HullShader>("resources/ShadowMapTessellationHullShader.cso");
-		mShadowDisplacementDomainShader = std::make_unique<DomainShader>("resources/ShadowMapDisplacementDomainShader.cso");
 	}
 
 	if (!mAABBRenderer.Create())
@@ -912,12 +884,6 @@ void Renderer::BakeStaticGeometry()
 
 void Renderer::RenderShadowMaps()
 {
-	/* Bind Shadow Map Vertex Shader */
-	BindVertexShader(mShadowMapVertexShader);
-
-	/* Bind Input Layout */
-	mImmediateContext->IASetInputLayout(mShadowInputLayout);
-
 	/* Directional Lights */
 	{
 		/* Set Shadow Map Viewport for Directional Lights */
@@ -1156,9 +1122,7 @@ void Renderer::RenderShadowMaps()
 		}
 	}
 
-	UnbindVertexShader();
 	UnbindPixelShader();
-	mImmediateContext->IASetInputLayout(nullptr);
 }
 
 void Renderer::RenderCubeMaps()
@@ -1498,37 +1462,10 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 	auto& mat = materialData.material;
 	BindMaterialSRV(mat, 0);
 
-	D3D11_CULL_MODE wishCullMode = mat->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
-	if (mRasterizerDesc.CullMode != wishCullMode)
-	{
-		ID3D11RasterizerState* state;
-		mRasterizerDesc.CullMode = wishCullMode;
-
-		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
-		mImmediateContext->RSSetState(state);
-		state->Release();
-	}
-
-	if (mat->HasDisplacement())
-	{
-		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
-		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-		BindHullShader(mShadowTessellationHullShader);
-		BindPerMaterialBuffer(ShaderType::HULL);
-		BindPerMaterialBuffer(ShaderType::DOMAIN_SHADER);
-		BindDomainShader(mShadowDisplacementDomainShader);
-		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
-	}
-
 	BindMesh(geometryData.mesh);
 	UpdatePerObjectBuffer(geometryData.transform);
 	UpdatePerMaterialBuffer(mat);
 	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
-
-	/* Disable Tessellation */
-	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	UnbindHullShader();
-	UnbindDomainShader();
 }
 
 void Renderer::RenderDeferredMeshAndMaterial(
@@ -1566,37 +1503,10 @@ void Renderer::RenderDeferredMeshAndMaterial(
 	UpdatePerObjectBuffer(geometryData.transform);
 	UpdatePerMaterialBuffer(mat);
 
-	D3D11_CULL_MODE wishCullMode = mat->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
-	if (mRasterizerDesc.CullMode != wishCullMode)
-	{
-		ID3D11RasterizerState* state;
-		mRasterizerDesc.CullMode = wishCullMode;
-
-		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
-		mImmediateContext->RSSetState(state);
-		state->Release();
-	}
-
-	if (mat->HasDisplacement())
-	{
-		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
-		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-		BindHullShader(mTessellationHullShader);
-		BindPerMaterialBuffer(ShaderType::HULL);
-		BindPerMaterialBuffer(ShaderType::DOMAIN_SHADER);
-		BindDomainShader(mDisplacementDomainShader);
-		BindTexture2D(mat->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
-	}
-
 	mImmediateContext->DrawIndexed((UINT)mesh->GetNumIndicies(), 0, 0);
 
 	ID3D11ShaderResourceView* views[] = { nullptr };
 	mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
-
-	/* Disable Tessellation */
-	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	UnbindHullShader();
-	UnbindDomainShader();
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
@@ -1731,6 +1641,34 @@ void Renderer::BindMaterialSRV(std::shared_ptr<Material> material, uint32_t inde
 	BindTexture2D(material->GetNormalMap(), NORMALMAP_TEXTURE_SLOT);
 	BindTexture2D(material->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT);
 	BindTexture2D(material->GetAlphaMap(), ALPHA_TEXTURE_SLOT);
+
+	D3D11_CULL_MODE wishCullMode = material->HasAlpha() ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+	if (mRasterizerDesc.CullMode != wishCullMode)
+	{
+		ID3D11RasterizerState* state;
+		mRasterizerDesc.CullMode = wishCullMode;
+
+		sDevice->CreateRasterizerState(&mRasterizerDesc, &state);
+		mImmediateContext->RSSetState(state);
+		state->Release();
+	}
+
+	if (material->HasDisplacement())
+	{
+		mImmediateContext->HSSetConstantBuffers(BUFFER_PER_OBJECT, 1, &mPerObjectBuffer);
+		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		BindHullShader(mTessellationHullShader);
+		BindPerMaterialBuffer(ShaderType::HULL);
+		BindPerMaterialBuffer(ShaderType::DOMAIN_SHADER);
+		BindDomainShader(mDisplacementDomainShader);
+		BindTexture2D(material->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
+	}
+	else /* Disable tessellation */
+	{
+		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		UnbindHullShader();
+		UnbindDomainShader();
+	}
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
 
