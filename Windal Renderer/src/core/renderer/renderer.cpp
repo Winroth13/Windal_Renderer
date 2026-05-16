@@ -1466,6 +1466,11 @@ void Renderer::RenderShadowMeshAndMaterial(GeometryData& geometryData, MaterialD
 	UpdatePerObjectBuffer(geometryData.transform);
 	UpdatePerMaterialBuffer(mat);
 	mImmediateContext->DrawIndexed((UINT)geometryData.mesh->GetNumIndicies(), 0, 0);
+
+	/* Disable tessellation */
+	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	UnbindHullShader();
+	UnbindDomainShader();
 }
 
 void Renderer::RenderDeferredMeshAndMaterial(
@@ -1507,6 +1512,11 @@ void Renderer::RenderDeferredMeshAndMaterial(
 
 	ID3D11ShaderResourceView* views[] = { nullptr };
 	mImmediateContext->PSSetShaderResources(CUBEMAP_TEXTURE_SLOT, 1, views);
+
+	/* Disable tessellation */
+	mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	UnbindHullShader();
+	UnbindDomainShader();
 }
 
 void Renderer::UpdatePerViewBuffer(const CameraData& cameraData)
@@ -1662,12 +1672,6 @@ void Renderer::BindMaterialSRV(std::shared_ptr<Material> material, uint32_t inde
 		BindPerMaterialBuffer(ShaderType::DOMAIN_SHADER);
 		BindDomainShader(mDisplacementDomainShader);
 		BindTexture2D(material->GetDisplacementMap(), DISPLACEMENT_TEXTURE_SLOT, ShaderType::DOMAIN_SHADER);
-	}
-	else /* Disable tessellation */
-	{
-		mImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		UnbindHullShader();
-		UnbindDomainShader();
 	}
 
 	mImmediateContext->IASetInputLayout(material->GetInputLayout());
