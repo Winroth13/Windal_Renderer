@@ -44,7 +44,7 @@ Both the fires and their smoke are created using particle systems.
 
 ### Dynamic Cube Mapping
 
-Renders the world from a set point in space to later use for reflections. Can be paused like point light shadow maps by unchecking `Dynamic` while the dubemap is selected. Is not paused by default.
+Renders the world from a set point in space to later use for reflections. Can be paused like point light shadow maps by unchecking `Dynamic` while the cubemap is selected. Is not paused by default.
 
 There is a sphere using a dynamic cube map right above the starting location of the camera.
 
