@@ -102,6 +102,8 @@ Every light renders a depth map of what they can see, which is later used to det
 
 The effect is widely visible throughout the scene.
 
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Gifs/shadow_mapping.gif)
+
 ### Particle System
 
 Particles are processed as a cluster of points by a compute shader every frame before being drawn as billboards using a geometry shader in forward rendering.
