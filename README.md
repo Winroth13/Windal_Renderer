@@ -96,13 +96,15 @@ Rendering of geometry is done first with a geometry pre-pass to determine what i
 
 The buffers used for storing the geometry information can be seen using the toggle `Debug -> Viewport -> G-Buffers`.
 
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/gbuffers.png)
+
 ### Shadow Mapping
 
-Every light renders a depth map of what they can see, which is later used to determine if rendered geometry is in shadow. Shadow mapping can be paused on point lights to increase performance by not rendering depth every frame and they are paused by default. Unpause them by checking `Dynamic Shadows`.
+Every light renders a depth map of what they can see, which is later used to determine if rendered geometry is in shadow. Shadow mapping can be paused on point lights to increase performance by not rendering depth every frame and they are paused by default. Unpause them by checking `Dynamic Shadows` while the point light is selected.
 
 The effect is widely visible throughout the scene.
 
-![](https://github.com/Winroth13/Windal_Renderer/blob/master/Gifs/shadow_mapping.gif)
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/shadow_mapping.gif)
 
 ### Particle System
 
@@ -110,11 +112,15 @@ Particles are processed as a cluster of points by a compute shader every frame b
 
 Both the fires and their smoke are created using particle systems.
 
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/particles.gif)
+
 ### Dynamic Cube Mapping
 
-Renders the world from a set point in space to later use for reflections. Can be paused like point light shadow maps by unchecking `Dynamic`. Is not paused by default.
+Renders the world from a set point in space to later use for reflections. Can be paused like point light shadow maps by unchecking `Dynamic` while the dubemap is selected. Is not paused by default.
 
 There is a sphere using a dynamic cube map right above the starting location of the camera.
+
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/cubemapping.gif)
 
 ### Tessellation (Displacement Mapping)
 
@@ -122,17 +128,25 @@ Some materials generate additional geometry in the hull shader and use a displac
 
 The inner brick walls of the Sponza-model use displacement mapping.
 
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/tessellation_01.gif)
+
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/tessellation_02.gif)
+
 ### Hierarchical Frustum Culling
 
 Static models are stored in a spatial tree in the form of an quadtree. This quadtree is then used to efficiently determine what is visible to the rendering camera.
 
 The entire Sponza-model is static. You can see the quadtree by enabling bounding box drawing using `Debug -> Viewport -> Bounding Boxes`.
 
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/culling.png)
+
 ### Normal Mapping
 
 Most of the materials in the scene uses normal maps to offset their normals and create the illusion of more detailed geometry.
 
 They are the most visible when looking at the Normal-buffer using `Debug -> Viewport -> G-Buffers`, looking at the cube-mapped sphere or the rotating brick cube, both right above the starting location of the camera.
+
+![](https://github.com/Winroth13/Windal_Renderer/blob/master/Media/normal_mapping.gif)
 
 ## Important
 
