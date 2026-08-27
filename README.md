@@ -8,7 +8,7 @@ A simple 3D-renderer using DirectX11 implementing a number of rendering techniqu
 
 [Controls](#controls)
 
-[Manus](#menus)
+[Menus](#menus)
 
 [Techniques](#techniques)
 
