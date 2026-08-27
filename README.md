@@ -4,6 +4,16 @@ Authors: Emil Winroth & Johannes Ledendal
 
 A simple 3D-renderer using DirectX11 implementing a number of rendering techniques taught during the course 3D-programming 2.
 
+## Table of Contents
+
+[Controls](#controls)
+
+[Manus](#menus)
+
+[Techniques](#techniques)
+
+[Important](#important)
+
 ## Controls
 
 WASD - Movement
